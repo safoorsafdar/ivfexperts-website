@@ -112,7 +112,7 @@ endif; ?>
     </div>
 
     <!-- The Actual Document -->
-    <div class="a4-container flex flex-col relative font-sans" id="document-container" style="padding-bottom: 90px;">
+    <div class="a4-container flex flex-col relative pb-20 font-sans" id="document-container">
         
         <!-- Permanent Letterhead Background for Patients -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])): ?>
@@ -121,7 +121,7 @@ endif; ?>
 endif; ?>
 
         <!-- Header -->
-        <div class="flex justify-between items-center mb-1.5 border-b-2 border-slate-800 pb-1">
+        <div class="flex justify-between items-center mb-2 border-b-2 border-slate-800 pb-1.5">
             <!-- Left Side: IVF Experts Standard Logo (we pull from web root assets if exists, or text fallback) -->
             <div class="w-1/3">
                 <img src="../assets/images/logo.png" alt="IVF Experts" class="h-12 object-contain" onerror="this.style.display='none'; document.getElementById('fb1').style.display='block';">
@@ -142,7 +142,7 @@ endif; ?>
         </div>
 
         <!-- Patient Demographics Box -->
-        <div class="border border-slate-300 rounded px-3 py-1 mb-1.5 bg-slate-50">
+        <div class="border border-slate-300 rounded px-3 py-1.5 mb-2 bg-slate-50">
             <div class="grid grid-cols-2 gap-y-1 text-[12px]">
                 <div><span class="font-semibold w-24 inline-block text-slate-600">Patient Name:</span> <span class="font-bold text-[13px] text-slate-900"><?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?></span></div>
                 <div><span class="font-semibold w-28 inline-block text-slate-600">Spouse Name:</span> <span class="font-medium text-slate-800"><?php echo esc($sa['spouse_name'] ?: '-'); ?></span></div>
@@ -157,8 +157,8 @@ endif; ?>
         </div>
 
         <!-- Macroscopic -->
-        <h3 class="font-bold uppercase tracking-widest text-[10px] mb-0.5 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Macroscopic Examination</h3>
-        <table class="w-full sa-table mb-1.5">
+        <h3 class="font-bold uppercase tracking-widest text-[11px] mb-1 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Macroscopic Examination</h3>
+        <table class="w-full sa-table mb-2">
             <thead>
                 <tr>
                     <th class="w-1/3">Parameter</th>
@@ -194,8 +194,8 @@ endif; ?>
         </table>
 
         <!-- Microscopic -->
-        <h3 class="font-bold uppercase tracking-widest text-[10px] mb-0.5 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Microscopic Examination</h3>
-        <table class="w-full sa-table mb-1.5">
+        <h3 class="font-bold uppercase tracking-widest text-[11px] mb-1 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Microscopic Examination</h3>
+        <table class="w-full sa-table mb-2">
             <thead>
                 <tr>
                     <th class="w-1/3">Parameter</th>
@@ -236,8 +236,8 @@ endif; ?>
         </table>
 
         <!-- Morphological Examination -->
-        <h3 class="font-bold uppercase tracking-widest text-[10px] mb-0.5 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Morphological Examination</h3>
-        <table class="w-full sa-table mb-1.5">
+        <h3 class="font-bold uppercase tracking-widest text-[11px] mb-1 bg-slate-800 text-white px-3 py-0.5 rounded-sm shadow-sm">Morphological Examination</h3>
+        <table class="w-full sa-table mb-2">
             <thead>
                 <tr>
                     <th class="w-1/3">Parameter</th>
@@ -297,14 +297,14 @@ $display_diagnosis = [];
 foreach ($parts as $p) {
     $trimmed_p = trim($p);
     if (isset($definitions[$trimmed_p])) {
-        $display_diagnosis[] = "<div class='pb-1 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-sm underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[9px] mt-0.5 text-sky-100 font-normal normal-case leading-tight'>" . $definitions[$trimmed_p] . "</p></div>";
+        $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[10px] mt-1 text-sky-100 font-normal normal-case leading-relaxed'>" . $definitions[$trimmed_p] . "</p></div>";
     }
     else {
         $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg'>$trimmed_p</span></div>";
     }
 }
 ?>
-        <div class="mt-1.5 bg-gray-100 text-slate-900 rounded-[3px] p-2.5 border border-gray-300 mx-4">
+        <div class="mt-2 bg-gray-100 text-slate-900 rounded-[3px] p-3 border border-gray-300 mx-4">
             <h4 class="uppercase tracking-widest text-[9px] font-bold text-slate-500 mb-2 border-b border-gray-200 pb-0.5">Conclusion / Clinical Diagnosis</h4>
             <div class="space-y-2">
                 <?php
@@ -316,7 +316,7 @@ foreach ($display_diagnosis as $d) {
         </div>
 
         <?php if (!empty($sa['admin_notes'])): ?>
-            <div class="mt-1.5 p-2.5 bg-slate-50 text-[10px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
+            <div class="mt-2 p-3 bg-slate-50 text-[11px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
                 <span class="font-bold uppercase text-[9px] block mb-1 text-slate-500 border-b border-slate-100 pb-0.5">Clinical Embryologist Remarks</span>
                 <div class="leading-relaxed whitespace-pre-wrap italic text-slate-700"><?php echo esc($sa['admin_notes']); ?></div>
             </div>
@@ -347,6 +347,8 @@ endif; ?>
                     <span class="text-emerald-700 font-bold italic text-[8.5px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
                 </div>
             </div>
+
+        </div>
 
         </div>
 
