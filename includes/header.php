@@ -18,19 +18,23 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<?= htmlspecialchars($pageTitle) ?>">
 <meta name="twitter:description" content="<?= htmlspecialchars($metaDescription) ?>">
-<!-- Styles -->
-<link rel="stylesheet" href="/assets/css/style.css?v=2">
+<!-- Preconnect & Preloads -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
-<!-- Critical Resource Preloading -->
+<link rel="preload" href="/assets/css/style.css?v=2" as="style" fetchpriority="high">
 <link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" as="style">
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
+<!-- Core Styles -->
+<link rel="stylesheet" href="/assets/css/style.css?v=2">
 <script src="/assets/js/app.js?v=4" defer></script>
+<!-- Deferred Non-Critical Styles -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
-<noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet"></noscript>
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
+<noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+</noscript>
 <!-- Physician + Organization Schema -->
 <script type="application/ld+json">
 {
@@ -420,7 +424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="mobile-accordion-content" style="display:none;padding:0 24px 12px 24px;background:#f8fafc;">
           <a href="/art-procedures/" style="display:block;padding:10px 16px;font-size:14px;color:#0f766e;font-weight:600;text-decoration:none;border-radius:8px;"><i class="fa-solid fa-microscope" style="width:16px;text-align:center;margin-right:6px;"></i> Overview &rarr;</a>
           <a href="/art-procedures/ivf.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-baby" style="width:16px;text-align:center;margin-right:6px;color:#ec4899;"></i> IVF Treatment</a>
-          <a href="/art-procedures/icsi.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-bullseye" style="width:16px;text-align:center;margin-right:6px;color:#ef4444;"></i> ICSI Treatment</a>
+          <a href="/art-procedures/icsi.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-baby-carriage" style="width:16px;text-align:center;margin-right:6px;color:#ef4444;"></i> ICSI Treatment</a>
           <a href="/art-procedures/iui.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-hand-holding-medical" style="width:16px;text-align:center;margin-right:6px;color:#14b8a6;"></i> IUI Insemination</a>
           <a href="/art-procedures/pgt.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-dna" style="width:16px;text-align:center;margin-right:6px;color:#a855f7;"></i> PGT / Gender Selection</a>
           <a href="/art-procedures/fertility-preservation.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-snowflake" style="width:16px;text-align:center;margin-right:6px;color:#06b6d4;"></i> Egg &amp; Sperm Freezing</a>
