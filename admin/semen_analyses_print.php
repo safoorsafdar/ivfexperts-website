@@ -30,10 +30,10 @@ if (!$sa)
     die("Report not found.");
 
 // Since this is a custom plain A4 layout (not using hospital letterhead margins, we supply logos ourselves)
-$mt = 10;
-$mb = 12;
-$ml = 15;
-$mr = 15;
+$mt = 5;
+$mb = 5;
+$ml = 12;
+$mr = 12;
 
 // Calculated Totals
 $total_motility = $sa['pr_motility'] + $sa['np_motility'];
@@ -80,8 +80,8 @@ $total_motility = $sa['pr_motility'] + $sa['np_motility'];
             object-fit: fill;
         }
 
-        .sa-table th { padding: 4px 8px; text-align: left; background: #f9fafb; font-size: 11px; text-transform: uppercase; border: 1px solid #e5e7eb; }
-        .sa-table td { padding: 4px 8px; font-size: 13px; border: 1px solid #e5e7eb; }
+        .sa-table th { padding: 2px 6px; text-align: left; background: #f9fafb; font-size: 10px; text-transform: uppercase; border: 1px solid #e5e7eb; }
+        .sa-table td { padding: 2px 6px; font-size: 12px; border: 1px solid #e5e7eb; }
         .red-flag { color: #dc2626; font-weight: bold; }
     </style>
 </head>
@@ -111,7 +111,7 @@ endif; ?>
         <button onclick="window.close()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg">Close</button>
     </div>
 
-    <div class="a4-container flex flex-col relative font-sans" id="document-container" style="padding-bottom: 20mm;">
+    <div class="a4-container flex flex-col relative font-sans" id="document-container" style="padding-bottom: 40px;">
         
         <!-- Permanent Letterhead Background for Patients -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])): ?>
@@ -120,7 +120,7 @@ endif; ?>
 endif; ?>
 
         <!-- Header -->
-        <div class="flex justify-between items-center mb-1.5 border-b-2 border-slate-800 pb-1">
+        <div class="flex justify-between items-center mb-1 border-b border-slate-800 pb-0.5">
             <!-- Left Side: IVF Experts Standard Logo (we pull from web root assets if exists, or text fallback) -->
             <div class="w-1/3">
                 <img src="../assets/images/logo.png" alt="IVF Experts" class="h-12 object-contain" onerror="this.style.display='none'; document.getElementById('fb1').style.display='block';">
@@ -141,11 +141,11 @@ endif; ?>
         </div>
 
         <!-- Patient Demographics Box -->
-        <div class="border border-slate-300 rounded px-3 py-1 mb-1.5 bg-slate-50">
+        <div class="border border-slate-300 rounded px-2 py-1 mb-1 bg-slate-50">
             <div class="grid grid-cols-2 gap-y-1 text-[12px]">
-                <div><span class="font-semibold w-24 inline-block text-slate-600">Patient Name:</span> <span class="font-bold text-[13px] text-slate-900"><?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?></span></div>
+                <div><span class="font-semibold w-24 inline-block text-slate-600">Patient Name:</span> <span class="font-bold text-[12px] text-slate-900"><?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?></span></div>
                 <div><span class="font-semibold w-28 inline-block text-slate-600">Spouse Name:</span> <span class="font-medium text-slate-800"><?php echo esc($sa['spouse_name'] ?: '-'); ?></span></div>
-                <div><span class="font-semibold w-24 inline-block text-slate-600">MR Number:</span> <span class="font-mono font-bold text-indigo-800 tracking-wider text-[13px]"><?php echo esc($sa['mr_number']); ?></span></div>
+                <div><span class="font-semibold w-24 inline-block text-slate-600">MR Number:</span> <span class="font-mono font-bold text-indigo-800 tracking-wider text-[12px]"><?php echo esc($sa['mr_number']); ?></span></div>
                 <div><span class="font-semibold w-28 inline-block text-slate-600">Referred By:</span> <span class="font-medium text-slate-800">Dr. Adnan Jabbar</span></div>
             </div>
             <div class="flex justify-between border-t border-slate-200 mt-1 pt-1 text-[11px]">
@@ -303,7 +303,7 @@ foreach ($parts as $p) {
     }
 }
 ?>
-        <div class="mt-1.5 bg-gray-100 text-slate-900 rounded-[3px] p-2.5 border border-gray-300 mx-4">
+        <div class="mt-1 bg-gray-100 text-slate-900 rounded-[3px] p-2 border border-gray-300 mx-4">
             <h4 class="uppercase tracking-widest text-[9px] font-bold text-slate-500 mb-2 border-b border-gray-200 pb-0.5">Conclusion / Clinical Diagnosis</h4>
             <div class="space-y-2">
                 <?php
@@ -315,7 +315,7 @@ foreach ($display_diagnosis as $d) {
         </div>
 
         <?php if (!empty($sa['admin_notes'])): ?>
-            <div class="mt-1.5 p-2.5 bg-slate-50 text-[10px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
+            <div class="mt-1 p-2 bg-slate-50 text-[10px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
                 <span class="font-bold uppercase text-[9px] block mb-1 text-slate-500 border-b border-slate-100 pb-0.5">Clinical Embryologist Remarks</span>
                 <div class="leading-relaxed whitespace-pre-wrap italic text-slate-700"><?php echo esc($sa['admin_notes']); ?></div>
             </div>
@@ -334,16 +334,16 @@ endif; ?>
                 </div>
             </div>
 
-            <div class="text-right pt-4">
+            <div class="text-right pt-2">
                 <?php if (!empty($sa['digital_signature_path'])): ?>
-                    <img src="../<?php echo esc($sa['digital_signature_path']); ?>" alt="Signature" class="h-14 ml-auto object-contain mb-1" />
+                    <img src="../<?php echo esc($sa['digital_signature_path']); ?>" alt="Signature" class="h-10 ml-auto object-contain mb-0.5" />
                 <?php
 endif; ?>
-                <div class="font-bold text-[13px] text-slate-900 leading-tight">Dr. Adnan Jabbar</div>
-                <div class="text-[9px] text-slate-600 leading-tight mt-0.5">
+                <div class="font-bold text-[12px] text-slate-900 leading-tight">Dr. Adnan Jabbar</div>
+                <div class="text-[8.5px] text-slate-600 leading-tight mt-0">
                     MBBS, DFM, MH, GCP, Family, Fertility & ER Medicine<br>
-                    <span class="font-bold text-slate-700 uppercase tracking-widest text-[8px]">Clinical Embryologist</span><br>
-                    <span class="text-emerald-700 font-bold italic text-[8.5px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
+                    <span class="font-bold text-slate-700 uppercase tracking-widest text-[7.5px]">Clinical Embryologist</span><br>
+                    <span class="text-emerald-700 font-bold italic text-[8px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
                 </div>
             </div>
 
