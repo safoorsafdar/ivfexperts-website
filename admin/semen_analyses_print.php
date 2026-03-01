@@ -274,45 +274,53 @@ endif; ?>
 
         <!-- Diagnosis Box -->
         <?php
-$diagnosis = $sa['auto_diagnosis'];
-$definitions = [];
+$diagnosis = $sa['auto_diagnosis'] ?? '';
+$display_diagnosis = [];
 
-// Fetch all applicable definitions from DB
-$parts = explode(', ', $diagnosis);
-if (!empty($parts)) {
-    $placeholders = implode(',', array_fill(0, count($parts), '?'));
-    $stmt_def = $conn->prepare("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($placeholders)");
-    if ($stmt_def) {
-        $stmt_def->bind_param(str_repeat('s', count($parts)), ...$parts);
-        $stmt_def->execute();
-        $res_def = $stmt_def->get_result();
-        while ($row = $res_def->fetch_assoc()) {
-            $definitions[$row['condition_name']] = $row['definition'];
+if (!empty($diagnosis)) {
+    $parts = explode(', ', $diagnosis);
+    $definitions = [];
+
+    // Safer fetch for compatibility
+    $quoted_parts = [];
+    foreach ($parts as $p) {
+        $quoted_parts[] = "'" . $conn->real_escape_string(trim($p)) . "'";
+    }
+    $in_list = implode(',', $quoted_parts);
+
+    if (!empty($in_list)) {
+        $res_def = $conn->query("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($in_list)");
+        if ($res_def) {
+            while ($row = $res_def->fetch_assoc()) {
+                $definitions[$row['condition_name']] = $row['definition'];
+            }
+        }
+    }
+
+    foreach ($parts as $p) {
+        $trimmed_p = trim($p);
+        if (isset($definitions[$trimmed_p])) {
+            $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[8.5px] mt-0 text-sky-100 font-normal normal-case leading-tight'>" . $definitions[$trimmed_p] . "</p></div>";
+        }
+        else {
+            $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs'>$trimmed_p</span></div>";
         }
     }
 }
-
-$display_diagnosis = [];
-foreach ($parts as $p) {
-    $trimmed_p = trim($p);
-    if (isset($definitions[$trimmed_p])) {
-        $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[8.5px] mt-0 text-sky-100 font-normal normal-case leading-tight'>" . $definitions[$trimmed_p] . "</p></div>";
-    }
-    else {
-        $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs'>$trimmed_p</span></div>";
-    }
-}
 ?>
+        <?php if (!empty($display_diagnosis)): ?>
         <div class="mt-1 bg-gray-100 text-slate-900 rounded-[3px] p-2 border border-gray-300 mx-4">
-            <h4 class="uppercase tracking-widest text-[9px] font-bold text-slate-500 mb-2 border-b border-gray-200 pb-0.5">Conclusion / Clinical Diagnosis</h4>
-            <div class="space-y-2">
+            <h4 class="uppercase tracking-widest text-[9px] font-bold text-slate-500 mb-1 border-b border-gray-200 pb-0.5">Conclusion / Clinical Diagnosis</h4>
+            <div class="space-y-1">
                 <?php
-foreach ($display_diagnosis as $d) {
-    echo str_replace(['text-sky-100', 'underline decoration-sky-300', 'border-white/20'], ['text-slate-600', 'underline decoration-slate-300', 'border-gray-200'], $d);
-}
+    foreach ($display_diagnosis as $d) {
+        echo str_replace(['text-sky-100', 'underline decoration-sky-300', 'border-white/20'], ['text-slate-600', 'underline decoration-slate-300', 'border-gray-200'], $d);
+    }
 ?>
             </div>
         </div>
+        <?php
+endif; ?>
 
         <?php if (!empty($sa['admin_notes'])): ?>
             <div class="mt-1 p-2 bg-slate-50 text-[10px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
@@ -322,15 +330,16 @@ foreach ($display_diagnosis as $d) {
         <?php
 endif; ?>
 
+        <!-- Push footer to bottom -->
+        <div class="flex-grow"></div>
+
         <!-- Footer -->
-        <div class="absolute bottom-0 left-0 right-0 flex justify-between items-end pb-2 px-6 border-t border-slate-100 mt-2 mx-4 bg-white">
-            
-            <div class="flex items-center gap-3 pt-4">
-                <!-- QR Code points to Patient Portal for 2FA unlock -->
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://ivfexperts.pk/portal/verify.php?hash=' . $sa['qrcode_hash']); ?>" alt="QR Code" class="w-14 h-14 border border-slate-200 p-0.5 bg-white shadow-sm" />
+        <div class="flex justify-between items-end pb-2 px-6 border-t border-slate-100 mt-2 mx-4 bg-white">
+            <div class="flex items-center gap-3 pt-2">
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://ivfexperts.pk/portal/verify.php?hash=' . $sa['qrcode_hash']); ?>" alt="QR Code" class="w-12 h-12 border border-slate-200 p-0.5 bg-white shadow-sm" />
                 <div class="text-[8px] text-slate-500 w-48 leading-tight">
                     <span class="font-bold block text-slate-700 text-[9px] mb-0.5">Secure Digitally Verified Record</span>
-                    Scan code with mobile camera to verify clinical authenticity online at ivfexperts.pk.
+                    Scan to verify authenticity at ivfexperts.pk.
                 </div>
             </div>
 
@@ -346,7 +355,6 @@ endif; ?>
                     <span class="text-emerald-700 font-bold italic text-[8px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
                 </div>
             </div>
-
         </div>
 
     </div>
