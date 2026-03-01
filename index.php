@@ -9,9 +9,9 @@ include("includes/header.php");
     <!-- Sophisticated Background -->
     <div class="absolute inset-0 bg-gradient-to-br from-white via-teal-50/50 to-slate-100/80 -z-20"></div>
     
-    <!-- Animated Glow Orbs -->
-    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-200/40 rounded-full blur-[100px] -z-10 animate-pulse-slow mix-blend-multiply"></div>
-    <div class="absolute bottom-10 left-10 w-[400px] h-[400px] bg-emerald-100/50 rounded-full blur-[80px] -z-10 mix-blend-multiply"></div>
+    <!-- Animated Glow Orbs (Fixed to prevent layout shift) -->
+    <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-teal-200/40 rounded-full blur-[100px] -z-10 animate-pulse-slow mix-blend-multiply pointer-events-none transform-gpu" style="contain: paint layout;"></div>
+    <div class="absolute bottom-10 left-10 w-[400px] h-[400px] bg-emerald-100/50 rounded-full blur-[80px] -z-10 mix-blend-multiply pointer-events-none transform-gpu" style="contain: paint layout;"></div>
 
     <div class="max-w-7xl mx-auto px-6 w-full grid lg:grid-cols-12 gap-16 items-center z-10">
         
@@ -109,7 +109,7 @@ include("includes/header.php");
             <!-- Trust Indicators -->
             <div class="mt-12 pt-10 border-t border-slate-200/60 grid grid-cols-2 gap-8">
                 <div>
-                    <h4 class="text-3xl font-extrabold text-teal-700 counter" data-target="10">0</h4>
+                    <h3 class="text-3xl font-extrabold text-teal-700 counter" data-target="10">0</h3>
                     <p class="text-sm font-medium text-slate-500 mt-2">Years of specialized clinical experience</p>
                 </div>
                 <div>
@@ -252,7 +252,7 @@ include("includes/header.php");
                         <svg class="w-12 h-12 text-indigo-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        <h4 class="font-bold text-xl text-slate-800">Male Diagnostics</h4>
+                        <h3 class="font-bold text-xl text-slate-800">Male Diagnostics</h3>
                      </div>
                 </div>
             </div>
@@ -290,7 +290,7 @@ include("includes/header.php");
                         <svg class="w-12 h-12 text-teal-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
-                        <h4 class="font-bold text-xl text-slate-800">Advanced Protocols</h4>
+                        <h3 class="font-bold text-xl text-slate-800">Advanced Protocols</h3>
                      </div>
                 </div>
             </div>

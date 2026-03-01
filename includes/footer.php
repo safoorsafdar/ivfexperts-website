@@ -35,7 +35,7 @@
                     <li><a href="/blog/" class="hover:text-teal-400 transition-colors duration-300">Blog / Articles</a></li>
                     <li><a href="/contact/" class="hover:text-teal-400 transition-colors duration-300">Consultation</a></li>
                     <li class="pt-3">
-                        <a href="/portal/" class="inline-flex items-center gap-2 bg-sky-600 hover:bg-sky-500 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-[0_0_20px_rgba(14,165,233,0.3)] hover:shadow-[0_0_30px_rgba(14,165,233,0.5)]">
+                        <a href="/portal/" class="inline-flex items-center gap-2 bg-sky-700 hover:bg-sky-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-[0_0_20px_rgba(3,105,161,0.3)] hover:shadow-[0_0_30px_rgba(3,105,161,0.5)]">
                             <i class="fa-solid fa-laptop-medical"></i> Patient Reporting Portal
                         </a>
                     </li>
@@ -103,6 +103,7 @@
 
 <!-- FLOATING WHATSAPP BUTTON -->
 <a href="https://wa.me/923111101483"
+   aria-label="Chat with us on WhatsApp"
    class="fixed bottom-8 right-8 z-50 flex items-center justify-center w-16 h-16 bg-emerald-500 text-white rounded-full shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:scale-110 hover:shadow-[0_8px_35px_rgba(16,185,129,0.5)] transition-all duration-300 group">
     <div class="absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0 group-hover:animate-ping"></div>
     <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
