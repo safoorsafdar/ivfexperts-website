@@ -111,8 +111,7 @@ endif; ?>
         <button onclick="window.close()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg">Close</button>
     </div>
 
-    <!-- The Actual Document -->
-    <div class="a4-container flex flex-col relative font-sans" id="document-container" style="padding-bottom: 90px;">
+    <div class="a4-container flex flex-col relative font-sans" id="document-container" style="padding-bottom: 20mm;">
         
         <!-- Permanent Letterhead Background for Patients -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])): ?>
@@ -205,7 +204,7 @@ endif; ?>
             </thead>
             <tr>
                 <td class="w-1/3 font-bold bg-slate-100">Sperm Concentration</td>
-                <td class="w-1/3 text-center font-bold text-base text-slate-900 <?php echo($sa['concentration'] > 0 && $sa['concentration'] < 16) ? 'red-flag' : ''; ?>"><?php echo $sa['concentration']; ?> <span class="text-xs font-normal">M/ml</span></td>
+                <td class="w-1/3 text-center font-bold text-slate-900 <?php echo($sa['concentration'] > 0 && $sa['concentration'] < 16) ? 'red-flag' : ''; ?>"><?php echo $sa['concentration']; ?> <span class="text-[10px] font-normal">M/ml</span></td>
                 <td class="w-1/3 text-right text-xs text-slate-500 italic">≥ 16 M/ml</td>
             </tr>
             <tr>
@@ -225,7 +224,7 @@ endif; ?>
             </tr>
             <tr>
                 <td class="font-bold bg-slate-100 text-blue-900 border-t-2 border-slate-300">Total Motility (PR + NP)</td>
-                <td class="text-center font-bold text-lg border-t-2 border-slate-300 <?php echo($total_motility > 0 && $total_motility < 42) ? 'red-flag' : 'text-blue-700'; ?>"><?php echo $total_motility; ?> %</td>
+                <td class="text-center font-bold text-slate-900 border-t-2 border-slate-300 <?php echo($total_motility > 0 && $total_motility < 42) ? 'red-flag' : 'text-blue-700'; ?>"><?php echo $total_motility; ?> %</td>
                 <td class="text-right text-xs text-slate-500 border-t-2 border-slate-300 italic">≥ 42 %</td>
             </tr>
             <tr>
@@ -297,10 +296,10 @@ $display_diagnosis = [];
 foreach ($parts as $p) {
     $trimmed_p = trim($p);
     if (isset($definitions[$trimmed_p])) {
-        $display_diagnosis[] = "<div class='pb-1 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-sm underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[9px] mt-0.5 text-sky-100 font-normal normal-case leading-tight'>" . $definitions[$trimmed_p] . "</p></div>";
+        $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[8.5px] mt-0 text-sky-100 font-normal normal-case leading-tight'>" . $definitions[$trimmed_p] . "</p></div>";
     }
     else {
-        $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg'>$trimmed_p</span></div>";
+        $display_diagnosis[] = "<div class='pb-0.5 border-b border-white/20 last:border-0 last:pb-0'><span class='font-extrabold block text-xs'>$trimmed_p</span></div>";
     }
 }
 ?>
@@ -324,7 +323,7 @@ foreach ($display_diagnosis as $d) {
 endif; ?>
 
         <!-- Footer -->
-        <div class="absolute bottom-2 left-0 right-0 flex justify-between items-end pb-3 px-6 border-t border-slate-100 mt-4 mx-4">
+        <div class="absolute bottom-0 left-0 right-0 flex justify-between items-end pb-2 px-6 border-t border-slate-100 mt-2 mx-4 bg-white">
             
             <div class="flex items-center gap-3 pt-4">
                 <!-- QR Code points to Patient Portal for 2FA unlock -->
