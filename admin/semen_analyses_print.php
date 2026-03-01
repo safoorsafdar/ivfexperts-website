@@ -276,16 +276,23 @@ endif; ?>
         <!-- Diagnosis Box -->
         <?php
 $diagnosis = $sa['auto_diagnosis'];
-$definitions = [
-    'Oligozoospermia' => "Oligozoospermia is a male fertility condition characterized by a low sperm count in the ejaculate. While a typical healthy range is 16 million to over 200 million sperm per milliliter of semen, someone with this condition falls below that 16 million threshold.",
-    'Asthenozoospermia' => "Asthenozoospermia refers to reduced sperm motility, where the percentage of progressively moving sperm is below the WHO threshold. This condition can impact the sperm's ability to reach and fertilize the egg.",
-    'Teratozoospermia' => "Teratozoospermia is characterized by a high percentage of sperm with abnormal morphology (shape). This can affect the sperm's ability to penetrate the egg.",
-    'Azoospermia' => "Azoospermia is the medical condition where there is no measurable level of sperm in the ejaculate.",
-    'Normozoospermia' => "Normozoospermia indicates that the semen parameters (concentration, motility, and morphology) are within the normal WHO reference range.",
-    'Oligoasthenoteratozoospermia (OAT)' => "OAT syndrome is a condition that encompasses oligozoospermia (low sperm count), asthenozoospermia (poor sperm movement), and teratozoospermia (abnormal sperm shape)."
-];
+$definitions = [];
 
+// Fetch all applicable definitions from DB
 $parts = explode(', ', $diagnosis);
+if (!empty($parts)) {
+    $placeholders = implode(',', array_fill(0, count($parts), '?'));
+    $stmt_def = $conn->prepare("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($placeholders)");
+    if ($stmt_def) {
+        $stmt_def->bind_param(str_repeat('s', count($parts)), ...$parts);
+        $stmt_def->execute();
+        $res_def = $stmt_def->get_result();
+        while ($row = $res_def->fetch_assoc()) {
+            $definitions[$row['condition_name']] = $row['definition'];
+        }
+    }
+}
+
 $display_diagnosis = [];
 foreach ($parts as $p) {
     $trimmed_p = trim($p);
