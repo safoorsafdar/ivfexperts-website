@@ -1,5 +1,7 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)
@@ -275,45 +277,53 @@ endif; ?>
 
         <!-- Diagnosis Box -->
         <?php
-$diagnosis = $sa['auto_diagnosis'];
-$definitions = [];
+$diagnosis = $sa['auto_diagnosis'] ?? '';
+$display_diagnosis = [];
 
-// Fetch all applicable definitions from DB
-$parts = explode(', ', $diagnosis);
-if (!empty($parts)) {
-    $placeholders = implode(',', array_fill(0, count($parts), '?'));
-    $stmt_def = $conn->prepare("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($placeholders)");
-    if ($stmt_def) {
-        $stmt_def->bind_param(str_repeat('s', count($parts)), ...$parts);
-        $stmt_def->execute();
-        $res_def = $stmt_def->get_result();
-        while ($row = $res_def->fetch_assoc()) {
-            $definitions[$row['condition_name']] = $row['definition'];
+if (!empty($diagnosis)) {
+    $parts = explode(', ', $diagnosis);
+    $definitions = [];
+
+    // Safety: Escape all parts for a manual IN query to avoid bind_param issues
+    $escaped_parts = [];
+    foreach ($parts as $p) {
+        $escaped_parts[] = "'" . $conn->real_escape_string(trim($p)) . "'";
+    }
+
+    if (!empty($escaped_parts)) {
+        $in_list = implode(',', $escaped_parts);
+        $res_def = $conn->query("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($in_list)");
+        if ($res_def) {
+            while ($row = $res_def->fetch_assoc()) {
+                $definitions[$row['condition_name']] = $row['definition'];
+            }
+        }
+    }
+
+    foreach ($parts as $p) {
+        $trimmed_p = trim($p);
+        if (isset($definitions[$trimmed_p])) {
+            $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[10px] mt-1 text-sky-100 font-normal normal-case leading-relaxed'>" . $definitions[$trimmed_p] . "</p></div>";
+        }
+        else {
+            $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg'>$trimmed_p</span></div>";
         }
     }
 }
-
-$display_diagnosis = [];
-foreach ($parts as $p) {
-    $trimmed_p = trim($p);
-    if (isset($definitions[$trimmed_p])) {
-        $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg underline decoration-sky-300 underline-offset-4 tracking-wider'>$trimmed_p</span><p class='text-[10px] mt-1 text-sky-100 font-normal normal-case leading-relaxed'>" . $definitions[$trimmed_p] . "</p></div>";
-    }
-    else {
-        $display_diagnosis[] = "<div class='mb-2 pb-2 border-b border-white/20 last:border-0 last:mb-0 last:pb-0'><span class='font-extrabold block text-lg'>$trimmed_p</span></div>";
-    }
-}
 ?>
+        <?php if (!empty($display_diagnosis)): ?>
         <div class="mt-2 bg-gray-100 text-slate-900 rounded-[3px] p-3 border border-gray-300 mx-4">
             <h4 class="uppercase tracking-widest text-[9px] font-bold text-slate-500 mb-2 border-b border-gray-200 pb-0.5">Conclusion / Clinical Diagnosis</h4>
             <div class="space-y-2">
                 <?php
-foreach ($display_diagnosis as $d) {
-    echo str_replace(['text-sky-100', 'underline decoration-sky-300', 'border-white/20'], ['text-slate-600', 'underline decoration-slate-300', 'border-gray-200'], $d);
-}
+    foreach ($display_diagnosis as $d) {
+        echo str_replace(['text-sky-100', 'underline decoration-sky-300', 'border-white/20'], ['text-slate-600', 'underline decoration-slate-300', 'border-gray-200'], $d);
+    }
 ?>
             </div>
         </div>
+        <?php
+endif; ?>
 
         <?php if (!empty($sa['admin_notes'])): ?>
             <div class="mt-2 p-3 bg-slate-50 text-[11px] border border-slate-200 text-slate-800 rounded-[3px] shadow-sm mx-4">
@@ -347,9 +357,6 @@ endif; ?>
                     <span class="text-emerald-700 font-bold italic text-[8.5px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
                 </div>
             </div>
-
-        </div>
-
         </div>
 
     </div>
