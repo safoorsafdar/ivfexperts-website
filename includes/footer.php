@@ -9,9 +9,9 @@
 
             <!-- BRAND & DESCRIPTION -->
             <div class="lg:col-span-5 space-y-6">
-                <h3 class="text-white font-extrabold text-3xl tracking-tight">
+                <h2 class="text-white font-extrabold text-3xl tracking-tight">
                     IVF Experts
-                </h3>
+                </h2>
                 <p class="text-slate-400 leading-relaxed text-base max-w-sm">
                     Evidence-based fertility care by Dr. Adnan Jabbar — Fertility Consultant & Clinical Embryologist. Personalized IVF, ICSI, IUI & genetic screening.
                 </p>
@@ -24,9 +24,9 @@
 
             <!-- QUICK LINKS -->
             <div class="lg:col-span-2">
-                <h4 class="text-white font-semibold text-lg mb-6 tracking-wide">
+                <h3 class="text-white font-semibold text-lg mb-6 tracking-wide">
                     Quick Links
-                </h4>
+                </h3>
                 <ul class="space-y-4 text-slate-400 text-sm">
                     <li><a href="/male-infertility/" class="hover:text-teal-400 transition-colors duration-300">Male Infertility</a></li>
                     <li><a href="/female-infertility/" class="hover:text-teal-400 transition-colors duration-300">Female Infertility</a></li>
@@ -44,9 +44,9 @@
 
             <!-- TREATMENTS -->
             <div class="lg:col-span-2">
-                <h4 class="text-white font-semibold text-lg mb-6 tracking-wide">
+                <h3 class="text-white font-semibold text-lg mb-6 tracking-wide">
                     Treatments
-                </h4>
+                </h3>
                 <ul class="space-y-4 text-slate-400 text-sm">
                     <li><a href="/art-procedures/ivf.php" class="hover:text-teal-400 transition-colors duration-300">IVF Optimization</a></li>
                     <li><a href="/art-procedures/icsi.php" class="hover:text-teal-400 transition-colors duration-300">ICSI Strategy</a></li>
@@ -58,9 +58,9 @@
 
             <!-- CONTACT -->
             <div class="lg:col-span-3">
-                <h4 class="text-white font-semibold text-lg mb-6 tracking-wide">
+                <h3 class="text-white font-semibold text-lg mb-6 tracking-wide">
                     Contact Us
-                </h4>
+                </h3>
 
                 <div class="space-y-5">
                     <a href="https://wa.me/923111101483"

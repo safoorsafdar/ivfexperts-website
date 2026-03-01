@@ -109,13 +109,13 @@ include("includes/header.php");
             <!-- Trust Indicators -->
             <div class="mt-12 pt-10 border-t border-slate-200/60 grid grid-cols-2 gap-8">
                 <div>
-                    <h3 class="text-3xl font-extrabold text-teal-700 counter" data-target="10">0</h3>
+                    <h2 class="text-3xl font-extrabold text-teal-700 counter" data-target="10">0</h2>
                     <p class="text-sm font-medium text-slate-500 mt-2">Years of specialized clinical experience</p>
                 </div>
                 <div>
-                    <h4 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
                         Dual Expertise
-                    </h4>
+                    </h3>
                     <p class="text-sm font-medium text-slate-500 mt-2">Certified Clinician & Embryologist</p>
                 </div>
             </div>
@@ -127,7 +127,7 @@ include("includes/header.php");
                 <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent pointer-events-none"></div>
                 
                 <div class="relative z-10">
-                    <h3 class="text-2xl font-bold text-slate-800 mb-6">Comprehensive Fertility Care</h3>
+                    <h2 class="text-2xl font-bold text-slate-800 mb-6">Comprehensive Fertility Care</h2>
                     
                     <ul class="space-y-5">
                         <li class="flex items-start gap-4">
@@ -252,7 +252,7 @@ include("includes/header.php");
                         <svg class="w-12 h-12 text-indigo-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
                         </svg>
-                        <h3 class="font-bold text-xl text-slate-800">Male Diagnostics</h3>
+                        <h4 class="font-bold text-xl text-slate-800">Male Diagnostics</h4>
                      </div>
                 </div>
             </div>
@@ -290,7 +290,7 @@ include("includes/header.php");
                         <svg class="w-12 h-12 text-teal-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/>
                         </svg>
-                        <h3 class="font-bold text-xl text-slate-800">Advanced Protocols</h3>
+                        <h4 class="font-bold text-xl text-slate-800">Advanced Protocols</h4>
                      </div>
                 </div>
             </div>
@@ -302,7 +302,7 @@ include("includes/header.php");
 <!-- AFFILIATIONS / LOCATIONS -->
 <section class="section-md bg-white border-t border-slate-100 fade-in">
     <div class="max-w-7xl mx-auto px-6 text-center">
-        <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10">Affiliated Clinical Practice Locations & Online Consultations (Serving Lahore, Multan, Okara, Sahiwal, Rawalpindi & All Pakistan)</h3>
+        <h2 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-10">Affiliated Clinical Practice Locations & Online Consultations (Serving Lahore, Multan, Okara, Sahiwal, Rawalpindi & All Pakistan)</h2>
         
         <div class="grid grid-cols-2 lg:grid-cols-4 gap-6 opacity-80">
             <div class="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex flex-col items-center justify-center">
