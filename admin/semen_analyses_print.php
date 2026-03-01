@@ -292,11 +292,16 @@ if (!empty($diagnosis)) {
 
     if (!empty($escaped_parts)) {
         $in_list = implode(',', $escaped_parts);
-        $res_def = $conn->query("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($in_list)");
-        if ($res_def) {
-            while ($row = $res_def->fetch_assoc()) {
-                $definitions[$row['condition_name']] = $row['definition'];
+        try {
+            $res_def = $conn->query("SELECT condition_name, definition FROM semen_diagnosis_definitions WHERE condition_name IN ($in_list)");
+            if ($res_def) {
+                while ($row = $res_def->fetch_assoc()) {
+                    $definitions[$row['condition_name']] = $row['definition'];
+                }
             }
+        }
+        catch (mysqli_sql_exception $e) {
+        // Table doesn't exist or other SQL error, skip definitions but don't crash the report
         }
     }
 
