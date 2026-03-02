@@ -593,8 +593,7 @@ else:
 endif; ?>
                 </div>
             </div>
-        </div>
-        
+
         <!-- Tab 5: Lab Reports -->
         <div x-show="currentTab === 'labs'" x-cloak>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
@@ -605,7 +604,7 @@ endif; ?>
                     </a>
                 </div>
                 
-                <div class="div p-0">
+                <div class="p-0">
                     <?php if (empty($lab_results)): ?>
                         <div class="p-8 text-center text-gray-400">
                             <i class="fa-solid fa-flask mb-2 text-3xl block"></i>
@@ -670,7 +669,7 @@ endif; ?>
                     </a>
                 </div>
                 
-                <div class="div p-0">
+                <div class="p-0">
                     <?php if (empty($advised_procedures)): ?>
                         <div class="p-8 text-center text-gray-400">
                             <i class="fa-solid fa-clipboard mb-2 text-3xl block"></i>
