@@ -591,46 +591,69 @@ endif; ?>
 
         <!-- Tab 3: Prescriptions -->
         <div x-show="currentTab === 'rx'" x-cloak>
-            <div class="space-y-4">
-                <?php if (empty($prescriptions)): ?>
-                    <div class="text-center py-8 text-gray-400 bg-white rounded-2xl border border-gray-100 border-dashed">No prescriptions written yet.</div>
-                <?php
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-prescription text-teal-600 mr-2"></i> Clinical Prescriptions</h3>
+                    <a href="prescriptions_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Prescription
+                    </a>
+                </div>
+                
+                <div class="p-5 space-y-4">
+                    <?php if (empty($prescriptions)): ?>
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fa-solid fa-pills mb-2 text-3xl block text-gray-200"></i>
+                            No prescriptions written yet.
+                        </div>
+                    <?php
 else:
     foreach ($prescriptions as $rx): ?>
-                    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-indigo-200 transition-colors">
-                        <div>
-                            <div class="font-bold text-gray-800 mb-1 flex items-center gap-2">
-                                Digital Prescription
-                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $rx['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
-                                    <?php echo $rx['record_for']; ?>
-                                </span>
+                        <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-indigo-200 transition-colors">
+                            <div>
+                                <div class="font-bold text-gray-800 mb-1 flex items-center gap-2">
+                                    Digital Prescription
+                                    <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $rx['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                        <?php echo $rx['record_for']; ?>
+                                    </span>
+                                </div>
+                                <div class="text-xs text-gray-500">Issued: <?php echo date('d M Y, h:i A', strtotime($rx['created_at'])); ?></div>
                             </div>
-                            <div class="text-xs text-gray-500">Issued: <?php echo date('d M Y, h:i A', strtotime($rx['created_at'])); ?></div>
-                        </div>
-                        <div class="flex gap-2">
-                            <?php if (!empty($rx['scanned_report_path'])): ?>
-                                <a href="../<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm transition-colors border border-gray-200" title="Original Scan">
-                                    <i class="fa-solid fa-paperclip"></i>
-                                </a>
-                            <?php
+                            <div class="flex gap-2">
+                                <?php if (!empty($rx['scanned_report_path'])): ?>
+                                    <a href="../<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-2 rounded-lg text-sm transition-colors border border-gray-200" title="Original Scan">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </a>
+                                <?php
         endif; ?>
-                            <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm transition-colors">
-                                <i class="fa-solid fa-print"></i>
-                            </a>
+                                <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank" class="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 px-3 py-2 rounded-lg text-sm transition-colors">
+                                    <i class="fa-solid fa-print"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                <?php
+                    <?php
     endforeach;
 endif; ?>
+                </div>
             </div>
         </div>
 
         <!-- Tab 4: Ultrasounds -->
         <div x-show="currentTab === 'usg'" x-cloak>
-            <div class="space-y-4">
-                <?php if (empty($ultrasounds)): ?>
-                    <div class="text-center py-8 text-gray-400 bg-white rounded-2xl border border-gray-100 border-dashed">No ultrasound reports recorded yet.</div>
-                <?php
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-image text-teal-600 mr-2"></i> Ultrasound Scan Reports</h3>
+                    <a href="ultrasounds_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Ultrasound
+                    </a>
+                </div>
+                
+                <div class="p-5 space-y-4">
+                    <?php if (empty($ultrasounds)): ?>
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fa-solid fa-camera mb-2 text-3xl block text-gray-200"></i>
+                            No ultrasound reports recorded yet.
+                        </div>
+                    <?php
 else:
     foreach ($ultrasounds as $u): ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-sky-200 transition-colors">
@@ -660,6 +683,7 @@ else:
 endif; ?>
                 </div>
             </div>
+        </div>
 
         <!-- Tab 5: Lab Reports -->
         <div x-show="currentTab === 'labs'" x-cloak>
@@ -752,9 +776,9 @@ endif; ?>
         <div x-show="currentTab === 'procedures'" x-cloak>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-indigo-600 mr-2"></i> Advised Treatments</h3>
-                    <a href="procedures_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fa-solid fa-plus mr-1"></i> Advise Treatment
+                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-teal-600 mr-2"></i> Advised Treatments</h3>
+                    <a href="procedures_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Procedure
                     </a>
                 </div>
                 
