@@ -333,58 +333,80 @@ endif; ?>
                     <div class="p-6">
                         <form method="POST" onsubmit="document.getElementById('hidden_notes').value = quillAdd.root.innerHTML; document.getElementById('hidden_diagnosis').value = quillDiagnosis.root.innerHTML; document.getElementById('hidden_medication').value = quillMedication.root.innerHTML;">
                             
-                            <div class="mb-5">
-                                <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-stethoscope text-teal-600 mr-1"></i> Clinical History & Findings</label>
-                                <div id="editor-notes" style="height:180px;"></div>
+                            <!-- Record Attribution -->
+                            <div class="mb-8 p-4 bg-teal-50/50 rounded-xl border border-teal-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                <div>
+                                    <h4 class="text-sm font-bold text-teal-800">Assign Visit Record *</h4>
+                                    <p class="text-xs text-teal-600">Select who this clinical session is for.</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="record_for" value="Patient" checked class="peer sr-only">
+                                        <div class="px-6 py-2 text-center border rounded-lg peer-checked:bg-teal-600 peer-checked:text-white peer-checked:border-teal-600 border-gray-200 bg-white text-xs font-bold transition-all shadow-sm">
+                                            <i class="fa-solid fa-user mr-1"></i> Patient
+                                        </div>
+                                    </label>
+                                    <label class="cursor-pointer">
+                                        <input type="radio" name="record_for" value="Spouse" class="peer sr-only">
+                                        <div class="px-6 py-2 text-center border rounded-lg peer-checked:bg-pink-600 peer-checked:text-white peer-checked:border-pink-600 border-gray-200 bg-white text-xs font-bold transition-all shadow-sm">
+                                            <i class="fa-solid fa-person-half-dress mr-1"></i> Spouse
+                                        </div>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Section 1: History -->
+                            <div class="mb-8">
+                                <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-[10px]">1</span>
+                                    Clinical History & Presenting Complaints
+                                </label>
+                                <div id="editor-notes" class="bg-white rounded-lg border border-gray-200" style="height:200px;"></div>
                                 <input type="hidden" name="clinical_notes" id="hidden_notes">
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                            <!-- Section 2: Diagnosis & Plan (Grid) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-clipboard-list text-indigo-600 mr-1"></i> Diagnosis</label>
-                                    <div id="editor-diagnosis" style="height:120px;"></div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-indigo-100 text-indigo-700 flex items-center justify-center text-[10px]">2</span>
+                                        Diagnosis / Clinical Impression
+                                    </label>
+                                    <div id="editor-diagnosis" class="bg-white rounded-lg border border-gray-200" style="height:150px;"></div>
                                     <input type="hidden" name="diagnosis" id="hidden_diagnosis">
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-pills text-pink-600 mr-1"></i> Medication Prescribed</label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5 border-b border-gray-50 pb-5">
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2">Record For *</label>
-                                    <div class="flex gap-3">
-                                        <label class="flex-1 cursor-pointer">
-                                            <input type="radio" name="record_for" value="Patient" checked class="peer sr-only">
-                                            <div class="p-2 text-center border rounded-lg peer-checked:bg-teal-600 peer-checked:text-white border-gray-200 text-xs font-bold">Patient</div>
-                                        </label>
-                                        <label class="flex-1 cursor-pointer">
-                                            <input type="radio" name="record_for" value="Spouse" class="peer sr-only">
-                                            <div class="p-2 text-center border rounded-lg peer-checked:bg-pink-600 peer-checked:text-white border-gray-200 text-xs font-bold">Spouse</div>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-clipboard-list text-indigo-600 mr-1"></i> Diagnosis / Impression</label>
-                                    <input type="text" name="diagnosis" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm" placeholder="e.g. Primary Infertility, PCOs...">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-pills text-pink-600 mr-1"></i> Medication / Plan</label>
-                                    <input type="text" name="medication" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm" placeholder="e.g. Folic Acid, Metformin...">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-pink-100 text-pink-700 flex items-center justify-center text-[10px]">3</span>
+                                        Medication & Treatment Plan
+                                    </label>
+                                    <div id="editor-medication" class="bg-white rounded-lg border border-gray-200" style="height:150px;"></div>
+                                    <input type="hidden" name="medication" id="hidden_medication">
                                 </div>
                             </div>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-5 mb-5">
+                            <!-- Section 3: Advice & Follow-up (Grid) -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 pt-6 border-t border-gray-100">
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i> Advice Given</label>
-                                    <textarea name="advice" rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm" placeholder="Lifestyle advice, dietary recommendations, follow-up instructions..."></textarea>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px]">4</span>
+                                        General Advice
+                                    </label>
+                                    <textarea name="advice" rows="3" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm bg-gray-50/30" placeholder="Dietary changes, lifestyle advice..."></textarea>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-calendar-check text-emerald-600 mr-1"></i> Next Visit Date</label>
-                                    <input type="date" name="next_visit" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm">
+                                    <label class="block text-sm font-bold text-gray-700 mb-2 flex items-center gap-2">
+                                        <span class="w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-[10px]">5</span>
+                                        Follow-up Appt
+                                    </label>
+                                    <input type="date" name="next_visit" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm bg-gray-50/30">
+                                    <p class="text-[10px] text-gray-400 mt-2">Leave blank if no follow-up is required.</p>
                                 </div>
                             </div>
 
-                            <div class="flex justify-end">
-                                <button type="submit" name="add_history" class="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-lg text-sm font-bold transition-colors shadow-lg shadow-teal-200 flex items-center gap-2">
-                                    <i class="fa-solid fa-save"></i> Save Clinical Record
+                            <div class="flex justify-end pt-4">
+                                <button type="submit" name="add_history" class="bg-teal-700 hover:bg-teal-800 text-white px-10 py-3.5 rounded-xl text-sm font-bold transition-all shadow-lg shadow-teal-200 flex items-center gap-2">
+                                    <i class="fa-solid fa-save"></i> Complete & Save Record
                                 </button>
                             </div>
                         </form>
