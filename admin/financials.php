@@ -33,7 +33,7 @@ try {
     if ($resE)
         $expenses = floatval($resE->fetch_assoc()['e'] ?? 0);
 }
-catch (Exception $e) {
+catch (Throwable $e) {
 }
 
 $net_profit = $revenue - $expenses;
@@ -48,7 +48,7 @@ try {
             $recent_receipts[] = $row;
     }
 }
-catch (Exception $e) {
+catch (Throwable $e) {
 }
 
 // Fetch Recent Expenses
@@ -60,7 +60,7 @@ try {
             $recent_expenses[] = $row;
     }
 }
-catch (Exception $e) {
+catch (Throwable $e) {
 }
 
 include __DIR__ . '/includes/header.php';

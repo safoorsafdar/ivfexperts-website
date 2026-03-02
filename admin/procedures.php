@@ -53,30 +53,38 @@ $sql = "SELECT ap.*, p.first_name, p.last_name, p.mr_number,
 $params = [];
 $types = "";
 
-if (!empty($filter) && in_array($filter, ['Advised', 'In Progress', 'Completed', 'Cancelled'])) {
-    $sql .= " AND ap.status = ?";
-    $params[] = $filter;
-    $types .= "s";
-}
+$types = "";
+$procedures = [];
 
-if (!empty($search)) {
-    $sql .= " AND (p.first_name LIKE ? OR p.last_name LIKE ? OR p.mr_number LIKE ? OR ap.procedure_name LIKE ?)";
-    $s = "%" . $search . "%";
-    $params[] = $s;
-    $params[] = $s;
-    $params[] = $s;
-    $params[] = $s;
-    $types .= "ssss";
-}
+try {
+    if (!empty($filter) && in_array($filter, ['Advised', 'In Progress', 'Completed', 'Cancelled'])) {
+        $sql .= " AND ap.status = ?";
+        $params[] = $filter;
+        $types .= "s";
+    }
 
-$sql .= " ORDER BY ap.date_advised DESC, ap.id DESC";
+    if (!empty($search)) {
+        $sql .= " AND (p.first_name LIKE ? OR p.last_name LIKE ? OR p.mr_number LIKE ? OR ap.procedure_name LIKE ?)";
+        $s = "%" . $search . "%";
+        $params[] = $s;
+        $params[] = $s;
+        $params[] = $s;
+        $params[] = $s;
+        $types .= "ssss";
+    }
 
-$stmt = $conn->prepare($sql);
-if (!empty($params)) {
-    $stmt->bind_param($types, ...$params);
+    $sql .= " ORDER BY ap.date_advised DESC, ap.id DESC";
+
+    $stmt = $conn->prepare($sql);
+    if (!empty($params)) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $procedures = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
 }
-$stmt->execute();
-$procedures = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+catch (Throwable $e) {
+    $error = "Database Error: " . $e->getMessage() . " (Please run the migration script)";
+}
 
 // Quick stats
 $stat_advised = $stat_progress = $stat_completed = $stat_cancelled = 0;
@@ -92,7 +100,7 @@ try {
             };
     }
 }
-catch (Exception $e) {
+catch (Throwable $e) {
 }
 
 include __DIR__ . '/includes/header.php';
