@@ -276,6 +276,7 @@ endif; ?>
                 </div>
             </div>
         </div>
+    </div>
 
     <!-- Right Column: Tabs & Content -->
     <div class="w-full lg:w-2/3">
@@ -587,8 +588,9 @@ else:
 endif; ?>
             </div>
         </div>
+    </div>
 
-        <!-- Tab 3: Prescriptions -->
+    <!-- Tab 3: Prescriptions -->
         <div x-show="currentTab === 'rx'" x-cloak>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
