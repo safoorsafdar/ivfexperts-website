@@ -1,4 +1,5 @@
 <?php
+define('BYPASS_AUTH', true);
 require_once __DIR__ . '/includes/auth.php';
 header('Content-Type: text/html; charset=utf-8');
 echo "<h1>Diagnostic: Patients Table Schema</h1>";

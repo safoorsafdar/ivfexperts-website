@@ -5,17 +5,17 @@
  * DO NOT commit real credentials to Git - use .env or server env vars in production
  */
 
-define('DB_HOST', 'localhost');
-define('DB_NAME', 'u400207225_adnanjabbar');
-define('DB_USER', 'u400207225_adnanjabbar');
-define('DB_PASS', '4991701AdnanJabbar');  // CHANGE THIS IN PRODUCTION!
-
-// === Optional: Use environment variables in production (more secure)
 if (getenv('DB_HOST')) {
     define('DB_HOST', getenv('DB_HOST'));
     define('DB_NAME', getenv('DB_NAME'));
     define('DB_USER', getenv('DB_USER'));
     define('DB_PASS', getenv('DB_PASS'));
+}
+else {
+    define('DB_HOST', 'localhost');
+    define('DB_NAME', 'u400207225_adnanjabbar');
+    define('DB_USER', 'u400207225_adnanjabbar');
+    define('DB_PASS', '4991701AdnanJabbar');
 }
 
 // === Create connection
