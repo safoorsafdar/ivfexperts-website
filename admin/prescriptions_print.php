@@ -344,6 +344,48 @@ else: ?>
 endif; ?>
         </div>
 
+        <!-- Advised Lab Tests Section -->
+        <?php if (!empty($lab_tests)): ?>
+            <div class="mb-6 px-2">
+                <div class="bg-gray-100 border border-gray-300 text-gray-800 text-sm font-bold uppercase tracking-widest p-2 mb-2">
+                    <i class="fa-solid fa-vials mr-1 text-indigo-700"></i> Advised Laboratory Investigations
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Patient Tests -->
+                    <?php if (!empty($patient_tests)): ?>
+                        <div class="border-l-4 border-indigo-500 pl-3">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-user text-[8px]"></i> Tests for Patient
+                            </div>
+                            <ul class="list-disc list-inside text-[11px] text-gray-800 space-y-0.5 ml-2">
+                                <?php foreach ($patient_tests as $pt): ?>
+                                    <li><?php echo esc($pt['test_name']); ?></li>
+                                <?php
+        endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php    endif; ?>
+
+                    <!-- Spouse Tests -->
+                    <?php if (!empty($spouse_tests)): ?>
+                        <div class="border-l-4 border-pink-500 pl-3">
+                            <div class="text-[10px] font-bold text-gray-500 uppercase mb-1 flex items-center gap-1">
+                                <i class="fa-solid fa-person-half-dress text-[8px]"></i> Tests for Spouse
+                            </div>
+                            <ul class="list-disc list-inside text-[11px] text-gray-800 space-y-0.5 ml-2">
+                                <?php foreach ($spouse_tests as $st): ?>
+                                    <li><?php echo esc($st['test_name']); ?></li>
+                                <?php
+        endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php    endif; ?>
+                </div>
+            </div>
+        <?php
+endif; ?>
+
         <!-- Footer Notes & Follow-up -->
         <div class="mt-2 flex justify-between items-start gap-4 px-2">
             <!-- General Notes -->
