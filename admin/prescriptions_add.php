@@ -370,7 +370,70 @@ endforeach; ?>
 
                 <!-- Dynamic Medication Builder -->
                 <div class="border border-gray-200 rounded-xl overflow-hidden mb-6 mt-4">
-                    ... (truncated meds builder UI for brevity, actual edit will be complete) ...
+                    <div class="bg-indigo-900 text-white px-4 py-3 flex justify-between items-center">
+                        <span class="font-bold">Rx. Medications</span>
+                        <button type="button" @click="addRow" class="bg-indigo-700 hover:bg-indigo-600 px-3 py-1 rounded text-sm transition-colors text-white border border-indigo-500 shadow-sm">
+                            <i class="fa-solid fa-plus mr-1"></i> Add Medication
+                        </button>
+                    </div>
+                    
+                    <div class="p-4 bg-gray-50 space-y-3">
+                        <template x-for="(row, index) in rows" :key="row.id">
+                            <div class="flex flex-col md:flex-row gap-2 items-end bg-white p-3 rounded-lg border border-gray-200 shadow-sm relative pt-6 md:pt-3">
+                                
+                                <div class="absolute top-1 left-2 md:hidden text-[10px] font-bold text-gray-400" x-text="'Item #' + (index+1)"></div>
+                                
+                                <div class="w-full md:w-[35%]">
+                                    <label class="block text-xs text-gray-500 mb-1">Medication *</label>
+                                    <select :name="'med_id['+index+']'" x-model="row.med_id" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500" required>
+                                        <option value="">Choose...</option>
+                                        <?php foreach ($medications as $m): ?>
+                                            <option value="<?php echo $m['id']; ?>"><?php echo esc($m['name'] . ' (' . $m['med_type'] . ')'); ?></option>
+                                        <?php
+endforeach; ?>
+                                    </select>
+                                </div>
+                                
+                                <div class="w-full md:w-[15%]">
+                                    <label class="block text-xs text-gray-500 mb-1">Dosage</label>
+                                    <input type="text" :name="'dosage['+index+']'" x-model="row.dosage" placeholder="500mg, 1 tab" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                                </div>
+
+                                <div class="w-full md:w-[20%]">
+                                    <label class="block text-xs text-gray-500 mb-1">Usage Freq</label>
+                                    <select :name="'usage_frequency['+index+']'" x-model="row.usage_frequency" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                                        <option value="">--</option>
+                                        <option value="OD">OD (1x a day)</option>
+                                        <option value="BD">BD (2x a day)</option>
+                                        <option value="TDS">TDS (3x a day)</option>
+                                        <option value="QID">QID (4x a day)</option>
+                                        <option value="SOS">SOS (When needed)</option>
+                                        <option value="Stat">Stat (Immediately)</option>
+                                    </select>
+                                </div>
+
+                                <div class="w-full md:w-[15%]">
+                                    <label class="block text-xs text-gray-500 mb-1">Duration</label>
+                                    <input type="text" :name="'duration['+index+']'" x-model="row.duration" placeholder="5 Days" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div class="w-full md:w-[30%]">
+                                    <label class="block text-xs text-gray-500 mb-1">Instructions</label>
+                                    <input type="text" :name="'instructions['+index+']'" x-model="row.instructions" placeholder="e.g. After meals" class="w-full px-3 py-2 border border-gray-300 rounded text-sm outline-none focus:ring-1 focus:ring-indigo-500">
+                                </div>
+                                
+                                <div class="w-full md:w-10 flex justify-end">
+                                    <button type="button" @click="removeRow(index)" class="text-gray-400 hover:text-red-600 hover:bg-red-50 w-full md:w-10 h-9 rounded-md transition-colors border border-transparent md:border-gray-200 mt-2 md:mt-0" title="Remove row">
+                                        <i class="fa-solid fa-trash"></i>
+                                    </button>
+                                </div>
+                                
+                            </div>
+                        </template>
+                        <div x-show="rows.length === 0" class="text-center py-6 text-gray-400 text-sm">
+                            Click <strong class="text-indigo-600">"Add Medication"</strong> to assign drugs to this prescription.
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Advised Laboratory Tests -->
