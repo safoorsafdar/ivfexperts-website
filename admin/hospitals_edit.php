@@ -7,10 +7,11 @@ $error = '';
 
 $hospital = [
     'name' => '',
+    'address' => '',
+    'phone' => '',
     'margin_top' => '20mm',
     'margin_bottom' => '20mm',
     'margin_left' => '20mm',
-    'margin_right' => '20mm',
     'margin_right' => '20mm',
     'logo_path' => '',
     'digital_signature_path' => '',
@@ -48,6 +49,8 @@ if (!is_dir($upload_dir . 'letterheads/'))
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_hospital'])) {
     $name = trim($_POST['name'] ?? '');
+    $address = trim($_POST['address'] ?? '');
+    $phone = trim($_POST['phone'] ?? '');
     $mt = trim($_POST['margin_top'] ?? '20mm');
     $mb = trim($_POST['margin_bottom'] ?? '20mm');
     $ml = trim($_POST['margin_left'] ?? '20mm');
@@ -90,8 +93,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_hospital'])) {
     }
     else {
         if ($id > 0) {
-            $stmt = $conn->prepare("UPDATE hospitals SET name=?, margin_top=?, margin_bottom=?, margin_left=?, margin_right=?, logo_path=?, digital_signature_path=?, letterhead_image_path=? WHERE id=?");
-            $stmt->bind_param("ssssssssi", $name, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path, $id);
+            $stmt = $conn->prepare("UPDATE hospitals SET name=?, address=?, phone=?, margin_top=?, margin_bottom=?, margin_left=?, margin_right=?, logo_path=?, digital_signature_path=?, letterhead_image_path=? WHERE id=?");
+            $stmt->bind_param("ssssssssssi", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path, $id);
             if ($stmt->execute()) {
                 header("Location: hospitals.php?msg=saved");
                 exit;
@@ -101,8 +104,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_hospital'])) {
             }
         }
         else {
-            $stmt = $conn->prepare("INSERT INTO hospitals (name, margin_top, margin_bottom, margin_left, margin_right, logo_path, digital_signature_path, letterhead_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssss", $name, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path);
+            $stmt = $conn->prepare("INSERT INTO hospitals (name, address, phone, margin_top, margin_bottom, margin_left, margin_right, logo_path, digital_signature_path, letterhead_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("ssssssssss", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path);
             if ($stmt->execute()) {
                 header("Location: hospitals.php?msg=saved");
                 exit;
@@ -141,9 +144,20 @@ endif; ?>
         </div>
         
         <div class="p-6 md:p-8">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Hospital / Clinic Name *</label>
+                    <input type="text" name="name" value="<?php echo esc($hospital['name']); ?>" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 uppercase text-gray-800 font-bold" required>
+                </div>
+                <div>
+                   <label class="block text-sm font-medium text-gray-700 mb-1">Contact Phone</label>
+                   <input type="text" name="phone" value="<?php echo esc($hospital['phone']); ?>" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. +92 3XX XXXXXXX">
+                </div>
+            </div>
+
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Hospital / Clinic Name *</label>
-                <input type="text" name="name" value="<?php echo esc($hospital['name']); ?>" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-gray-50 uppercase text-gray-800 font-bold" required>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Physical Address</label>
+                <textarea name="address" rows="2" class="w-full px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Full clinic address for receipts..."><?php echo esc($hospital['address']); ?></textarea>
             </div>
 
             <!-- Margins -->
