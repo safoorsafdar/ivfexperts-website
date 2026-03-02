@@ -61,26 +61,35 @@ foreach ($sqls as $sql) {
 // Check for missing columns in case tables already existed
 $checks = [
     "advised_procedures" => [
-        "status" => "ENUM('Advised', 'In Progress', 'Completed', 'Cancelled') DEFAULT 'Advised' AFTER date_advised",
+        "status" => "ENUM('Advised', 'In Progress', 'Completed', 'Cancelled') DEFAULT 'Advised' AFTER procedure_name",
         "record_for" => "ENUM('Patient', 'Spouse') DEFAULT 'Patient' AFTER patient_id"
     ],
     "receipts" => [
         "advised_procedure_id" => "INT NULL AFTER status",
-        "qrcode_hash" => "VARCHAR(255) UNIQUE AFTER receipt_date"
+        "qrcode_hash" => "VARCHAR(255) AFTER receipt_date"
     ]
 ];
 
 foreach ($checks as $table => $cols) {
+    echo "--- Checking table: <b>$table</b> ---<br>";
     foreach ($cols as $col => $def) {
-        $res = $conn->query("SHOW COLUMNS FROM $table LIKE '$col'");
-        if ($res->num_rows == 0) {
-            echo "Adding missing column <b>$col</b> to <b>$table</b>... ";
-            if ($conn->query("ALTER TABLE $table ADD $col $def")) {
-                echo "<span style='color:green;'>ADDED</span><br>";
+        try {
+            $res = $conn->query("SHOW COLUMNS FROM $table LIKE '$col'");
+            if ($res && $res->num_rows == 0) {
+                echo "Adding column <b>$col</b> to <b>$table</b>... ";
+                if ($conn->query("ALTER TABLE $table ADD $col $def")) {
+                    echo "<span style='color:green;'>SUCCESS</span><br>";
+                }
+                else {
+                    echo "<span style='color:red;'>FAILED: " . $conn->error . "</span><br>";
+                }
             }
             else {
-                echo "<span style='color:red;'>ERROR: " . $conn->error . "</span><br>";
+                echo "Column <b>$col</b> already exists in <b>$table</b>.<br>";
             }
+        }
+        catch (Throwable $e) {
+            echo "<span style='color:red;'>Exception on $col: " . $e->getMessage() . "</span><br>";
         }
     }
 }
