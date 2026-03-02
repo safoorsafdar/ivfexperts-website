@@ -16,7 +16,7 @@ $msg = $_GET['msg'] ?? '';
 $records = [];
 try {
     $stmt = $conn->query("
-        SELECT sa.id, sa.collection_time, sa.auto_diagnosis, sa.concentration, sa.pr_motility, sa.np_motility, p.first_name, p.last_name, p.mr_number, h.name as hospital_name 
+        SELECT sa.id, sa.collection_time, sa.auto_diagnosis, sa.concentration, sa.pr_motility, sa.np_motility, sa.report_type, sa.report_file_path, p.first_name, p.last_name, p.mr_number, h.name as hospital_name 
         FROM semen_analyses sa 
         JOIN patients p ON sa.patient_id = p.id 
         LEFT JOIN hospitals h ON sa.hospital_id = h.id 
@@ -96,9 +96,17 @@ else:
                             <div class="text-gray-500 mt-1">Motility: <span class="text-gray-800 font-semibold"><?php echo($r['pr_motility'] + $r['np_motility']); ?>%</span></div>
                         </td>
                         <td class="px-6 py-4 text-right whitespace-nowrap">
-                            <a href="semen_analyses_print.php?id=<?php echo $r['id']; ?>" target="_blank" class="text-sky-600 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="Print">
-                                <i class="fa-solid fa-print"></i>
-                            </a>
+                            <?php if ($r['report_type'] === 'file' && !empty($r['report_file_path'])): ?>
+                                <a href="../<?php echo esc($r['report_file_path']); ?>" target="_blank" class="text-rose-600 hover:text-rose-900 bg-rose-50 hover:bg-rose-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="View PDF/Image Attachment">
+                                    <i class="fa-solid fa-file-pdf"></i>
+                                </a>
+                            <?php
+        else: ?>
+                                <a href="semen_analyses_print.php?id=<?php echo $r['id']; ?>" target="_blank" class="text-sky-600 hover:text-sky-900 bg-sky-50 hover:bg-sky-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="View Digital Report">
+                                    <i class="fa-solid fa-file-lines"></i>
+                                </a>
+                            <?php
+        endif; ?>
                             <a href="semen_analyses_add.php?edit=<?php echo $r['id']; ?>" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="Edit">
                                 <i class="fa-solid fa-pen-to-square"></i>
                             </a>

@@ -78,6 +78,24 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
     $auto_diag = trim($_POST['auto_diagnosis'] ?? 'Pending');
     $notes = trim($_POST['notes'] ?? '');
     $editing = intval($_POST['edit_id'] ?? 0);
+    $report_type = $_POST['report_type'] ?? 'manual';
+    $file_path = $edit_data['report_file_path'] ?? null;
+
+    if ($report_type === 'file') {
+        // Handle File Upload
+        if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] == 0) {
+            $upload_dir = dirname(__DIR__) . '/assets/uploads/semen_reports/';
+            if (!is_dir($upload_dir))
+                mkdir($upload_dir, 0755, true);
+
+            $ext = pathinfo($_FILES['report_file']['name'], PATHINFO_EXTENSION);
+            $filename = 'sa_' . time() . '_' . $patient_id . '.' . $ext;
+            if (move_uploaded_file($_FILES['report_file']['tmp_name'], $upload_dir . $filename)) {
+                $file_path = 'assets/uploads/semen_reports/' . $filename;
+            }
+        }
+        $auto_diag = 'External Report';
+    }
 
     if (empty($patient_id) || empty($hospital_id)) {
         $error = "Patient and Hospital fields are required.";
@@ -85,9 +103,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
     else {
         if ($editing > 0) {
             // UPDATE mode
-            $stmt = $conn->prepare("UPDATE semen_analyses SET patient_id=?, hospital_id=?, collection_time=?, examination_time=?, abstinence_days=?, volume=?, ph=?, concentration=?, pr_motility=?, np_motility=?, im_motility=?, normal_morphology=?, abnormal_morphology=?, appearance=?, liquefaction=?, viscosity=?, vitality=?, round_cells=?, debris=?, wbc=?, agglutination=?, auto_diagnosis=?, admin_notes=? WHERE id=?");
+            $stmt = $conn->prepare("UPDATE semen_analyses SET patient_id=?, hospital_id=?, report_type=?, report_file_path=?, collection_time=?, examination_time=?, abstinence_days=?, volume=?, ph=?, concentration=?, pr_motility=?, np_motility=?, im_motility=?, normal_morphology=?, abnormal_morphology=?, appearance=?, liquefaction=?, viscosity=?, vitality=?, round_cells=?, debris=?, wbc=?, agglutination=?, auto_diagnosis=?, admin_notes=? WHERE id=?");
             if ($stmt) {
-                $stmt->bind_param("iisssiddddddddssdssssssi", $patient_id, $hospital_id, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
+                $stmt->bind_param("iisssssiddddddddssdssssssi", $patient_id, $hospital_id, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
                 if ($stmt->execute()) {
                     header("Location: semen_analyses.php?msg=saved");
                     exit;
@@ -99,10 +117,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
         }
         else {
             // INSERT mode
-            $stmt = $conn->prepare("INSERT INTO semen_analyses (patient_id, hospital_id, qrcode_hash, collection_time, examination_time, abstinence_days, volume, ph, concentration, pr_motility, np_motility, im_motility, normal_morphology, abnormal_morphology, appearance, liquefaction, viscosity, vitality, round_cells, debris, wbc, agglutination, auto_diagnosis, admin_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO semen_analyses (patient_id, hospital_id, qrcode_hash, report_type, report_file_path, collection_time, examination_time, abstinence_days, volume, ph, concentration, pr_motility, np_motility, im_motility, normal_morphology, abnormal_morphology, appearance, liquefaction, viscosity, vitality, round_cells, debris, wbc, agglutination, auto_diagnosis, admin_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             if ($stmt) {
-                $stmt->bind_param("iisssiddddddddssdsssssss", $patient_id, $hospital_id, $qrcode_hash, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
+                $stmt->bind_param("iissssssiddddddddssdssssss", $patient_id, $hospital_id, $qrcode_hash, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
                 if ($stmt->execute()) {
                     header("Location: semen_analyses.php?msg=saved");
                     exit;
@@ -133,9 +151,20 @@ include __DIR__ . '/includes/header.php';
             <?php
 endif; ?>
 
-            <form method="POST">
+            <form method="POST" enctype="multipart/form-data">
                 <?php if ($edit_id): ?><input type="hidden" name="edit_id" value="<?php echo $edit_id; ?>"><?php
 endif; ?>
+                
+                <!-- Report Type Toggle -->
+                <div class="mb-8 p-1 bg-gray-100 rounded-xl inline-flex gap-1 border border-gray-200">
+                    <button type="button" @click="reportType = 'manual'" :class="reportType === 'manual' ? 'bg-white text-sky-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'" class="px-6 py-2 rounded-lg font-bold text-sm transition-all focus:outline-none">
+                        <i class="fa-solid fa-keyboard mr-2"></i> New Analysis (Manual)
+                    </button>
+                    <button type="button" @click="reportType = 'file'" :class="reportType === 'file' ? 'bg-white text-sky-700 shadow-sm' : 'text-gray-500 hover:text-gray-700'" class="px-6 py-2 rounded-lg font-bold text-sm transition-all focus:outline-none">
+                        <i class="fa-solid fa-file-upload mr-2"></i> Upload Existing Report
+                    </button>
+                    <input type="hidden" name="report_type" :value="reportType">
+                </div>
                 
                 <!-- Setup Grid -->
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8 border-b border-gray-100 pb-8">
@@ -175,8 +204,31 @@ endforeach; ?>
                     </div>
                 </div>
 
-                <!-- Live Evaluator Grid -->
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                <!-- File Selection (Only in File Mode) -->
+                <div x-show="reportType === 'file'" x-cloak class="mb-8 p-8 bg-sky-50 rounded-2xl border-2 border-dashed border-sky-200 text-center">
+                    <div class="mb-4">
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-sky-300"></i>
+                    </div>
+                    <label class="block text-lg font-bold text-sky-900 mb-2">Select Report File (PDF/Image)</label>
+                    <p class="text-sm text-sky-600 mb-6 font-medium">Please upload the complete report obtained from an external laboratory.</p>
+                    
+                    <div class="max-w-xs mx-auto">
+                        <input type="file" name="report_file" accept="image/*,application/pdf" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-sky-600 file:text-white hover:file:bg-sky-700 transition-all shadow-sm">
+                    </div>
+                    
+                    <?php if ($edit_data && $edit_data['report_file_path']): ?>
+                        <div class="mt-6 pt-6 border-t border-sky-100">
+                             <a href="../<?php echo esc($edit_data['report_file_path']); ?>" target="_blank" class="text-sky-700 text-sm font-bold flex items-center justify-center gap-2 hover:underline">
+                                <i class="fa-solid fa-eye"></i> View Current Uploaded Report
+                             </a>
+                        </div>
+                    <?php
+endif; ?>
+                </div>
+
+                <div x-show="reportType === 'manual'">
+                    <!-- Live Evaluator Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                     
                     <!-- Macroscopic & Basic -->
                     <div>
@@ -357,6 +409,8 @@ endforeach; ?>
                     <div class="shrink-0 text-3xl opacity-20 text-sky-900 hidden md:block">
                         <i class="fa-solid fa-brain"></i>
                     </div>
+                </div>
+
                 </div>
 
                 <div class="mb-6">
