@@ -31,6 +31,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $date_of_birth = !empty($_POST['date_of_birth']) ? trim($_POST['date_of_birth']) : null;
     $blood_group = trim($_POST['blood_group'] ?? '');
     $gender = $_POST['gender'];
+    $marital_status = $_POST['marital_status'] ?? 'Single';
+    $gravida = intval($_POST['gravida'] ?? 0);
+    $para = intval($_POST['para'] ?? 0);
+    $abortions = intval($_POST['abortions'] ?? 0);
+    $years_married = !empty($_POST['years_married']) ? intval($_POST['years_married']) : null;
     $cnic = trim($_POST['cnic']);
     $phone = trim($_POST['phone']);
     $address = trim($_POST['address'] ?? '');
@@ -49,9 +54,15 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
     else {
         try {
-            $stmt = $conn->prepare("UPDATE patients SET mr_number=?, first_name=?, last_name=?, patient_age=?, date_of_birth=?, blood_group=?, gender=?, cnic=?, phone=?, address=?, email=?, spouse_name=?, spouse_age=?, spouse_gender=?, spouse_cnic=?, spouse_phone=?, referring_hospital_id=? WHERE id=?");
+            $stmt = $conn->prepare("UPDATE patients SET mr_number=?, first_name=?, last_name=?, patient_age=?, date_of_birth=?, blood_group=?, gender=?, marital_status=?, gravida=?, para=?, abortions=?, years_married=?, cnic=?, phone=?, address=?, email=?, spouse_name=?, spouse_age=?, spouse_gender=?, spouse_cnic=?, spouse_phone=?, referring_hospital_id=? WHERE id=?");
             if ($stmt) {
-                $stmt->bind_param("sssississsssissssii", $mr_number, $first_name, $last_name, $patient_age, $date_of_birth, $blood_group, $gender, $cnic, $phone, $address, $email, $spouse_name, $spouse_age, $spouse_gender, $spouse_cnic, $spouse_phone, $hospital_id, $patient_id);
+                // Total 23 params: sss i ssss iiii sssss i sss ii
+                $stmt->bind_param("sssissssiiiisssssisssii",
+                    $mr_number, $first_name, $last_name, $patient_age, $date_of_birth, $blood_group,
+                    $gender, $marital_status, $gravida, $para, $abortions, $years_married,
+                    $cnic, $phone, $address, $email, $spouse_name, $spouse_age, $spouse_gender,
+                    $spouse_cnic, $spouse_phone, $hospital_id, $patient_id
+                );
                 if ($stmt->execute()) {
                     header("Location: patients_view.php?id=" . $patient_id . "&msg=updated");
                     exit;
