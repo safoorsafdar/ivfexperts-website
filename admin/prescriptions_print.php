@@ -59,6 +59,24 @@ try {
 catch (Exception $e) {
 }
 
+// Fetch Advised Lab Tests
+$lab_tests = [];
+try {
+    $stmt = $conn->prepare("SELECT * FROM prescription_lab_tests WHERE prescription_id = ? ORDER BY id ASC");
+    if ($stmt) {
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        while ($row = $res->fetch_assoc())
+            $lab_tests[] = $row;
+    }
+}
+catch (Exception $e) {
+}
+
+$patient_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Patient');
+$spouse_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Spouse');
+
 $icds = array_filter($diagnoses, fn($d) => $d['type'] == 'ICD');
 $cpts = array_filter($diagnoses, fn($d) => $d['type'] == 'CPT' || $d['type'] == 'SNOMED');
 
