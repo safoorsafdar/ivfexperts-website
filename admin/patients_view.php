@@ -552,10 +552,21 @@ endif; ?>
 
         <!-- Tab 2: Semen Reports -->
         <div x-show="currentTab === 'semen'" x-cloak>
-            <div class="space-y-4">
-                <?php if (empty($semen_reports)): ?>
-                    <div class="text-center py-8 text-gray-400 bg-white rounded-2xl border border-gray-100 border-dashed">No semen analyses recorded yet.</div>
-                <?php
+            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-microscope text-teal-600 mr-2"></i> Semen Analysis History</h3>
+                    <a href="semen_analyses_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        <i class="fa-solid fa-plus mr-1"></i> Add Semen Analysis
+                    </a>
+                </div>
+                
+                <div class="p-5 space-y-4">
+                    <?php if (empty($semen_reports)): ?>
+                        <div class="text-center py-8 text-gray-400">
+                            <i class="fa-solid fa-flask mb-2 text-3xl block text-gray-200"></i>
+                            No semen analyses recorded yet.
+                        </div>
+                    <?php
 else:
     foreach ($semen_reports as $sr): ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-sky-200 transition-colors">
