@@ -166,8 +166,8 @@ catch (Exception $e) {
 include __DIR__ . '/includes/header.php';
 ?>
 
-<!-- Alpine component for Tabs -->
-<div x-data="{ currentTab: 'history' }" class="flex flex-col lg:flex-row gap-6">
+<!-- Clinical Overview Container -->
+<div class="flex flex-col lg:flex-row gap-6">
 
     <!-- Left Column: Patient Demographics -->
     <div class="w-full lg:w-1/3 shrink-0">
@@ -295,29 +295,30 @@ endif; ?>
 endif; ?>
 
         <!-- Tab Navigation -->
-        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 flex overflow-hidden">
-            <button @click="currentTab = 'history'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'history', 'text-gray-500 hover:bg-gray-50': currentTab !== 'history'}" class="flex-1 py-4 text-sm font-medium transition-colors">
-                <i class="fa-solid fa-notes-medical mr-1"></i> Clinical History
-            </button>
-            <button @click="currentTab = 'semen'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'semen', 'text-gray-500 hover:bg-gray-50': currentTab !== 'semen'}" class="flex-1 py-4 text-sm font-medium transition-colors">
-                <i class="fa-solid fa-microscope mr-1"></i> Semen Reports
-            </button>
-            <button @click="currentTab = 'rx'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'rx', 'text-gray-500 hover:bg-gray-50': currentTab !== 'rx'}" class="flex-1 py-4 text-sm font-medium transition-colors">
-                <i class="fa-solid fa-pills mr-1"></i> Prescriptions
-            </button>
-            <button @click="currentTab = 'usg'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'usg', 'text-gray-500 hover:bg-gray-50': currentTab !== 'usg'}" class="flex-1 py-4 text-sm font-medium transition-colors">
-                <i class="fa-solid fa-image mr-1"></i> Ultrasounds
-            </button>
-            <button @click="currentTab = 'labs'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'labs', 'text-gray-500 hover:bg-gray-50': currentTab !== 'labs'}" class="flex-1 py-4 text-sm font-medium transition-colors border-l border-gray-100">
-                <i class="fa-solid fa-vials mr-1"></i> Lab Reports
-            </button>
-            <button @click="currentTab = 'procedures'" :class="{'bg-teal-50 text-teal-700 font-bold border-b-2 border-teal-600': currentTab === 'procedures', 'text-gray-500 hover:bg-gray-50': currentTab !== 'procedures'}" class="flex-1 py-4 text-sm font-medium transition-colors border-l border-gray-100">
+        <!-- Sticky Navigation Bar -->
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 mb-6 flex overflow-hidden sticky top-6 z-10">
+            <a href="#history" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700">
+                <i class="fa-solid fa-notes-medical mr-1"></i> History
+            </a>
+            <a href="#semen" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700">
+                <i class="fa-solid fa-microscope mr-1"></i> Semen
+            </a>
+            <a href="#rx" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700">
+                <i class="fa-solid fa-pills mr-1"></i> Rx
+            </a>
+            <a href="#usg" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700">
+                <i class="fa-solid fa-image mr-1"></i> USG
+            </a>
+            <a href="#labs" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700 border-l border-gray-100">
+                <i class="fa-solid fa-vials mr-1"></i> Labs
+            </a>
+            <a href="#procedures" class="flex-1 py-4 text-xs md:text-sm font-medium transition-colors text-center text-gray-500 hover:bg-teal-50 hover:text-teal-700 border-l border-gray-100">
                 <i class="fa-solid fa-clipboard-check mr-1"></i> Procedures
-            </button>
+            </a>
         </div>
 
-        <!-- Tab 1: History -->
-        <div x-show="currentTab === 'history'" x-cloak>
+        <!-- Section 1: Clinical History -->
+        <div id="history">
             
             <!-- Quill.js CDN -->
             <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
@@ -550,8 +551,8 @@ endif; ?>
 
         </div>
 
-        <!-- Tab 2: Semen Reports -->
-        <div x-show="currentTab === 'semen'" x-cloak>
+        <!-- Section 2: Semen Reports -->
+        <div id="semen">
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                     <h3 class="font-bold text-gray-800"><i class="fa-solid fa-microscope text-teal-600 mr-2"></i> Semen Analysis History</h3>
@@ -590,8 +591,8 @@ endif; ?>
         </div>
     </div> <!-- End Tab 2 -->
 
-    <!-- Tab 3: Prescriptions -->
-    <div x-show="currentTab === 'rx'" x-cloak>
+    <!-- Section 3: Prescriptions -->
+    <div id="rx">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h3 class="font-bold text-gray-800"><i class="fa-solid fa-prescription text-teal-600 mr-2"></i> Clinical Prescriptions</h3>
@@ -638,8 +639,8 @@ endif; ?>
             </div>
         </div>
 
-    <!-- Tab 4: Ultrasounds -->
-    <div x-show="currentTab === 'usg'" x-cloak>
+    <!-- Section 4: Ultrasounds -->
+    <div id="usg">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h3 class="font-bold text-gray-800"><i class="fa-solid fa-image text-teal-600 mr-2"></i> Ultrasound Scan Reports</h3>
@@ -687,7 +688,7 @@ endif; ?>
         </div>
 
     <!-- Tab 5: Lab Reports -->
-    <div x-show="currentTab === 'labs'" x-cloak>
+    <div id="labs">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h3 class="font-bold text-gray-800"><i class="fa-solid fa-vials text-teal-600 mr-2"></i> External / Internal Lab Results</h3>
@@ -774,7 +775,7 @@ endif; ?>
         </div>
 
     <!-- Tab 6: Advised Procedures -->
-    <div x-show="currentTab === 'procedures'" x-cloak>
+    <div id="procedures">
         <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                 <h3 class="font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-teal-600 mr-2"></i> Advised Treatments</h3>
@@ -858,6 +859,5 @@ endif; ?>
         </div>
 
     </div>
-</div>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
