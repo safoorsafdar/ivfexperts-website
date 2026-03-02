@@ -103,7 +103,10 @@ include __DIR__ . '/includes/header.php';
             <?php
 endif; ?>
 
-            <form method="POST">
+            <form method="POST" x-data="{ 
+                marital: '<?php echo esc($_POST['marital_status'] ?? 'Single'); ?>', 
+                gender: '<?php echo esc($_POST['gender'] ?? 'Female'); ?>' 
+            }">
                 <!-- MR Number -->
                 <div class="mb-6">
                     <label class="block text-sm font-bold text-slate-700 mb-1">MR Number *</label>
@@ -130,10 +133,10 @@ endif; ?>
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Gender *</label>
-                            <select name="gender" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-white" required>
-                                <option value="Female" <?php echo(isset($_POST['gender']) && $_POST['gender'] == 'Female') ? 'selected' : ''; ?>>Female</option>
-                                <option value="Male" <?php echo(isset($_POST['gender']) && $_POST['gender'] == 'Male') ? 'selected' : ''; ?>>Male</option>
-                                <option value="Other" <?php echo(isset($_POST['gender']) && $_POST['gender'] == 'Other') ? 'selected' : ''; ?>>Other</option>
+                            <select name="gender" x-model="gender" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500 bg-white" required>
+                                <option value="Female">Female</option>
+                                <option value="Male">Male</option>
+                                <option value="Other">Other</option>
                             </select>
                         </div>
                         <div>
@@ -174,7 +177,7 @@ endforeach; ?>
                 </div>
 
                 <!-- Section: Marital Status & Obstetric History -->
-                <div class="bg-purple-50 border border-purple-100 rounded-xl p-5 mb-6" x-data="{ marital: '<?php echo esc($_POST['marital_status'] ?? 'Single'); ?>', gender: '<?php echo esc($_POST['gender'] ?? 'Female'); ?>' }">
+                <div class="bg-purple-50 border border-purple-100 rounded-xl p-5 mb-6">
                     <h4 class="font-bold text-purple-800 text-sm mb-4"><i class="fa-solid fa-ring mr-1"></i> Marital & Obstetric History</h4>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
@@ -194,23 +197,21 @@ endforeach; ?>
                     <div class="grid grid-cols-3 gap-4 mt-4" x-show="gender === 'Female'">
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Gravida (G)</label>
-                            <input type="number" name="gravida" value="<?php echo esc($_POST['gravida'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
+                            <input type="number" name="gravida" id="gravida_input" value="<?php echo esc($_POST['gravida'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Para (P)</label>
-                            <input type="number" name="para" value="<?php echo esc($_POST['para'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
+                            <input type="number" name="para" id="para_input" value="<?php echo esc($_POST['para'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1">Abortions (A)</label>
-                            <input type="number" name="abortions" value="<?php echo esc($_POST['abortions'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
+                            <input type="number" name="abortions" id="abortions_input" value="<?php echo esc($_POST['abortions'] ?? '0'); ?>" class="w-full px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 bg-white text-center font-bold" min="0">
                         </div>
                     </div>
-                    <p class="text-[10px] text-purple-500 mt-3" x-show="gender === 'Female'">GPA Format: G<span x-text="$refs?.gravida?.value || 0"></span>P<span x-text="$refs?.para?.value || 0"></span>A<span x-text="$refs?.abortions?.value || 0"></span></p>
                 </div>
 
                 <!-- Section: Spouse Details -->
-                <div class="bg-pink-50 border border-pink-100 rounded-xl p-5 mb-6" x-data="{ showSpouse: '<?php echo esc($_POST['marital_status'] ?? 'Single'); ?>' === 'Married' }">
-                    <template x-if="'<?php echo esc($_POST['marital_status'] ?? 'Single'); ?>' === 'Married' || showSpouse">
+                <div class="bg-pink-50 border border-pink-100 rounded-xl p-5 mb-6" x-show="marital === 'Married'">
                     <h4 class="font-bold text-pink-800 text-sm mb-4"><i class="fa-solid fa-heart mr-1"></i> Spouse / Partner Details</h4>
                     <p class="text-xs text-pink-600 mb-4">This links the spouse's tests (Semen Analysis, Lab Results) under the same patient file for 360° fertility tracking.</p>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
