@@ -592,15 +592,15 @@ endif; ?>
 
     <!-- Tab 3: Prescriptions -->
     <div x-show="currentTab === 'rx'" x-cloak>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-prescription text-teal-600 mr-2"></i> Clinical Prescriptions</h3>
-                    <a href="prescriptions_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fa-solid fa-plus mr-1"></i> Add Prescription
-                    </a>
-                </div>
-                
-                <div class="p-5 space-y-4">
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800"><i class="fa-solid fa-prescription text-teal-600 mr-2"></i> Clinical Prescriptions</h3>
+                <a href="prescriptions_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Prescription
+                </a>
+            </div>
+            
+            <div class="p-5 space-y-4">
                     <?php if (empty($prescriptions)): ?>
                         <div class="text-center py-8 text-gray-400">
                             <i class="fa-solid fa-pills mb-2 text-3xl block text-gray-200"></i>
@@ -638,17 +638,17 @@ endif; ?>
             </div>
         </div>
 
-        <!-- Tab 4: Ultrasounds -->
-        <div x-show="currentTab === 'usg'" x-cloak>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-image text-teal-600 mr-2"></i> Ultrasound Scan Reports</h3>
-                    <a href="ultrasounds_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fa-solid fa-plus mr-1"></i> Add Ultrasound
-                    </a>
-                </div>
-                
-                <div class="p-5 space-y-4">
+    <!-- Tab 4: Ultrasounds -->
+    <div x-show="currentTab === 'usg'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800"><i class="fa-solid fa-image text-teal-600 mr-2"></i> Ultrasound Scan Reports</h3>
+                <a href="ultrasounds_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Ultrasound
+                </a>
+            </div>
+            
+            <div class="p-5 space-y-4">
                     <?php if (empty($ultrasounds)): ?>
                         <div class="text-center py-8 text-gray-400">
                             <i class="fa-solid fa-camera mb-2 text-3xl block text-gray-200"></i>
@@ -686,17 +686,17 @@ endif; ?>
             </div>
         </div>
 
-        <!-- Tab 5: Lab Reports -->
-        <div x-show="currentTab === 'labs'" x-cloak>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-vials text-teal-600 mr-2"></i> External / Internal Lab Results</h3>
-                    <a href="lab_results_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fa-solid fa-plus mr-1"></i> Add Lab Result
-                    </a>
-                </div>
-                
-                <div class="p-0">
+    <!-- Tab 5: Lab Reports -->
+    <div x-show="currentTab === 'labs'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800"><i class="fa-solid fa-vials text-teal-600 mr-2"></i> External / Internal Lab Results</h3>
+                <a href="lab_results_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Lab Result
+                </a>
+            </div>
+            
+            <div class="p-0">
                     <?php if (empty($lab_results)): ?>
                         <div class="p-8 text-center text-gray-400">
                             <i class="fa-solid fa-flask mb-2 text-3xl block"></i>
@@ -773,17 +773,17 @@ endif; ?>
             </div>
         </div>
 
-        <!-- Tab 6: Advised Procedures -->
-        <div x-show="currentTab === 'procedures'" x-cloak>
-            <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
-                    <h3 class="font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-teal-600 mr-2"></i> Advised Treatments</h3>
-                    <a href="procedures_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                        <i class="fa-solid fa-plus mr-1"></i> Add Procedure
-                    </a>
-                </div>
-                
-                <div class="p-0">
+    <!-- Tab 6: Advised Procedures -->
+    <div x-show="currentTab === 'procedures'" x-cloak>
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
+            <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
+                <h3 class="font-bold text-gray-800"><i class="fa-solid fa-clipboard-check text-teal-600 mr-2"></i> Advised Treatments</h3>
+                <a href="procedures_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <i class="fa-solid fa-plus mr-1"></i> Add Procedure
+                </a>
+            </div>
+            
+            <div class="p-0">
                     <?php if (empty($advised_procedures)): ?>
                         <div class="p-8 text-center text-gray-400">
                             <i class="fa-solid fa-clipboard mb-2 text-3xl block"></i>
