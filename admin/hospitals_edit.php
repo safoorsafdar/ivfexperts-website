@@ -31,7 +31,7 @@ if ($id > 0) {
             $error = "Hospital not found.";
         }
     }
-    catch (Exception $e) {
+    catch (Throwable $e) {
         $error = "Database error: " . $e->getMessage();
     }
 }
@@ -48,72 +48,77 @@ if (!is_dir($upload_dir . 'letterheads/'))
     mkdir($upload_dir . 'letterheads/', 0755, true);
 
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_hospital'])) {
-    $name = trim($_POST['name'] ?? '');
-    $address = trim($_POST['address'] ?? '');
-    $phone = trim($_POST['phone'] ?? '');
-    $mt = trim($_POST['margin_top'] ?? '20mm');
-    $mb = trim($_POST['margin_bottom'] ?? '20mm');
-    $ml = trim($_POST['margin_left'] ?? '20mm');
-    $mr = trim($_POST['margin_right'] ?? '20mm');
+    try {
+        $name = trim($_POST['name'] ?? '');
+        $address = trim($_POST['address'] ?? '');
+        $phone = trim($_POST['phone'] ?? '');
+        $mt = trim($_POST['margin_top'] ?? '20mm');
+        $mb = trim($_POST['margin_bottom'] ?? '20mm');
+        $ml = trim($_POST['margin_left'] ?? '20mm');
+        $mr = trim($_POST['margin_right'] ?? '20mm');
 
-    // Keep old paths if no new file is uploaded
-    $logo_path = $hospital['logo_path'];
-    $sig_path = $hospital['digital_signature_path'];
-    $letterhead_path = $hospital['letterhead_image_path'];
+        // Keep old paths if no new file is uploaded
+        $logo_path = $hospital['logo_path'] ?? '';
+        $sig_path = $hospital['digital_signature_path'] ?? '';
+        $letterhead_path = $hospital['letterhead_image_path'] ?? '';
 
-    // Handle Logo Upload
-    if (isset($_FILES['logo']) && $_FILES['logo']['error'] == 0) {
-        $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
-        $filename = 'logo_' . time() . '.' . $ext;
-        if (move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . 'logos/' . $filename)) {
-            $logo_path = 'assets/uploads/logos/' . $filename;
-        }
-    }
-
-    // Handle Signature Upload
-    if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
-        $ext = pathinfo($_FILES['signature']['name'], PATHINFO_EXTENSION);
-        $filename = 'sig_' . time() . '.' . $ext;
-        if (move_uploaded_file($_FILES['signature']['tmp_name'], $upload_dir . 'signatures/' . $filename)) {
-            $sig_path = 'assets/uploads/signatures/' . $filename;
-        }
-    }
-
-    // Handle Letterhead Upload
-    if (isset($_FILES['letterhead']) && $_FILES['letterhead']['error'] == 0) {
-        $ext = pathinfo($_FILES['letterhead']['name'], PATHINFO_EXTENSION);
-        $filename = 'lh_' . time() . '.' . $ext;
-        if (move_uploaded_file($_FILES['letterhead']['tmp_name'], $upload_dir . 'letterheads/' . $filename)) {
-            $letterhead_path = 'assets/uploads/letterheads/' . $filename;
-        }
-    }
-
-    if (empty($name)) {
-        $error = "Hospital name is required.";
-    }
-    else {
-        if ($id > 0) {
-            $stmt = $conn->prepare("UPDATE hospitals SET name=?, address=?, phone=?, margin_top=?, margin_bottom=?, margin_left=?, margin_right=?, logo_path=?, digital_signature_path=?, letterhead_image_path=? WHERE id=?");
-            $stmt->bind_param("ssssssssssi", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path, $id);
-            if ($stmt->execute()) {
-                header("Location: hospitals.php?msg=saved");
-                exit;
+        // Handle Logo Upload
+        if (isset($_FILES['logo']) && $_FILES['logo']['error'] == 0) {
+            $ext = pathinfo($_FILES['logo']['name'], PATHINFO_EXTENSION);
+            $filename = 'logo_' . time() . '.' . $ext;
+            if (move_uploaded_file($_FILES['logo']['tmp_name'], $upload_dir . 'logos/' . $filename)) {
+                $logo_path = 'assets/uploads/logos/' . $filename;
             }
-            else {
-                $error = "Update failed: " . $stmt->error;
+        }
+
+        // Handle Signature Upload
+        if (isset($_FILES['signature']) && $_FILES['signature']['error'] == 0) {
+            $ext = pathinfo($_FILES['signature']['name'], PATHINFO_EXTENSION);
+            $filename = 'sig_' . time() . '.' . $ext;
+            if (move_uploaded_file($_FILES['signature']['tmp_name'], $upload_dir . 'signatures/' . $filename)) {
+                $sig_path = 'assets/uploads/signatures/' . $filename;
             }
+        }
+
+        // Handle Letterhead Upload
+        if (isset($_FILES['letterhead']) && $_FILES['letterhead']['error'] == 0) {
+            $ext = pathinfo($_FILES['letterhead']['name'], PATHINFO_EXTENSION);
+            $filename = 'lh_' . time() . '.' . $ext;
+            if (move_uploaded_file($_FILES['letterhead']['tmp_name'], $upload_dir . 'letterheads/' . $filename)) {
+                $letterhead_path = 'assets/uploads/letterheads/' . $filename;
+            }
+        }
+
+        if (empty($name)) {
+            $error = "Hospital name is required.";
         }
         else {
-            $stmt = $conn->prepare("INSERT INTO hospitals (name, address, phone, margin_top, margin_bottom, margin_left, margin_right, logo_path, digital_signature_path, letterhead_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("ssssssssss", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path);
-            if ($stmt->execute()) {
-                header("Location: hospitals.php?msg=saved");
-                exit;
+            if ($id > 0) {
+                $stmt = $conn->prepare("UPDATE hospitals SET name=?, address=?, phone=?, margin_top=?, margin_bottom=?, margin_left=?, margin_right=?, logo_path=?, digital_signature_path=?, letterhead_image_path=? WHERE id=?");
+                $stmt->bind_param("ssssssssssi", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path, $id);
+                if ($stmt->execute()) {
+                    header("Location: hospitals.php?msg=saved");
+                    exit;
+                }
+                else {
+                    $error = "Update failed: " . $stmt->error;
+                }
             }
             else {
-                $error = "Insert failed: " . $stmt->error;
+                $stmt = $conn->prepare("INSERT INTO hospitals (name, address, phone, margin_top, margin_bottom, margin_left, margin_right, logo_path, digital_signature_path, letterhead_image_path) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("ssssssssss", $name, $address, $phone, $mt, $mb, $ml, $mr, $logo_path, $sig_path, $letterhead_path);
+                if ($stmt->execute()) {
+                    header("Location: hospitals.php?msg=saved");
+                    exit;
+                }
+                else {
+                    $error = "Insert failed: " . $stmt->error;
+                }
             }
         }
+    }
+    catch (Throwable $e) {
+        $error = "Operation failed: " . $e->getMessage();
     }
 }
 
