@@ -588,10 +588,10 @@ else:
 endif; ?>
             </div>
         </div>
-    </div>
+    </div> <!-- End Tab 2 -->
 
     <!-- Tab 3: Prescriptions -->
-        <div x-show="currentTab === 'rx'" x-cloak>
+    <div x-show="currentTab === 'rx'" x-cloak>
             <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
                 <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50 flex justify-between items-center">
                     <h3 class="font-bold text-gray-800"><i class="fa-solid fa-prescription text-teal-600 mr-2"></i> Clinical Prescriptions</h3>
