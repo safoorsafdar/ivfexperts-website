@@ -56,12 +56,12 @@ $totalRecords = $stmtCount->get_result()->fetch_assoc()['total'];
 $totalPages = ceil($totalRecords / $limit);
 
 // Fetch results
-$sql = "SELECT plt.*, pt.first_name, pt.last_name, pt.mr_number as pt_mr, ltd.test_name, ltd.unit 
+$sql = "SELECT plt.*, pt.first_name, pt.last_name, pt.mr_number as pt_mr, pt.gender as pt_gender, ltd.test_name, ltd.unit 
         FROM patient_lab_results plt 
         JOIN patients pt ON plt.patient_id = pt.id 
         JOIN lab_tests_directory ltd ON plt.test_id = ltd.id 
         $searchQuery 
-        ORDER BY plt.test_date DESC, plt.id DESC 
+        ORDER BY plt.status ASC, plt.test_date DESC, plt.id DESC 
         LIMIT ? OFFSET ?";
 
 $queryParams[] = $limit;
@@ -131,9 +131,10 @@ endif; ?>
             <thead>
                 <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                     <th class="p-4 font-medium border-b border-gray-100 w-16">ID</th>
-                    <th class="p-4 font-medium border-b border-gray-100">Patient</th>
+                    <th class="p-4 font-medium border-b border-gray-100">Patient / Target</th>
                     <th class="p-4 font-medium border-b border-gray-100">Test</th>
                     <th class="p-4 font-medium border-b border-gray-100">Result</th>
+                    <th class="p-4 font-medium border-b border-gray-100">Status</th>
                     <th class="p-4 font-medium border-b border-gray-100">Lab Details</th>
                     <th class="p-4 font-medium border-b border-gray-100">Date</th>
                     <th class="p-4 font-medium border-b border-gray-100 w-16 text-center"><i class="fa-solid fa-paperclip"></i></th>
@@ -143,19 +144,26 @@ endif; ?>
             <tbody class="divide-y divide-gray-50 text-sm">
                 <?php if (empty($results)): ?>
                 <tr>
-                    <td colspan="8" class="p-8 text-center text-gray-400 font-medium">
+                    <td colspan="9" class="p-8 text-center text-gray-400 font-medium">
                         <i class="fa-solid fa-vials text-3xl mb-3 block text-gray-300"></i>
                         No lab results found.
                     </td>
                 </tr>
                 <?php
 else:
-    foreach ($results as $r): ?>
-                <tr class="hover:bg-gray-50/50 transition-colors group">
+    foreach ($results as $r):
+        $is_pending = ($r['status'] === 'Pending');
+?>
+                <tr class="hover:bg-gray-50/50 transition-colors group <?php echo $is_pending ? 'bg-orange-50/30' : ''; ?>">
                     <td class="p-4 text-gray-500">#<?php echo $r['id']; ?></td>
                     <td class="p-4">
                         <div class="font-bold text-gray-900"><?php echo htmlspecialchars($r['first_name'] . ' ' . $r['last_name']); ?></div>
-                        <div class="text-xs text-indigo-600 font-mono"><?php echo htmlspecialchars($r['pt_mr']); ?></div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <span class="text-xs text-indigo-600 font-mono"><?php echo htmlspecialchars($r['pt_mr']); ?></span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $r['test_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                <?php echo $r['test_for']; ?>
+                            </span>
+                        </div>
                     </td>
                     <td class="p-4">
                         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-100 text-xs">
@@ -163,8 +171,27 @@ else:
                         </span>
                     </td>
                     <td class="p-4">
-                        <span class="font-bold text-gray-900 text-base"><?php echo htmlspecialchars($r['result_value']); ?></span>
-                        <span class="text-xs text-gray-500 font-mono ml-1"><?php echo htmlspecialchars($r['unit']); ?></span>
+                        <?php if ($is_pending): ?>
+                            <span class="text-orange-500 font-bold italic">Awaiting...</span>
+                        <?php
+        else: ?>
+                            <span class="font-bold text-gray-900 text-base"><?php echo htmlspecialchars($r['result_value']); ?></span>
+                            <span class="text-xs text-gray-500 font-mono ml-1"><?php echo htmlspecialchars($r['unit']); ?></span>
+                        <?php
+        endif; ?>
+                    </td>
+                    <td class="p-4">
+                        <?php if ($is_pending): ?>
+                            <span class="flex items-center gap-1 text-orange-600 font-bold text-xs uppercase tracking-tight">
+                                <i class="fa-solid fa-clock-rotate-left animate-pulse"></i> Pending
+                            </span>
+                        <?php
+        else: ?>
+                            <span class="flex items-center gap-1 text-emerald-600 font-bold text-xs uppercase tracking-tight">
+                                <i class="fa-solid fa-check-double"></i> Final
+                            </span>
+                        <?php
+        endif; ?>
                     </td>
                     <td class="p-4">
                         <div class="text-gray-900 font-medium text-xs"><?php echo htmlspecialchars($r['lab_name'] ?: 'In-House'); ?></div>

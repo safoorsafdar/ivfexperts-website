@@ -27,24 +27,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['save_test'])) {
     $id = intval($_POST['id'] ?? 0);
     $test_name = trim($_POST['test_name']);
-    $reference_range = trim($_POST['reference_range']);
     $unit = trim($_POST['unit']);
 
     if (empty($test_name)) {
         $error = "Test Name is required.";
     }
     else {
+        $ref_male = trim($_POST['reference_range_male'] ?? '');
+        $ref_female = trim($_POST['reference_range_female'] ?? '');
+
         if ($id > 0) {
-            $stmt = $conn->prepare("UPDATE lab_tests_directory SET test_name = ?, reference_range = ?, unit = ? WHERE id = ?");
-            $stmt->bind_param("sssi", $test_name, $reference_range, $unit, $id);
+            $stmt = $conn->prepare("UPDATE lab_tests_directory SET test_name = ?, reference_range_male = ?, reference_range_female = ?, unit = ? WHERE id = ?");
+            $stmt->bind_param("ssssi", $test_name, $ref_male, $ref_female, $unit, $id);
             if ($stmt->execute())
                 $success = "Test updated successfully.";
             else
                 $error = "Update failed.";
         }
         else {
-            $stmt = $conn->prepare("INSERT INTO lab_tests_directory (test_name, reference_range, unit) VALUES (?, ?, ?)");
-            $stmt->bind_param("sss", $test_name, $reference_range, $unit);
+            $stmt = $conn->prepare("INSERT INTO lab_tests_directory (test_name, reference_range_male, reference_range_female, unit) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("ssss", $test_name, $ref_male, $ref_female, $unit);
             if ($stmt->execute())
                 $success = "New test added to directory.";
             else
@@ -97,7 +99,8 @@ endif; ?>
         <thead>
             <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                 <th class="p-4 font-medium border-b border-gray-100">Test Name</th>
-                <th class="p-4 font-medium border-b border-gray-100">Reference / Normal Range</th>
+                <th class="p-4 font-medium border-b border-gray-100">Reference (Male)</th>
+                <th class="p-4 font-medium border-b border-gray-100">Reference (Female)</th>
                 <th class="p-4 font-medium border-b border-gray-100 w-24">Unit</th>
                 <th class="p-4 font-medium border-b border-gray-100 w-24 text-right">Actions</th>
             </tr>
@@ -105,7 +108,7 @@ endif; ?>
         <tbody class="divide-y divide-gray-50 text-sm">
             <?php if (empty($tests)): ?>
             <tr>
-                <td colspan="4" class="p-8 text-center text-gray-400">
+                <td colspan="5" class="p-8 text-center text-gray-400">
                     <i class="fa-solid fa-flask mb-2 text-3xl block"></i>
                     No tests in the directory. Click "Add New Test" to build your database.
                 </td>
@@ -116,13 +119,16 @@ else:
             <tr class="hover:bg-gray-50/50 transition-colors group">
                 <td class="p-4 font-medium text-gray-900"><?php echo htmlspecialchars($t['test_name']); ?></td>
                 <td class="p-4 text-gray-600 text-xs leading-relaxed">
-                    <?php echo $t['reference_range'] ? nl2br(htmlspecialchars($t['reference_range'])) : '-'; ?>
+                    <?php echo $t['reference_range_male'] ? nl2br(htmlspecialchars($t['reference_range_male'])) : '-'; ?>
+                </td>
+                <td class="p-4 text-gray-600 text-xs leading-relaxed">
+                    <?php echo $t['reference_range_female'] ? nl2br(htmlspecialchars($t['reference_range_female'])) : '-'; ?>
                 </td>
                 <td class="p-4 text-gray-500 font-mono text-xs bg-gray-50 rounded text-center m-3 box-border w-10">
                     <?php echo htmlspecialchars($t['unit'] ?: '-'); ?>
                 </td>
                 <td class="p-4 text-right">
-                    <div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div class="flex justify-end gap-2 transition-opacity">
                         <button onclick="editModal(<?php echo htmlspecialchars(json_encode($t)); ?>)" class="text-sky-500 hover:text-sky-700 bg-sky-50 p-2 rounded">
                             <i class="fa-solid fa-edit"></i>
                         </button>
@@ -144,7 +150,7 @@ endif; ?>
 
 <!-- Add/Edit Modal -->
 <div id="testModal" class="fixed inset-0 bg-gray-900/50 hidden items-center justify-center z-50 backdrop-blur-sm">
-    <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 overflow-hidden transform transition-all">
+    <div class="bg-white rounded-2xl shadow-xl max-w-xl w-full mx-4 overflow-hidden transform transition-all">
         <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
             <h3 class="font-bold text-gray-900" id="modalTitle">Add New Lab Test</h3>
             <button onclick="closeModal()" class="text-gray-400 hover:text-gray-600">
@@ -159,9 +165,15 @@ endif; ?>
                 <input type="text" name="test_name" id="test_name" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="e.g. Anti-Mullerian Hormone (AMH)">
             </div>
             
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700 mb-1">Reference Range (Supports Multi-line / NABL Format)</label>
-                <textarea name="reference_range" id="reference_range" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g.&#10;Male: < 5&#10;Female Follicular: 3.03 - 8.08&#10;Female Luteal: 1.38 - 5.47"></textarea>
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference Range (Male)</label>
+                    <textarea name="reference_range_male" id="reference_range_male" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 1.0 - 5.0"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Reference Range (Female)</label>
+                    <textarea name="reference_range_female" id="reference_range_female" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-sm" placeholder="e.g. 0.5 - 3.0"></textarea>
+                </div>
             </div>
             
             <div class="mb-6">
@@ -183,7 +195,8 @@ endif; ?>
         document.getElementById('modalTitle').innerText = 'Add New Lab Test';
         document.getElementById('test_id').value = '0';
         document.getElementById('test_name').value = '';
-        document.getElementById('reference_range').value = '';
+        document.getElementById('reference_range_male').value = '';
+        document.getElementById('reference_range_female').value = '';
         document.getElementById('unit').value = '';
         modal.classList.remove('hidden');
         modal.classList.add('flex');
@@ -192,7 +205,8 @@ endif; ?>
         document.getElementById('modalTitle').innerText = 'Edit Lab Test';
         document.getElementById('test_id').value = test.id;
         document.getElementById('test_name').value = test.test_name;
-        document.getElementById('reference_range').value = test.reference_range;
+        document.getElementById('reference_range_male').value = test.reference_range_male;
+        document.getElementById('reference_range_female').value = test.reference_range_female;
         document.getElementById('unit').value = test.unit;
         modal.classList.remove('hidden');
         modal.classList.add('flex');

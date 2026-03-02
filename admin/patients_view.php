@@ -18,10 +18,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['add_history'])) {
     $medication = $_POST['medication'] ?? '';
     $advice = $_POST['advice'] ?? '';
     $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
+    $record_for = $_POST['record_for'] ?? 'Patient';
 
-    $stmt = $conn->prepare("INSERT INTO patient_history (patient_id, clinical_notes, diagnosis, medication, advice, next_visit) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt = $conn->prepare("INSERT INTO patient_history (patient_id, clinical_notes, diagnosis, medication, advice, next_visit, record_for) VALUES (?, ?, ?, ?, ?, ?, ?)");
     if ($stmt) {
-        $stmt->bind_param("isssss", $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit);
+        $stmt->bind_param("issssss", $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
         if ($stmt->execute()) {
             header("Location: patients_view.php?id=" . $patient_id . "&msg=history_added");
             exit;
@@ -40,10 +41,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['edit_history'])) {
     $medication = $_POST['medication'] ?? '';
     $advice = $_POST['advice'] ?? '';
     $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
+    $record_for = $_POST['record_for'] ?? 'Patient';
 
-    $stmt = $conn->prepare("UPDATE patient_history SET clinical_notes=?, diagnosis=?, medication=?, advice=?, next_visit=? WHERE id=? AND patient_id=?");
+    $stmt = $conn->prepare("UPDATE patient_history SET clinical_notes=?, diagnosis=?, medication=?, advice=?, next_visit=?, record_for=? WHERE id=? AND patient_id=?");
     if ($stmt) {
-        $stmt->bind_param("sssssii", $notes, $diagnosis, $medication, $advice, $next_visit, $history_id, $patient_id);
+        $stmt->bind_param("ssssssii", $notes, $diagnosis, $medication, $advice, $next_visit, $record_for, $history_id, $patient_id);
         if ($stmt->execute()) {
             header("Location: patients_view.php?id=" . $patient_id . "&msg=history_updated");
             exit;
@@ -72,7 +74,7 @@ if (!$patient) {
 // Fetch History
 $histories = [];
 try {
-    $stmt = $conn->prepare("SELECT * FROM patient_history WHERE patient_id = ? ORDER BY recorded_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM patient_history WHERE patient_id = ? ORDER BY record_for ASC, recorded_at DESC");
     if ($stmt) {
         $stmt->bind_param("i", $patient_id);
         $stmt->execute();
@@ -102,7 +104,7 @@ catch (Exception $e) {
 // Fetch Prescriptions
 $prescriptions = [];
 try {
-    $stmt = $conn->prepare("SELECT id, created_at, scanned_report_path FROM prescriptions WHERE patient_id = ? ORDER BY created_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM prescriptions WHERE patient_id = ? ORDER BY record_for DESC, created_at DESC");
     if ($stmt) {
         $stmt->bind_param("i", $patient_id);
         $stmt->execute();
@@ -117,7 +119,7 @@ catch (Exception $e) {
 // Fetch Ultrasounds
 $ultrasounds = [];
 try {
-    $stmt = $conn->prepare("SELECT id, created_at, report_title, scanned_report_path FROM patient_ultrasounds WHERE patient_id = ? ORDER BY created_at DESC");
+    $stmt = $conn->prepare("SELECT * FROM patient_ultrasounds WHERE patient_id = ? ORDER BY record_for DESC, created_at DESC");
     if ($stmt) {
         $stmt->bind_param("i", $patient_id);
         $stmt->execute();
@@ -132,7 +134,7 @@ catch (Exception $e) {
 // Fetch Lab Results
 $lab_results = [];
 try {
-    $stmt = $conn->prepare("SELECT plt.*, ltd.test_name, ltd.reference_range, ltd.unit FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = ? ORDER BY plt.test_date DESC, plt.id DESC");
+    $stmt = $conn->prepare("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = ? ORDER BY plt.status DESC, plt.test_date DESC");
     if ($stmt) {
         $stmt->bind_param("i", $patient_id);
         $stmt->execute();
@@ -345,8 +347,27 @@ endif; ?>
                                 </div>
                                 <div>
                                     <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-pills text-pink-600 mr-1"></i> Medication Prescribed</label>
-                                    <div id="editor-medication" style="height:120px;"></div>
-                                    <input type="hidden" name="medication" id="hidden_medication">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5 border-b border-gray-50 pb-5">
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2">Record For *</label>
+                                    <div class="flex gap-3">
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="record_for" value="Patient" checked class="peer sr-only">
+                                            <div class="p-2 text-center border rounded-lg peer-checked:bg-teal-600 peer-checked:text-white border-gray-200 text-xs font-bold">Patient</div>
+                                        </label>
+                                        <label class="flex-1 cursor-pointer">
+                                            <input type="radio" name="record_for" value="Spouse" class="peer sr-only">
+                                            <div class="p-2 text-center border rounded-lg peer-checked:bg-pink-600 peer-checked:text-white border-gray-200 text-xs font-bold">Spouse</div>
+                                        </label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-clipboard-list text-indigo-600 mr-1"></i> Diagnosis / Impression</label>
+                                    <input type="text" name="diagnosis" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm" placeholder="e.g. Primary Infertility, PCOs...">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-bold text-gray-700 mb-2"><i class="fa-solid fa-pills text-pink-600 mr-1"></i> Medication / Plan</label>
+                                    <input type="text" name="medication" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-teal-500 text-sm" placeholder="e.g. Folic Acid, Metformin...">
                                 </div>
                             </div>
 
@@ -389,6 +410,9 @@ else:
                             <div class="flex items-center gap-3">
                                 <span class="text-xs font-bold text-teal-700 bg-teal-50 px-3 py-1 rounded-full">
                                     Visit #<?php echo count($histories) - $idx; ?>
+                                </span>
+                                <span class="text-[10px] px-2 py-0.5 rounded font-bold uppercase <?php echo $h['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                    <?php echo $h['record_for']; ?>
                                 </span>
                                 <span class="text-xs text-gray-500">
                                     <i class="fa-regular fa-clock mr-1"></i><?php echo date('d M Y, h:i A', strtotime($h['recorded_at'])); ?>
@@ -542,7 +566,12 @@ else:
     foreach ($prescriptions as $rx): ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-indigo-200 transition-colors">
                         <div>
-                            <div class="font-bold text-gray-800 mb-1">Digital Prescription</div>
+                            <div class="font-bold text-gray-800 mb-1 flex items-center gap-2">
+                                Digital Prescription
+                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $rx['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                    <?php echo $rx['record_for']; ?>
+                                </span>
+                            </div>
                             <div class="text-xs text-gray-500">Issued: <?php echo date('d M Y, h:i A', strtotime($rx['created_at'])); ?></div>
                         </div>
                         <div class="flex gap-2">
@@ -573,7 +602,12 @@ else:
     foreach ($ultrasounds as $u): ?>
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-5 flex justify-between items-center hover:border-sky-200 transition-colors">
                         <div>
-                            <div class="font-bold text-gray-800 mb-1"><?php echo esc($u['report_title']); ?></div>
+                            <div class="font-bold text-gray-800 mb-1 flex items-center gap-2">
+                                <?php echo esc($u['report_title']); ?>
+                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $u['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                    <?php echo $u['record_for']; ?>
+                                </span>
+                            </div>
                             <div class="text-xs text-gray-500">Recorded: <?php echo date('d M Y, h:i A', strtotime($u['created_at'])); ?></div>
                         </div>
                         <div class="flex gap-2">
@@ -617,7 +651,8 @@ else: ?>
                                 <thead>
                                     <tr class="bg-gray-50 text-gray-500 text-xs uppercase tracking-wider">
                                         <th class="p-4 font-medium border-b border-gray-100">Test name</th>
-                                        <th class="p-4 font-medium border-b border-gray-100">Result value</th>
+                                        <th class="p-4 font-medium border-b border-gray-100 text-center">For</th>
+                                        <th class="p-4 font-medium border-b border-gray-100">Result / Status</th>
                                         <th class="p-4 font-medium border-b border-gray-100">Reference / Normal</th>
                                         <th class="p-4 font-medium border-b border-gray-100">Date & Source</th>
                                         <th class="p-4 font-medium border-b border-gray-100 text-right"><i class="fa-solid fa-paperclip"></i></th>
@@ -626,12 +661,33 @@ else: ?>
                                 <tbody class="divide-y divide-gray-50 text-sm">
                                     <?php foreach ($lab_results as $lr): ?>
                                     <tr class="hover:bg-gray-50/50 transition-colors">
-                                        <td class="p-4 font-semibold text-gray-900"><?php echo htmlspecialchars($lr['test_name']); ?></td>
-                                        <td class="p-4">
-                                            <span class="font-bold text-lg text-gray-900"><?php echo htmlspecialchars($lr['result_value']); ?></span>
-                                            <span class="text-xs text-gray-500 font-mono ml-1"><?php echo htmlspecialchars($lr['unit']); ?></span>
+                                        <td class="p-4 font-bold text-gray-900 border-l-4 <?php echo($lr['status'] === 'Pending') ? 'border-orange-400 bg-orange-50/20' : 'border-emerald-400'; ?>">
+                                            <?php echo htmlspecialchars($lr['test_name']); ?>
                                         </td>
-                                        <td class="p-4 text-gray-600 text-xs leading-relaxed"><?php echo $lr['reference_range'] ? nl2br(htmlspecialchars($lr['reference_range'])) : '-'; ?></td>
+                                        <td class="p-4 text-center">
+                                            <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo $lr['test_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                                <?php echo $lr['test_for']; ?>
+                                            </span>
+                                        </td>
+                                        <td class="p-4">
+                                            <?php if ($lr['status'] === 'Pending'): ?>
+                                                <span class="text-orange-600 font-bold italic flex items-center gap-1">
+                                                    <i class="fa-solid fa-clock-rotate-left animate-pulse"></i> Pending
+                                                </span>
+                                            <?php
+        else: ?>
+                                                <span class="font-bold text-lg text-gray-900"><?php echo htmlspecialchars($lr['result_value']); ?></span>
+                                                <span class="text-xs text-gray-500 font-mono ml-1"><?php echo htmlspecialchars($lr['unit']); ?></span>
+                                            <?php
+        endif; ?>
+                                        </td>
+                                        <td class="p-4 text-gray-600 text-xs leading-relaxed">
+                                            <?php
+        $targetGender = ($lr['test_for'] === 'Patient') ? ($patient['gender'] ?? 'Male') : (($patient['gender'] === 'Male') ? 'Female' : 'Male');
+        $ref = ($targetGender === 'Male') ? $lr['reference_range_male'] : $lr['reference_range_female'];
+        echo $ref ? nl2br(htmlspecialchars($ref)) : '-';
+?>
+                                        </td>
                                         <td class="p-4">
                                             <div class="font-medium text-gray-800"><?php echo date('d M Y', strtotime($lr['test_date'])); ?></div>
                                             <div class="text-[10px] text-gray-500 uppercase"><?php echo htmlspecialchars($lr['lab_name'] ?: 'In-House'); ?> <?php echo $lr['lab_city'] ? '- ' . htmlspecialchars($lr['lab_city']) : ''; ?></div>
@@ -700,7 +756,12 @@ else: ?>
 ?>
                                     <tr class="hover:bg-gray-50/50 transition-colors">
                                         <td class="p-4">
-                                            <div class="font-semibold text-gray-900"><?php echo htmlspecialchars($ap['procedure_name']); ?></div>
+                                            <div class="font-semibold text-gray-900 flex items-center gap-2">
+                                                <?php echo htmlspecialchars($ap['procedure_name']); ?>
+                                                <span class="text-[10px] px-1.5 py-0.5 rounded font-bold uppercase <?php echo($ap['record_for'] ?? 'Patient') === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                                    <?php echo $ap['record_for'] ?? 'Patient'; ?>
+                                                </span>
+                                            </div>
                                             <?php if (!empty($ap['notes'])): ?>
                                                 <div class="text-xs text-gray-500 mt-1 truncate max-w-xs"><?php echo htmlspecialchars($ap['notes']); ?></div>
                                             <?php

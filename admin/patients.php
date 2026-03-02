@@ -44,10 +44,20 @@ $patients = [];
 
 try {
     if (!empty($search)) {
-        $stmt = $conn->prepare("SELECT p.*, h.name as hospital_name FROM patients p LEFT JOIN hospitals h ON p.referring_hospital_id = h.id WHERE p.mr_number LIKE ? OR p.cnic LIKE ? OR p.phone LIKE ? OR p.first_name LIKE ? OR p.last_name LIKE ? ORDER BY p.id DESC LIMIT 50");
+        $stmt = $conn->prepare("SELECT p.*, h.name as hospital_name FROM patients p 
+                                LEFT JOIN hospitals h ON p.referring_hospital_id = h.id 
+                                WHERE p.mr_number LIKE ? 
+                                OR p.cnic LIKE ? 
+                                OR p.phone LIKE ? 
+                                OR p.first_name LIKE ? 
+                                OR p.last_name LIKE ? 
+                                OR p.spouse_name LIKE ? 
+                                OR p.spouse_phone LIKE ? 
+                                OR p.spouse_cnic LIKE ? 
+                                ORDER BY p.id DESC LIMIT 50");
         $like = "%$search%";
         if ($stmt) {
-            $stmt->bind_param("sssss", $like, $like, $like, $like, $like);
+            $stmt->bind_param("ssssssss", $like, $like, $like, $like, $like, $like, $like, $like);
             $stmt->execute();
             $res = $stmt->get_result();
             while ($row = $res->fetch_assoc())

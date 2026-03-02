@@ -29,7 +29,7 @@ if (!file_exists($upload_dir)) {
 
 // Fetch all defined tests
 $tests = [];
-$res = $conn->query("SELECT id, test_name, unit, reference_range FROM lab_tests_directory ORDER BY test_name ASC");
+$res = $conn->query("SELECT id, test_name, unit, reference_range_male, reference_range_female FROM lab_tests_directory ORDER BY test_name ASC");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $tests[] = $row;
@@ -47,10 +47,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
     $lab_mr_number = trim($_POST['lab_mr_number'] ?? '');
     $current_edit_id = intval($_POST['edit_id'] ?? 0);
 
-    if ($patient_id === 0 || $test_id === 0 || empty($result_value)) {
+    if ($patient_id === 0 || $test_id === 0 || (empty($result_value) && $_POST['status'] === 'Completed')) {
         $error = "Patient, Test, and Result Value are required.";
     }
     else {
+        $test_for = $_POST['test_for'] ?? 'Patient';
+        $status = $_POST['status'] ?? 'Completed';
         $file_path = $_POST['existing_file'] ?? null;
 
         // Handle File Upload
@@ -85,20 +87,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
                 if ($current_edit_id > 0) {
                     $stmt = $conn->prepare("UPDATE patient_lab_results SET 
                         patient_id = ?, lab_city = ?, lab_name = ?, lab_mr_number = ?, 
-                        test_date = ?, test_id = ?, result_value = ?, scanned_report_path = ? 
+                        test_date = ?, test_id = ?, test_for = ?, result_value = ?, 
+                        status = ?, scanned_report_path = ? 
                         WHERE id = ?");
-                    $stmt->bind_param("isssisssi",
+                    $stmt->bind_param("isssisssssi",
                         $patient_id, $lab_city, $lab_name, $lab_mr_number,
-                        $test_date, $test_id, $result_value, $file_path, $current_edit_id
+                        $test_date, $test_id, $test_for, $result_value, $status, $file_path, $current_edit_id
                     );
                 }
                 else {
                     $stmt = $conn->prepare("INSERT INTO patient_lab_results 
-                        (patient_id, lab_city, lab_name, lab_mr_number, test_date, test_id, result_value, scanned_report_path) 
-                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("isssisss",
+                        (patient_id, lab_city, lab_name, lab_mr_number, test_date, test_id, test_for, result_value, status, scanned_report_path) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt->bind_param("isssisssss",
                         $patient_id, $lab_city, $lab_name, $lab_mr_number,
-                        $test_date, $test_id, $result_value, $file_path
+                        $test_date, $test_id, $test_for, $result_value, $status, $file_path
                     );
                 }
 
@@ -132,8 +135,15 @@ include __DIR__ . '/includes/header.php';
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
             <h3 class="font-bold text-gray-800"><?php echo $edit_id ? 'Edit' : 'Add New'; ?> Laboratory Result</h3>
         </div>
-        
-        <div class="p-6 md:p-8">
+
+        <div class="p-6 md:p-8" x-data="labForm(<?php
+echo $edit_data ? json_encode([
+    'patient' => ['id' => $edit_data['patient_id'], 'mr_number' => $edit_data['mr_number'], 'first_name' => $edit_data['first_name'], 'last_name' => $edit_data['last_name'], 'gender' => $edit_data['gender']],
+    'test_id' => $edit_data['test_id'],
+    'test_for' => $edit_data['test_for'],
+    'status' => $edit_data['status']
+]) : 'null';
+?>, <?php echo json_encode($tests); ?>)">
             <?php if (!empty($error)): ?>
                 <div class="bg-red-50 text-red-600 p-4 rounded-xl mb-6 border border-red-100 flex items-center gap-2">
                     <i class="fa-solid fa-circle-exclamation"></i> <?php echo htmlspecialchars($error); ?>
@@ -147,76 +157,107 @@ endif; ?>
                     <input type="hidden" name="existing_file" value="<?php echo esc($edit_data['scanned_report_path']); ?>">
                 <?php
 endif; ?>
-                
-                <!-- Patient Selection (AJAX component via Alpine) -->
-                <div class="mb-8" x-data="patientSearch(<?php echo $edit_data ? json_encode(['id' => $edit_data['patient_id'], 'mr_number' => $edit_data['mr_number'], 'first_name' => $edit_data['first_name'], 'last_name' => $edit_data['last_name']]) : 'null'; ?>)">
-                    <label class="block text-sm font-bold text-slate-700 mb-2">Select Patient *</label>
-                    
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+                    <!-- Patient Selection -->
                     <div class="relative">
-                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <i class="fa-solid fa-search text-gray-400"></i>
-                        </div>
-                        <input type="text" x-model="searchQuery" @input.debounce.300ms="searchPatients()" placeholder="Search by name, MR number, or phone..." class="w-full pl-10 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-gray-50" autocomplete="off">
-                        
-                        <!-- Search Results Dropdown -->
-                        <div x-show="results.length > 0 && showResults" @click.away="showResults = false" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto" x-cloak>
-                            <template x-for="pt in results" :key="pt.id">
-                                <div @click="selectPatient(pt)" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
-                                    <div class="font-bold text-gray-800" x-text="pt.first_name + ' ' + (pt.last_name || '')"></div>
-                                    <div class="text-xs text-gray-500 mt-1 flex gap-3">
-                                        <span class="text-indigo-600 font-mono font-medium" x-text="pt.mr_number"></span>
-                                        <span x-text="pt.phone || 'No phone'"></span>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Select Patient *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <i class="fa-solid fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" x-model="searchQuery" @input.debounce.300ms="searchPatients()" placeholder="Search MR, Name, Phone..." class="w-full pl-10 px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-gray-50" autocomplete="off">
+
+                            <!-- Search Results Dropdown -->
+                            <div x-show="results.length > 0 && showResults" @click.away="showResults = false" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto" x-cloak>
+                                <template x-for="pt in results" :key="pt.id">
+                                    <div @click="selectPatient(pt)" class="px-4 py-3 hover:bg-gray-50 cursor-pointer border-b border-gray-50 last:border-0">
+                                        <div class="font-bold text-gray-800" x-text="pt.first_name + ' ' + (pt.last_name || '')"></div>
+                                        <div class="text-xs text-gray-500 mt-1 flex gap-3">
+                                            <span class="text-indigo-600 font-mono font-medium" x-text="pt.mr_number"></span>
+                                            <span x-text="pt.gender"></span>
+                                        </div>
                                     </div>
+                                </template>
+                            </div>
+                        </div>
+
+                        <!-- Selected Patient Card -->
+                        <div x-show="selectedPatient" x-cloak class="mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex justify-between items-center">
+                            <div class="flex items-center gap-3">
+                                <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-sm font-bold shadow-indigo-200">
+                                    <i class="fa-solid fa-user-check"></i>
                                 </div>
-                            </template>
+                                <div>
+                                    <div class="font-bold text-gray-900 leading-tight" x-text="selectedPatient?.first_name + ' ' + (selectedPatient?.last_name || '')"></div>
+                                    <div class="text-[10px] text-indigo-700 font-bold uppercase" x-text="selectedPatient?.gender + ' | MR: ' + selectedPatient?.mr_number"></div>
+                                </div>
+                            </div>
+                            <button type="button" @click="clearSelection()" class="text-indigo-400 hover:text-indigo-600 text-xs font-bold">Change</button>
                         </div>
+                        <input type="hidden" name="patient_id" :value="selectedPatient?.id || ''" required>
                     </div>
 
-                    <!-- Selected Patient Card -->
-                    <div x-show="selectedPatient" x-cloak class="mt-4 bg-indigo-50 border border-indigo-100 rounded-xl p-4 flex justify-between items-center transition-all">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 bg-white rounded-full flex items-center justify-center text-indigo-600 shadow-sm font-bold shadow-indigo-200">
-                                <i class="fa-solid fa-user-check"></i>
-                            </div>
-                            <div>
-                                <div class="font-bold text-gray-900 leading-tight" x-text="selectedPatient?.first_name + ' ' + (selectedPatient?.last_name || '')"></div>
-                                <div class="text-xs text-indigo-700 font-mono mt-0.5" x-text="'MR: ' + selectedPatient?.mr_number"></div>
-                            </div>
+                    <!-- Who is this for? -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-2">Who is this lab for? *</label>
+                        <div class="grid grid-cols-2 gap-3">
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="test_for" value="Patient" x-model="test_for" class="peer sr-only">
+                                <div class="p-3 text-center border rounded-xl transition-all peer-checked:bg-indigo-600 peer-checked:text-white peer-checked:border-indigo-600 border-gray-200 text-gray-600 hover:bg-gray-50">
+                                    <div class="font-bold">Main Patient</div>
+                                    <div class="text-[10px] opacity-80" x-text="selectedPatient ? '(' + selectedPatient.gender + ')' : ''"></div>
+                                </div>
+                            </label>
+                            <label class="relative cursor-pointer">
+                                <input type="radio" name="test_for" value="Spouse" x-model="test_for" class="peer sr-only">
+                                <div class="p-3 text-center border rounded-xl transition-all peer-checked:bg-pink-600 peer-checked:text-white peer-checked:border-pink-600 border-gray-200 text-gray-600 hover:bg-gray-50">
+                                    <div class="font-bold">Spouse</div>
+                                    <div class="text-[10px] opacity-80" x-text="selectedPatient ? '(' + (selectedPatient.gender === 'Male' ? 'Female' : 'Male') + ')' : ''"></div>
+                                </div>
+                            </label>
                         </div>
-                        <button type="button" @click="clearSelection()" class="text-indigo-400 hover:text-indigo-600 text-sm font-medium px-2 py-1 hover:bg-indigo-100 rounded transition-colors">
-                            Change
-                        </button>
                     </div>
-
-                    <input type="hidden" name="patient_id" :value="selectedPatient?.id || ''" required>
                 </div>
 
                 <hr class="border-gray-100 my-8">
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+
                     <!-- Test Selection -->
-                    <div class="col-span-1 md:col-span-2">
+                    <div class="md:col-span-2">
                         <label class="block text-sm font-bold text-slate-700 mb-1">Select Laboratory Test *</label>
-                        <select name="test_id" required class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white">
+                        <select name="test_id" x-model="test_id" required class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white">
                             <option value="">-- Choose Test --</option>
                             <?php foreach ($tests as $t): ?>
-                                <option value="<?php echo $t['id']; ?>" <?php
-    $sel_id = $_POST['test_id'] ?? ($edit_data['test_id'] ?? 0);
-    echo($sel_id == $t['id']) ? 'selected' : ''; ?>>
-                                    <?php echo htmlspecialchars($t['test_name']); ?> 
-                                    <?php if ($t['reference_range'])
-        echo " (Ref: {$t['reference_range']} {$t['unit']})"; ?>
+                                <option value="<?php echo $t['id']; ?>">
+                                    <?php echo htmlspecialchars($t['test_name']); ?>
                                 </option>
                             <?php
 endforeach; ?>
                         </select>
+                        <div class="mt-2 text-xs bg-gray-50 p-2 rounded border border-gray-100 flex justify-between" x-show="test_id > 0">
+                            <div>
+                                <span class="text-gray-400 font-bold uppercase tracking-wider mr-2">Expected Range:</span>
+                                <span class="text-indigo-700 font-bold" x-text="currentRefRange()"></span>
+                                <span class="text-gray-500 ml-1 font-mono" x-text="currentUnit()"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Report Status -->
+                    <div>
+                        <label class="block text-sm font-bold text-slate-700 mb-1">Report Status *</label>
+                        <select name="status" x-model="status" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white text-sm font-bold" :class="status === 'Completed' ? 'text-emerald-600' : 'text-orange-500'">
+                            <option value="Completed">Completed / Result Available</option>
+                            <option value="Pending">Pending / Awaiting Result</option>
+                        </select>
                     </div>
 
                     <!-- Result Value -->
-                    <div>
+                    <div x-show="status === 'Completed'">
                         <label class="block text-sm font-bold text-slate-700 mb-1">Result Value *</label>
-                        <input type="text" name="result_value" value="<?php echo htmlspecialchars($_POST['result_value'] ?? ($edit_data['result_value'] ?? '')); ?>" required class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-gray-50" placeholder="e.g. 2.45">
+                        <input type="text" name="result_value" value="<?php echo htmlspecialchars($_POST['result_value'] ?? ($edit_data['result_value'] ?? '')); ?>" :required="status === 'Completed'" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-gray-50 font-bold text-lg" placeholder="e.g. 2.45">
                     </div>
 
                     <!-- Test Date -->
@@ -286,14 +327,18 @@ endif; ?>
     </div>
 </div>
 
-<!-- Patient Search Script using Alpine.js -->
+<!-- Lab Form Logic using Alpine.js -->
 <script>
-function patientSearch(initialPatient = null) {
+function labForm(initialData = null, allTests = []) {
     return {
         searchQuery: '',
         results: [],
         showResults: false,
-        selectedPatient: initialPatient,
+        selectedPatient: initialData ? initialData.patient : null,
+        test_id: initialData ? initialData.test_id : '',
+        test_for: initialData ? initialData.test_for : 'Patient',
+        status: initialData ? initialData.status : 'Completed',
+        tests: allTests,
         
         async searchPatients() {
             if (this.searchQuery.length < 2) {
@@ -320,8 +365,36 @@ function patientSearch(initialPatient = null) {
         
         clearSelection() {
             this.selectedPatient = null;
-            // Optionally, we could put the patient's name back in the search box
             setTimeout(() => { document.querySelector('input[x-model="searchQuery"]').focus(); }, 100);
+        },
+
+        currentTest() {
+            return this.tests.find(t => t.id == this.test_id);
+        },
+
+        currentRefRange() {
+            const test = this.currentTest();
+            if (!test) return '-';
+            
+            // Determine target gender
+            let targetGender = 'Male';
+            if (this.test_for === 'Patient') {
+                targetGender = this.selectedPatient ? this.selectedPatient.gender : 'Male';
+            } else {
+                // Spouse is opposite of patient
+                targetGender = (this.selectedPatient && this.selectedPatient.gender === 'Male') ? 'Female' : 'Male';
+            }
+
+            if (targetGender === 'Male') {
+                return test.reference_range_male || 'N/A';
+            } else {
+                return test.reference_range_female || 'N/A';
+            }
+        },
+
+        currentUnit() {
+            const test = this.currentTest();
+            return test ? test.unit : '';
         }
     }
 }

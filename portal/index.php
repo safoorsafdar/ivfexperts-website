@@ -17,8 +17,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $error = "Please provide both fields to login.";
     }
     else {
-        $stmt = $conn->prepare("SELECT id FROM patients WHERE (phone = ? OR mr_number = ?) AND REPLACE(cnic, '-', '') = ?");
-        $stmt->bind_param("sss", $phone_mr, $phone_mr, $cnic_clean);
+        // Check both main patient and spouse fields
+        $stmt = $conn->prepare("SELECT id FROM patients 
+                                WHERE ((phone = ? OR mr_number = ?) AND REPLACE(cnic, '-', '') = ?)
+                                OR ((spouse_phone = ? OR mr_number = ?) AND REPLACE(spouse_cnic, '-', '') = ?)");
+        $stmt->bind_param("ssssss", $phone_mr, $phone_mr, $cnic_clean, $phone_mr, $phone_mr, $cnic_clean);
         $stmt->execute();
         $res = $stmt->get_result();
 
@@ -29,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
         else {
-            $error = "Invalid details. The Phone/MR Number and CNIC did not match our records.";
+            $error = "Invalid details. The Phone/MR Number and CNIC did not match our records (neither Patient nor Spouse).";
         }
     }
 }
