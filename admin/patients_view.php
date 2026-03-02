@@ -276,7 +276,6 @@ endif; ?>
                 </div>
             </div>
         </div>
-    </div>
 
     <!-- Right Column: Tabs & Content -->
     <div class="w-full lg:w-2/3">
