@@ -5,15 +5,36 @@ require_once __DIR__ . '/includes/auth.php';
 // Handle Delete
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
     $id = (int)$_POST['delete_id'];
-    $conn->query("DELETE FROM patient_history WHERE patient_id = $id");
-    $conn->query("DELETE FROM prescriptions WHERE patient_id = $id");
-    $conn->query("DELETE FROM ultrasound_scans WHERE patient_id = $id");
-    $conn->query("DELETE FROM semen_analyses WHERE patient_id = $id");
-    $conn->query("DELETE FROM lab_results WHERE patient_id = $id");
-    $conn->query("DELETE FROM receipts WHERE patient_id = $id");
-    $conn->query("DELETE FROM patients WHERE id = $id");
-    header("Location: patients.php?msg=deleted");
-    exit;
+
+    try {
+        $conn->begin_transaction();
+
+        // Delete child records first
+        $conn->query("DELETE FROM patient_history WHERE patient_id = $id");
+
+        // Handle Prescriptions (must delete items/diagnoses first)
+        $conn->query("DELETE FROM prescription_items WHERE prescription_id IN (SELECT id FROM prescriptions WHERE patient_id = $id)");
+        $conn->query("DELETE FROM prescription_diagnoses WHERE prescription_id IN (SELECT id FROM prescriptions WHERE patient_id = $id)");
+        $conn->query("DELETE FROM prescriptions WHERE patient_id = $id");
+
+        // Corrected table names from previous search
+        $conn->query("DELETE FROM patient_ultrasounds WHERE patient_id = $id");
+        $conn->query("DELETE FROM semen_analyses WHERE patient_id = $id");
+        $conn->query("DELETE FROM patient_lab_results WHERE patient_id = $id");
+        $conn->query("DELETE FROM receipts WHERE patient_id = $id");
+        $conn->query("DELETE FROM advised_procedures WHERE patient_id = $id");
+
+        // Finally delete the patient
+        $conn->query("DELETE FROM patients WHERE id = $id");
+
+        $conn->commit();
+        header("Location: patients.php?msg=deleted");
+        exit;
+    }
+    catch (Exception $e) {
+        $conn->rollback();
+        die("Deletion Error: " . $e->getMessage());
+    }
 }
 
 // Handle Search
