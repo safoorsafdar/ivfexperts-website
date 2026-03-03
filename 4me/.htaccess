@@ -1,0 +1,45 @@
+# ============================================================
+# IVF Experts — Admin EMR (4me.ivfexperts.pk)
+# ============================================================
+
+Options -Indexes
+
+# ---- Force HTTPS ----
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ---- Block access to DB config ----
+RewriteRule ^config(/.*)?$ - [F,L]
+
+# ---- Block migration and diagnostic scripts ----
+RewriteRule ^migrate_ - [F,L]
+RewriteRule ^diag_ - [F,L]
+RewriteRule ^ghost_recovery\.php$ - [F,L]
+RewriteRule ^check_.*\.php$ - [F,L]
+
+# ---- Block sensitive files ----
+<FilesMatch "\.(sql|log|env|bak|swp|sh|py)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+<Files ".htaccess">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# ---- Security Headers ----
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- PHP session cookie security ----
+<IfModule mod_php.c>
+    php_value session.name "4ME_ADMIN"
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure On
+</IfModule>

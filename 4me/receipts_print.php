@@ -121,7 +121,7 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
         <div class="flex justify-between items-start pb-6 mb-6 border-b-2 border-emerald-800">
             <!-- Logo -->
             <div class="w-2/5">
-                <img src="../assets/images/logo.png" alt="IVF Experts" class="h-16 object-contain"
+                <img src="https://ivfexperts.pk/assets/images/logo.png" alt="IVF Experts" class="h-16 object-contain"
                      onerror="this.style.display='none'; document.getElementById('logo-fallback').style.display='block';">
                 <div id="logo-fallback" style="display:none;" class="font-extrabold text-xl text-emerald-900 tracking-tight">IVF EXPERTS</div>
                 <?php if (!empty($rx['hospital_name'])): ?>
@@ -216,7 +216,7 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
             <div class="flex items-center gap-3">
                 <?php if (!empty($rx['qrcode_hash'])): ?>
                     <div class="border border-gray-200 p-1 rounded bg-white shadow-sm">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://ivfexperts.pk/portal/verify.php?hash=' . $rx['qrcode_hash'] . '&type=receipt'); ?>"
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://patient.ivfexperts.pk/verify.php?hash=' . $rx['qrcode_hash'] . '&type=receipt'); ?>"
                              alt="QR Code" class="w-16 h-16" />
                     </div>
                     <div class="text-[9px] text-gray-500 leading-snug w-36">
@@ -229,7 +229,7 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
             <!-- Signature block -->
             <div class="text-right">
                 <?php if (!empty($rx['digital_signature_path'])): ?>
-                    <img src="../<?php echo esc($rx['digital_signature_path']); ?>" alt="Signature" class="h-12 ml-auto object-contain mb-1" />
+                    <img src="https://ivfexperts.pk/<?php echo esc($rx['digital_signature_path']); ?>" alt="Signature" class="h-12 ml-auto object-contain mb-1" />
                 <?php else: ?>
                     <div class="h-12"></div>
                 <?php endif; ?>
@@ -265,7 +265,7 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
             const hash = "<?php echo $rx['qrcode_hash']; ?>";
             const name = "<?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?>";
             const amount = "Rs. <?php echo number_format($rx['amount'], 2); ?>";
-            const link = "https://ivfexperts.pk/portal/verify.php?hash=" + hash + "&type=receipt";
+            const link = "https://patient.ivfexperts.pk/verify.php?hash=" + hash + "&type=receipt";
             const rcpt = "RCPT-<?php echo str_pad($id, 6, '0', STR_PAD_LEFT); ?>";
 
             const text = `Dear ${name},\n\nThank you for your payment at IVF Experts.\n\nReceipt No.: ${rcpt}\nProcedure: <?php echo esc($rx['procedure_name']); ?>\nAmount: ${amount}\nStatus: <?php echo $status_label; ?>\n\nView & download your digital receipt here:\n${link}\n\nFor any queries, contact us at hello@ivfexperts.pk or +92 3 111 101 483.\n\nBest regards,\nDr. Adnan Jabbar — IVF Experts`;

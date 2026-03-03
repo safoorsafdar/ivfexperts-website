@@ -190,7 +190,7 @@ endif; ?>
         
         <!-- Permanent Letterhead Background for Patients -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($rx['letterhead_image_path'])): ?>
-            <img src="../<?php echo htmlspecialchars($rx['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
+            <img src="https://ivfexperts.pk/<?php echo htmlspecialchars($rx['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
         <?php
 endif; ?>
 
@@ -210,7 +210,7 @@ endif; ?>
                 <!-- QR Code (Right Side) -->
                 <div class="shrink-0 flex items-center">
                     <div class="border border-gray-200 p-0.5 rounded shadow-sm bg-white">
-                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=<?php echo urlencode('https://ivfexperts.pk/portal/verify.php?hash=' . $rx['qrcode_hash']); ?>" alt="QR Code" class="w-14 h-14" />
+                        <img src="https://api.qrserver.com/v1/create-qr-code/?size=64x64&data=<?php echo urlencode('https://patient.ivfexperts.pk/verify.php?hash=' . $rx['qrcode_hash']); ?>" alt="QR Code" class="w-14 h-14" />
                     </div>
                     <!-- Vertical Divider -->
                     <div class="h-10 w-px bg-gray-300 mx-3"></div>
@@ -420,7 +420,7 @@ endif; ?>
                 </div>
                 <div class="shrink-0 text-right">
                     <?php if (!empty($rx['digital_signature_path'])): ?>
-                        <img src="../<?php echo esc($rx['digital_signature_path']); ?>" alt="Signature" class="h-10 object-contain ml-auto" />
+                        <img src="https://ivfexperts.pk/<?php echo esc($rx['digital_signature_path']); ?>" alt="Signature" class="h-10 object-contain ml-auto" />
                     <?php
 endif; ?>
                 </div>
@@ -439,7 +439,7 @@ endif; ?>
                 document.body.classList.add('digital-mode');
                 
                 const img = document.createElement('img');
-                img.src = '../<?php echo addslashes($rx['letterhead_image_path']); ?>';
+                img.src = 'https://ivfexperts.pk/<?php echo addslashes($rx['letterhead_image_path']); ?>';
                 img.setAttribute('class', 'letterhead-bg');
                 img.id = 'temp-letterhead';
                 document.getElementById('document-container').appendChild(img);
@@ -483,7 +483,7 @@ endif; ?>
             
             const hash = "<?php echo $rx['qrcode_hash']; ?>";
             const patientName = "<?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?>";
-            const link = "https://ivfexperts.pk/portal/verify.php?hash=" + hash;
+            const link = "https://patient.ivfexperts.pk/verify.php?hash=" + hash;
             
             const text = `Dear ${patientName},\n\nWe hope this message finds you well. Here is your recent Prescription from IVF Experts. You can view and download your secure digital record by clicking the link below:\n\nView & Download Record: ${link}\n\nPlease feel free to reach out if you have any questions. Your health and family are our priority.\n\nRegards,\nDr. Adnan Jabbar\nMBBS, DFM, MH, MPH, CGP\nFertility, Family & Emergency Medicine\n+92 3 111 101 483 (IVF)\nhello@ivfexperts.pk\nwww.ivfexperts.pk`;
             

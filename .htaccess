@@ -2,6 +2,13 @@ RewriteEngine On
 RewriteBase /
 
 # =============================================
+# SUBDOMAIN BACKWARD COMPATIBILITY
+# Old QR codes pointed to /portal/verify.php — redirect to new patient subdomain
+# =============================================
+RewriteRule ^portal/verify\.php$ https://patient.ivfexperts.pk/verify.php [R=301,L,QSA]
+RewriteRule ^portal/?$ https://patient.ivfexperts.pk/ [R=301,L]
+
+# =============================================
 # SECURITY
 # =============================================
 

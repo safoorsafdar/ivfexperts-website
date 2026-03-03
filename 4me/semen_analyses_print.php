@@ -116,7 +116,7 @@ endif; ?>
         
         <!-- Permanent Letterhead Background for Patients -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])): ?>
-            <img src="../<?php echo htmlspecialchars($sa['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
+            <img src="https://ivfexperts.pk/<?php echo htmlspecialchars($sa['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
         <?php
 endif; ?>
 
@@ -124,7 +124,7 @@ endif; ?>
         <div class="flex justify-between items-center mb-2 border-b-2 border-slate-800 pb-1.5">
             <!-- Left Side: IVF Experts Standard Logo (we pull from web root assets if exists, or text fallback) -->
             <div class="w-1/3">
-                <img src="../assets/images/logo.png" alt="IVF Experts" class="h-12 object-contain" onerror="this.style.display='none'; document.getElementById('fb1').style.display='block';">
+                <img src="https://ivfexperts.pk/assets/images/logo.png" alt="IVF Experts" class="h-12 object-contain" onerror="this.style.display='none'; document.getElementById('fb1').style.display='block';">
                 <div id="fb1" style="display:none;" class="font-extrabold text-xl text-blue-900 tracking-tight">IVF EXPERTS</div>
             </div>
             
@@ -135,7 +135,7 @@ endif; ?>
             
             <div class="w-1/3 flex justify-end">
                 <?php if (!empty($sa['logo_path']) && $sa['logo_path'] !== 'assets/images/logo.png'): ?>
-                    <img src="../<?php echo esc($sa['logo_path']); ?>" alt="<?php echo esc($sa['hospital_name']); ?>" class="h-12 object-contain">
+                    <img src="https://ivfexperts.pk/<?php echo esc($sa['logo_path']); ?>" alt="<?php echo esc($sa['hospital_name']); ?>" class="h-12 object-contain">
                 <?php
 endif; ?>
             </div>
@@ -341,7 +341,7 @@ endif; ?>
             
             <div class="flex items-center gap-3 pt-4">
                 <!-- QR Code points to Patient Portal for 2FA unlock -->
-                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://ivfexperts.pk/portal/verify.php?hash=' . $sa['qrcode_hash']); ?>" alt="QR Code" class="w-14 h-14 border border-slate-200 p-0.5 bg-white shadow-sm" />
+                <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=<?php echo urlencode('https://patient.ivfexperts.pk/verify.php?hash=' . $sa['qrcode_hash']); ?>" alt="QR Code" class="w-14 h-14 border border-slate-200 p-0.5 bg-white shadow-sm" />
                 <div class="text-[8px] text-slate-500 w-48 leading-tight">
                     <span class="font-bold block text-slate-700 text-[9px] mb-0.5">Secure Digitally Verified Record</span>
                     Scan code with mobile camera to verify clinical authenticity online at ivfexperts.pk.
@@ -350,7 +350,7 @@ endif; ?>
 
             <div class="text-right pt-4">
                 <?php if (!empty($sa['digital_signature_path'])): ?>
-                    <img src="../<?php echo esc($sa['digital_signature_path']); ?>" alt="Signature" class="h-14 ml-auto object-contain mb-1" />
+                    <img src="https://ivfexperts.pk/<?php echo esc($sa['digital_signature_path']); ?>" alt="Signature" class="h-14 ml-auto object-contain mb-1" />
                 <?php
 endif; ?>
                 <div class="font-bold text-[13px] text-slate-900 leading-tight">Dr. Adnan Jabbar</div>
@@ -374,7 +374,7 @@ endif; ?>
                 document.body.classList.add('digital-mode');
                 
                 const img = document.createElement('img');
-                img.src = '../<?php echo addslashes($sa['letterhead_image_path']); ?>';
+                img.src = 'https://ivfexperts.pk/<?php echo addslashes($sa['letterhead_image_path']); ?>';
                 img.setAttribute('class', 'letterhead-bg');
                 img.id = 'temp-letterhead';
                 document.getElementById('document-container').appendChild(img);
@@ -418,7 +418,7 @@ endif; ?>
             
             const hash = "<?php echo $sa['qrcode_hash']; ?>";
             const patientName = "<?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?>";
-            const link = "https://ivfexperts.pk/portal/verify.php?hash=" + hash;
+            const link = "https://patient.ivfexperts.pk/verify.php?hash=" + hash;
             
             const text = `Dear ${patientName},\n\nWe hope this message finds you well. Here is your recent Semen Analysis from IVF Experts. You can view and download your secure digital record by clicking the link below:\n\nView & Download Record: ${link}\n\nPlease feel free to reach out if you have any questions. Your health and family are our priority.\n\nRegards,\nDr. Adnan Jabbar\nMBBS, DFM, MH, MPH, CGP\nFertility, Family & Emergency Medicine\n+92 3 111 101 483 (IVF)\nhello@ivfexperts.pk\nwww.ivfexperts.pk`;
             

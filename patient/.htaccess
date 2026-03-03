@@ -1,0 +1,40 @@
+# ============================================================
+# IVF Experts — Patient Portal (patient.ivfexperts.pk)
+# ============================================================
+
+Options -Indexes
+
+# ---- Force HTTPS ----
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# ---- Block access to includes directory directly ----
+RewriteRule ^includes(/.*)?$ - [F,L]
+RewriteRule ^docs(/.*)?$ - [F,L]
+
+# ---- Block sensitive files ----
+<FilesMatch "\.(sql|log|env|bak|swp|sh|py|md)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+<Files ".htaccess">
+    Order Allow,Deny
+    Deny from all
+</Files>
+
+# ---- Security Headers ----
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set X-XSS-Protection "1; mode=block"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ---- PHP session cookie security ----
+<IfModule mod_php.c>
+    php_value session.name "PATIENT_PORTAL"
+    php_flag session.cookie_httponly On
+    php_flag session.cookie_secure On
+</IfModule>
