@@ -1,12 +1,17 @@
 <?php
 if (!defined('BYPASS_AUTH')) {
     require_once __DIR__ . '/includes/auth.php';
-} else {
+}
+else {
     require_once __DIR__ . '/config/db.php';
     if (!function_exists('esc')) {
-        function esc($string) { return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8'); }
+        function esc($string)
+        {
+            return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+        }
     }
 }
+require_once __DIR__ . '/includes/traceability.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)
@@ -35,6 +40,9 @@ catch (Exception $e) {
 
 if (!$sa)
     die("Report not found.");
+
+// Log download and get tracking code
+$tracking_code = log_document_download($conn, 'sa', $id);
 
 // Since this is a custom plain A4 layout (not using hospital letterhead margins, we supply logos ourselves)
 $mt = 10;
@@ -90,6 +98,11 @@ $total_motility = $sa['pr_motility'] + $sa['np_motility'];
         .sa-table th { padding: 4px 8px; text-align: left; background: #f9fafb; font-size: 11px; text-transform: uppercase; border: 1px solid #e5e7eb; }
         .sa-table td { padding: 4px 8px; font-size: 13px; border: 1px solid #e5e7eb; }
         .red-flag { color: #dc2626; font-weight: bold; }
+        .traceability-code {
+            position: absolute; bottom: 8mm; right: 15mm;
+            font-size: 8px; color: #94a3b8; font-family: monospace;
+            pointer-events: none; text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="py-10 print:py-0 <?php echo(!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])) ? 'digital-mode' : ''; ?>">
@@ -367,6 +380,11 @@ endif; ?>
                     <span class="text-emerald-700 font-bold italic text-[8.5px]"><i class="fa-solid fa-circle-check"></i> Digitally Verified Report.</span>
                 </div>
             </div>
+            <!-- Traceability Code -->
+            <?php if (!empty($tracking_code)): ?>
+                <div class="traceability-code">TRK-<?php echo $tracking_code; ?></div>
+            <?php
+endif; ?>
         </div>
 
     </div>

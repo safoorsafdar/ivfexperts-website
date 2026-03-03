@@ -14,47 +14,53 @@ $error = '';
 // Preserve QR redirect across login flow
 if (!empty($_GET['redirect_hash'])) {
     $_SESSION['portal_redirect_hash'] = preg_replace('/[^a-f0-9]/', '', $_GET['redirect_hash']);
-    $_SESSION['portal_redirect_type'] = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : 'rx';
+    $_SESSION['portal_redirect_type'] = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt']) ? $_GET['type'] : 'rx';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!check_rate_limit('login_attempts')) {
         $error = "Too many attempts. Please wait a few minutes and try again.";
-    } else {
-        $phone_mr   = trim($_POST['phone_mr'] ?? '');
-    $cnic_clean = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
+    }
+    else {
+        $phone_mr = trim($_POST['phone_mr'] ?? '');
+        $cnic_clean = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
-    if (empty($phone_mr) || empty($cnic_clean)) {
-        $error = "Please fill in both fields.";
-    } else {
-        try {
-            $stmt = $conn->prepare(
-                "SELECT id FROM patients
+        if (empty($phone_mr) || empty($cnic_clean)) {
+            $error = "Please fill in both fields.";
+        }
+        else {
+            try {
+                $stmt = $conn->prepare(
+                    "SELECT id FROM patients
                  WHERE ((phone = ? OR mr_number = ?) AND REPLACE(cnic,'-','') = ?)
                     OR ((spouse_phone = ? OR mr_number = ?) AND REPLACE(spouse_cnic,'-','') = ?)
                  LIMIT 1"
-            );
-            $stmt->bind_param('ssssss', $phone_mr, $phone_mr, $cnic_clean, $phone_mr, $phone_mr, $cnic_clean);
-            $stmt->execute();
-            $row = $stmt->get_result()->fetch_assoc();
+                );
+                $stmt->bind_param('ssssss', $phone_mr, $phone_mr, $cnic_clean, $phone_mr, $phone_mr, $cnic_clean);
+                $stmt->execute();
+                $row = $stmt->get_result()->fetch_assoc();
 
-            if ($row) {
-                $_SESSION['portal_patient_id'] = $row['id'];
-                if (!empty($_SESSION['portal_redirect_hash'])) {
-                    $h = $_SESSION['portal_redirect_hash'];
-                    $t = $_SESSION['portal_redirect_type'];
-                    unset($_SESSION['portal_redirect_hash'], $_SESSION['portal_redirect_type']);
-                    header("Location: verify.php?hash={$h}&type={$t}");
-                } else {
-                    header("Location: dashboard.php");
+                if ($row) {
+                    $_SESSION['portal_patient_id'] = $row['id'];
+                    if (!empty($_SESSION['portal_redirect_hash'])) {
+                        $h = $_SESSION['portal_redirect_hash'];
+                        $t = $_SESSION['portal_redirect_type'];
+                        unset($_SESSION['portal_redirect_hash'], $_SESSION['portal_redirect_type']);
+                        header("Location: verify.php?hash={$h}&type={$t}");
+                    }
+                    else {
+                        header("Location: dashboard.php");
+                    }
+                    exit;
                 }
-                exit;
-            } else {
-                $error = "Details not found. Please check your Phone/MR Number and CNIC.";
+                else {
+                    $error = "Details not found. Please check your Phone/MR Number and CNIC.";
+                }
             }
-        } catch (Exception $e) {
-            $error = "System error. Please try again later.";
-    }
+            catch (Exception $e) {
+                $error = "System error. Please try again later.";
+            }
+        }    }
 }
 ?>
 <!DOCTYPE html>
@@ -133,7 +139,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fa-solid fa-circle-exclamation shrink-0 text-rose-400"></i>
                     <?php echo htmlspecialchars($error); ?>
                 </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
 
                 <!-- Login Form -->
                 <form method="POST" class="space-y-4">
@@ -201,15 +208,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="hidden lg:block lg:col-span-2">
                 <div class="space-y-4">
                     <?php
-                    $features = [
-                        ['icon' => 'fa-prescription-bottle-medical', 'c' => 'indigo',  'title' => 'Prescriptions',   'desc' => 'Digital Rx with QR verification'],
-                        ['icon' => 'fa-vials',                        'c' => 'teal',    'title' => 'Lab Results',     'desc' => 'Real-time blood test results'],
-                        ['icon' => 'fa-image',                        'c' => 'emerald', 'title' => 'Scan Reports',   'desc' => 'Ultrasound & follicular monitoring'],
-                        ['icon' => 'fa-microscope',                   'c' => 'sky',     'title' => 'Semen Analysis', 'desc' => 'WHO 6th edition andrology reports'],
-                        ['icon' => 'fa-receipt',                      'c' => 'amber',   'title' => 'Billing',        'desc' => 'Full payment & receipt history'],
-                    ];
-                    foreach ($features as $f):
-                    ?>
+$features = [
+    ['icon' => 'fa-prescription-bottle-medical', 'c' => 'indigo', 'title' => 'Prescriptions', 'desc' => 'Digital Rx with QR verification'],
+    ['icon' => 'fa-vials', 'c' => 'teal', 'title' => 'Lab Results', 'desc' => 'Real-time blood test results'],
+    ['icon' => 'fa-image', 'c' => 'emerald', 'title' => 'Scan Reports', 'desc' => 'Ultrasound & follicular monitoring'],
+    ['icon' => 'fa-microscope', 'c' => 'sky', 'title' => 'Semen Analysis', 'desc' => 'WHO 6th edition andrology reports'],
+    ['icon' => 'fa-receipt', 'c' => 'amber', 'title' => 'Billing', 'desc' => 'Full payment & receipt history'],
+];
+foreach ($features as $f):
+?>
                     <div class="glass-card rounded-2xl p-4 flex items-center gap-4 hover:border-<?php echo $f['c']; ?>-500/30 transition-colors">
                         <div class="w-10 h-10 bg-<?php echo $f['c']; ?>-500/20 rounded-xl flex items-center justify-center shrink-0">
                             <i class="fa-solid <?php echo $f['icon']; ?> text-<?php echo $f['c']; ?>-400 text-base"></i>
@@ -219,7 +226,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div class="text-white/35 text-[10px] font-medium mt-0.5"><?php echo $f['desc']; ?></div>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php
+endforeach; ?>
                 </div>
             </div>
 

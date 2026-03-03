@@ -1,12 +1,17 @@
 <?php
 if (!defined('BYPASS_AUTH')) {
     require_once __DIR__ . '/includes/auth.php';
-} else {
+}
+else {
     require_once __DIR__ . '/config/db.php';
     if (!function_exists('esc')) {
-        function esc($string) { return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8'); }
+        function esc($string)
+        {
+            return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+        }
     }
 }
+require_once __DIR__ . '/includes/traceability.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)
@@ -33,8 +38,11 @@ catch (Exception $e) {
     die("DB Error");
 }
 
-if (!$usg)
+if (!$usg) // Assuming $rx was a typo and meant $usg based on context
     die("Report not found.");
+
+// Log download and get tracking code
+$tracking_code = log_document_download($conn, 'usg', $id);
 
 // Setup Margins explicitly to handle pre-printed hospital letterheads
 $mt = $usg['margin_top'] ?? '40mm';
@@ -125,6 +133,11 @@ $mr = $usg['margin_right'] ?? '20mm';
         .usg-content ul, .usg-content ol { margin-left: 1.5em; margin-bottom: 1em; }
         .usg-content ul { list-style-type: disc; }
         .usg-content ol { list-style-type: decimal; }
+        .traceability-code {
+            position: absolute; bottom: 8mm; right: 15mm;
+            font-size: 8px; color: #94a3b8; font-family: monospace;
+            pointer-events: none; text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="py-10 print:py-0 <?php echo(!isset($_SESSION['admin_id']) && !empty($usg['letterhead_image_path'])) ? 'digital-mode' : ''; ?>">
@@ -209,6 +222,11 @@ else: ?>
 endif; ?>
                 <div class="font-bold uppercase text-sm border-t border-gray-800 pt-1 w-48 mx-auto text-gray-700 italic">Dr. Adnan Jabbar | Consultant Urologist / Andrologist</div>
             </div>
+            <!-- Traceability Code -->
+            <?php if (!empty($tracking_code)): ?>
+                <div class="traceability-code">TRK-<?php echo $tracking_code; ?></div>
+            <?php
+endif; ?>
         </div>
 
     </div>

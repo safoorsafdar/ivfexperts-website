@@ -11,6 +11,7 @@ else {
         }
     }
 }
+require_once __DIR__ . '/includes/traceability.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)
@@ -39,6 +40,9 @@ catch (Exception $e) {
 
 if (!$rx)
     die("Prescription not found.");
+
+// Log download and get tracking code
+$tracking_code = log_document_download($conn, 'rx', $id);
 
 // Fetch Items
 $items = [];
@@ -163,6 +167,11 @@ $mr = $rx['margin_right'] ?? '20mm';
             min-height: 297mm;
             z-index: -10;
             object-fit: fill;
+        }
+        .traceability-code {
+            position: absolute; bottom: 8mm; right: 15mm;
+            font-size: 8px; color: #94a3b8; font-family: monospace;
+            pointer-events: none; text-transform: uppercase;
         }
     </style>
 </head>
@@ -438,7 +447,11 @@ endif; ?>
 endif; ?>
                 </div>
             </div>
-        </div>
+            <!-- Traceability Code -->
+            <?php if (!empty($tracking_code)): ?>
+                <div class="traceability-code">TRK-<?php echo $tracking_code; ?></div>
+            <?php
+endif; ?>
         </div>
     </div>
 

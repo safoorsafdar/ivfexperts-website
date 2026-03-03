@@ -9,7 +9,7 @@ require_once dirname(__DIR__) . '/4me/config/db.php';
 require_once __DIR__ . '/includes/rate_limit.php';
 
 $hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
-$type = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : null;
+$type = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt']) ? $_GET['type'] : null;
 
 if (empty($hash)) {
     die("Invalid QR code. Please scan the code directly from your printed report.");
@@ -18,20 +18,22 @@ if (empty($hash)) {
 // ── Find document & patient across all tables ──────────────────────────────────
 $doc_patient_id = null;
 $doc_type_label = '';
-$doc_id         = null;
-$doc_view_type  = '';
+$doc_id = null;
+$doc_view_type = '';
 
 $tables = [
-    'prescriptions'    => ['type' => 'rx',      'label' => 'Prescription',     'id_col' => 'id'],
-    'patient_ultrasounds' => ['type' => 'usg',   'label' => 'Ultrasound Report','id_col' => 'id'],
-    'semen_analyses'   => ['type' => 'sa',       'label' => 'Semen Analysis',   'id_col' => 'id'],
-    'receipts'         => ['type' => 'receipt',  'label' => 'Receipt',          'id_col' => 'id'],
+    'prescriptions' => ['type' => 'rx', 'label' => 'Prescription', 'id_col' => 'id'],
+    'patient_ultrasounds' => ['type' => 'usg', 'label' => 'Ultrasound Report', 'id_col' => 'id'],
+    'semen_analyses' => ['type' => 'sa', 'label' => 'Semen Analysis', 'id_col' => 'id'],
+    'receipts' => ['type' => 'receipt', 'label' => 'Receipt', 'id_col' => 'id'],
 ];
 
 foreach ($tables as $table => $meta) {
-    if ($doc_patient_id) break;
+    if ($doc_patient_id)
+        break;
     // If type hint is given, prioritize that table
-    if ($type && $meta['type'] !== $type) continue;
+    if ($type && $meta['type'] !== $type)
+        continue;
 
     try {
         $stmt = $conn->prepare("SELECT id, patient_id FROM {$table} WHERE qrcode_hash = ? LIMIT 1");
@@ -40,17 +42,20 @@ foreach ($tables as $table => $meta) {
         $row = $stmt->get_result()->fetch_assoc();
         if ($row) {
             $doc_patient_id = $row['patient_id'];
-            $doc_id         = $row['id'];
-            $doc_view_type  = $meta['type'];
+            $doc_id = $row['id'];
+            $doc_view_type = $meta['type'];
             $doc_type_label = $meta['label'];
         }
-    } catch (Exception $e) {}
+    }
+    catch (Exception $e) {
+    }
 }
 
 // If type hint given but not found, search all tables
 if (!$doc_patient_id && $type) {
     foreach ($tables as $table => $meta) {
-        if ($doc_patient_id) break;
+        if ($doc_patient_id)
+            break;
         try {
             $stmt = $conn->prepare("SELECT id, patient_id FROM {$table} WHERE qrcode_hash = ? LIMIT 1");
             $stmt->bind_param('s', $hash);
@@ -58,17 +63,19 @@ if (!$doc_patient_id && $type) {
             $row = $stmt->get_result()->fetch_assoc();
             if ($row) {
                 $doc_patient_id = $row['patient_id'];
-                $doc_id         = $row['id'];
-                $doc_view_type  = $meta['type'];
+                $doc_id = $row['id'];
+                $doc_view_type = $meta['type'];
                 $doc_type_label = $meta['label'];
             }
-        } catch (Exception $e) {}
+        }
+        catch (Exception $e) {
+        }
     }
 }
 
 if (!$doc_patient_id) {
     // Invalid hash — show clean error page
-    ?>
+?>
     <!DOCTYPE html>
     <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Invalid QR — IVF Experts</title>
@@ -105,14 +112,17 @@ try {
     $stmt->bind_param('i', $doc_patient_id);
     $stmt->execute();
     $doc_patient = $stmt->get_result()->fetch_assoc();
-} catch (Exception $e) { $doc_patient = null; }
+}
+catch (Exception $e) {
+    $doc_patient = null;
+}
 
 // Mask the CNIC for the hint — show first 5 digits only
 $cnic_clean_db = preg_replace('/[^0-9]/', '', $doc_patient['cnic'] ?? '');
-$cnic_hint     = !empty($cnic_clean_db) ? substr($cnic_clean_db, 0, 5) . '-XXXXXXX-X' : '';
+$cnic_hint = !empty($cnic_clean_db) ? substr($cnic_clean_db, 0, 5) . '-XXXXXXX-X' : '';
 
 // Phone hint — last 4 digits
-$phone_db  = $doc_patient['phone'] ?? '';
+$phone_db = $doc_patient['phone'] ?? '';
 $phone_hint = !empty($phone_db) ? 'XXXXXX' . substr($phone_db, -4) : '';
 
 $error = '';
@@ -120,18 +130,21 @@ $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!check_rate_limit('verify_attempts_' . $hash)) {
         $error = "Too many failed attempts for this document. Please wait a few minutes.";
-    } else {
+    }
+    else {
         $cnic_input = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
-    if (strlen($cnic_input) < 13) {
-        $error = "Please enter your complete 13-digit CNIC number.";
-    } elseif ($cnic_input !== $cnic_clean_db) {
-        $error = "CNIC does not match our record for this document. Please try again.";
-    } else {
-        // Verified! Set session and redirect to document
-        $_SESSION['portal_patient_id'] = $doc_patient_id;
-        header("Location: view.php?type={$doc_view_type}&hash={$hash}");
-    }
+        if (strlen($cnic_input) < 13) {
+            $error = "Please enter your complete 13-digit CNIC number.";
+        }
+        elseif ($cnic_input !== $cnic_clean_db) {
+            $error = "CNIC does not match our record for this document. Please try again.";
+        }
+        else {
+            // Verified! Set session and redirect to document
+            $_SESSION['portal_patient_id'] = $doc_patient_id;
+            header("Location: view.php?type={$doc_view_type}&hash={$hash}");
+        }    }
 }
 ?>
 <!DOCTYPE html>
@@ -190,9 +203,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 Document belongs to: <span class="text-white/50"><?php echo htmlspecialchars($doc_patient['first_name']); ?> ·</span>
                 CNIC starting <span class="text-white/50 font-mono"><?php echo substr($cnic_hint, 0, 5); ?>-****</span>
             </p>
-            <?php else: ?>
+            <?php
+else: ?>
             <div class="mb-6"></div>
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <!-- Error -->
             <?php if ($error): ?>
@@ -200,7 +215,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fa-solid fa-circle-exclamation shrink-0 text-rose-400 text-base"></i>
                 <?php echo htmlspecialchars($error); ?>
             </div>
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <!-- CNIC Form -->
             <form method="POST" class="text-left">

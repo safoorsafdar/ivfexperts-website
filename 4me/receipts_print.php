@@ -1,13 +1,18 @@
 <?php
 if (!defined('BYPASS_AUTH')) {
     require_once __DIR__ . '/includes/auth.php';
-} else {
+}
+else {
     // Called from portal — load DB + esc() helper without auth redirect
     require_once __DIR__ . '/config/db.php';
     if (!function_exists('esc')) {
-        function esc($string) { return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8'); }
+        function esc($string)
+        {
+            return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+        }
     }
 }
+require_once __DIR__ . '/includes/traceability.php';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)
@@ -37,9 +42,12 @@ catch (Exception $e) {
 if (!$rx)
     die("Receipt not found.");
 
-$is_paid   = strtolower($rx['status'] ?? '') === 'paid';
+// Log download and get tracking code
+$tracking_code = log_document_download($conn, 'receipt', $id);
+
+$is_paid = strtolower($rx['status'] ?? '') === 'paid';
 $status_label = $is_paid ? 'PAID' : strtoupper($rx['status'] ?? 'PENDING');
-$amount_words = '';  // Could add number-to-words conversion here if needed
+$amount_words = ''; // Could add number-to-words conversion here if needed
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -84,6 +92,11 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
             white-space: nowrap; pointer-events: none; user-select: none;
             letter-spacing: 0.2em;
         }
+        .traceability-code {
+            position: absolute; bottom: 8mm; right: 15mm;
+            font-size: 8px; color: #94a3b8; font-family: monospace;
+            pointer-events: none; text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="py-10 print:py-0">
@@ -100,12 +113,14 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
             <a href="receipts_add.php?edit=<?php echo $id; ?>" class="bg-slate-700 hover:bg-slate-900 text-white px-5 py-2 rounded-lg shadow font-bold text-sm">
                 <i class="fa-solid fa-pen-to-square mr-1"></i> Edit
             </a>
-        <?php else: ?>
+        <?php
+else: ?>
             <!-- Patient Portal Controls -->
             <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow font-bold text-sm">
                 <i class="fa-solid fa-download mr-1"></i> Download / Print
             </button>
-        <?php endif; ?>
+        <?php
+endif; ?>
         <button onclick="window.close()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm">Close</button>
     </div>
 
@@ -115,7 +130,8 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
         <!-- Paid Watermark -->
         <?php if ($is_paid): ?>
             <div class="watermark-paid">PAID</div>
-        <?php endif; ?>
+        <?php
+endif; ?>
 
         <!-- Header -->
         <div class="flex justify-between items-start pb-6 mb-6 border-b-2 border-emerald-800">
@@ -126,13 +142,16 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
                 <div id="logo-fallback" style="display:none;" class="font-extrabold text-xl text-emerald-900 tracking-tight">IVF EXPERTS</div>
                 <?php if (!empty($rx['hospital_name'])): ?>
                     <div class="text-xs text-gray-500 mt-1 font-medium"><?php echo esc($rx['hospital_name']); ?></div>
-                <?php endif; ?>
+                <?php
+endif; ?>
                 <?php if (!empty($rx['address'])): ?>
                     <div class="text-[10px] text-gray-400 leading-snug mt-0.5"><?php echo esc($rx['address']); ?></div>
-                <?php endif; ?>
+                <?php
+endif; ?>
                 <?php if (!empty($rx['hospital_phone'])): ?>
                     <div class="text-[10px] text-gray-400 mt-0.5">Tel: <?php echo esc($rx['hospital_phone']); ?></div>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
 
             <!-- Title + Status -->
@@ -156,14 +175,16 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
                 <p class="text-xs text-gray-500 font-mono mt-1">MR #: <span class="font-bold text-indigo-700"><?php echo esc($rx['mr_number']); ?></span></p>
                 <?php if (!empty($rx['phone'])): ?>
                     <p class="text-xs text-gray-500 mt-0.5"><i class="fa-solid fa-phone text-[9px] mr-1"></i><?php echo esc($rx['phone']); ?></p>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
             <div class="shrink-0 text-right">
                 <p class="text-[9px] font-black text-gray-400 uppercase tracking-[0.2em] mb-2">Receipt Details</p>
                 <p class="text-sm text-gray-700">Payment Date: <strong><?php echo date('d M Y', strtotime($rx['receipt_date'])); ?></strong></p>
                 <?php if (!empty($rx['payment_method'])): ?>
                     <p class="text-sm text-gray-700">Method: <strong><?php echo esc($rx['payment_method']); ?></strong></p>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
         </div>
 
@@ -181,7 +202,8 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
                         <div class="font-bold text-base text-gray-900"><?php echo esc($rx['procedure_name']); ?></div>
                         <?php if (!empty($rx['notes'])): ?>
                             <div class="text-xs text-gray-500 mt-1 italic"><?php echo esc($rx['notes']); ?></div>
-                        <?php endif; ?>
+                        <?php
+endif; ?>
                     </td>
                     <td class="py-5 px-4 text-right font-mono text-gray-900 font-bold text-base">
                         <?php echo number_format($rx['amount'], 2); ?>
@@ -223,16 +245,19 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
                         <span class="font-bold block text-gray-700 text-[10px] mb-0.5">Verify Online</span>
                         Scan with phone camera to view &amp; download your digital receipt at ivfexperts.pk.
                     </div>
-                <?php endif; ?>
+                <?php
+endif; ?>
             </div>
 
             <!-- Signature block -->
             <div class="text-right">
                 <?php if (!empty($rx['digital_signature_path'])): ?>
                     <img src="https://ivfexperts.pk/<?php echo esc($rx['digital_signature_path']); ?>" alt="Signature" class="h-12 ml-auto object-contain mb-1" />
-                <?php else: ?>
+                <?php
+else: ?>
                     <div class="h-12"></div>
-                <?php endif; ?>
+                <?php
+endif; ?>
                 <div class="border-t-2 border-gray-700 pt-2 text-[10px] text-gray-700 font-bold leading-snug text-right">
                     Authorised Signatory<br>
                     <span class="text-[9px] font-normal text-gray-500">IVF Experts Clinic</span>
@@ -245,6 +270,11 @@ $amount_words = '';  // Could add number-to-words conversion here if needed
         <div class="mt-6 pt-4 border-t border-gray-100 text-center text-[9px] text-gray-400 tracking-widest uppercase">
             This is a computer-generated receipt and is valid without a physical signature.
             &nbsp;|&nbsp; hello@ivfexperts.pk &nbsp;|&nbsp; www.ivfexperts.pk
+            <!-- Traceability Code -->
+            <?php if (!empty($tracking_code)): ?>
+                <div class="traceability-code">TRK-<?php echo $tracking_code; ?></div>
+            <?php
+endif; ?>
         </div>
 
     </div>
