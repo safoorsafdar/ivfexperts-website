@@ -116,12 +116,20 @@ $amount_words = ''; // Could add number-to-words conversion here if needed
         <?php
 else: ?>
             <!-- Patient Portal Controls -->
-            <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow font-bold text-sm">
-                <i class="fa-solid fa-download mr-1"></i> Download / Print
-            </button>
+            <div class="flex flex-col items-center">
+                <button onclick="window.print()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow font-bold text-sm">
+                    <i class="fa-solid fa-download mr-1"></i> Save as PDF / Print
+                </button>
+                <span class="text-[9px] text-slate-400 mt-1 uppercase font-black tracking-widest leading-none">(Choose "Save as PDF" in print dialog)</span>
+            </div>
+            <a href="https://patient.ivfexperts.pk/dashboard.php" class="bg-emerald-50 border border-emerald-100 text-emerald-700 px-4 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2 text-sm">
+                <i class="fa-solid fa-house-user"></i> My Records
+            </a>
         <?php
 endif; ?>
-        <button onclick="window.close()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded-lg font-bold text-sm">Close</button>
+        <a href="javascript:history.back()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-5 py-2 rounded-lg font-bold text-sm flex items-center gap-1">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+        </a>
     </div>
 
     <!-- The Actual Document -->

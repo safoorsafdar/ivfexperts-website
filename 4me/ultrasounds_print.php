@@ -158,14 +158,20 @@ $mr = $usg['margin_right'] ?? '20mm';
         <?php
 else: ?>
             <!-- Patient Portal Controls -->
-            <button onclick="printDigital()" class="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold">
-                <i class="fa-solid fa-download"></i> Download / Print
-            </button>
+            <div class="flex flex-col items-center">
+                <button onclick="printDigital()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold">
+                    <i class="fa-solid fa-download"></i> Save as PDF / Print
+                </button>
+                <span class="text-[9px] text-slate-400 mt-1 uppercase font-black tracking-widest">(Choose "Save as PDF" in print dialog)</span>
+            </div>
+            <a href="https://patient.ivfexperts.pk/dashboard.php" class="bg-indigo-50 border border-indigo-200 text-indigo-700 px-4 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2">
+                <i class="fa-solid fa-house-user"></i> My Records
+            </a>
         <?php
 endif; ?>
-        <button onclick="window.close()" class="bg-gray-800 hover:bg-gray-900 text-white px-4 py-2 rounded-lg shadow-lg">
-            Close
-        </button>
+        <a href="javascript:history.back()" class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-lg shadow-lg font-bold">
+            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+        </a>
     </div>
 
     <!-- The Actual Document -->

@@ -138,13 +138,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $error = "Please enter your complete 13-digit CNIC number.";
         }
         elseif ($cnic_input !== $cnic_clean_db) {
-            $error = "CNIC does not match our record for this document. Please try again.";
+            $error = "Verification failed. Please enter the 13-digit CNIC number exactly as on your identity card.";
         }
         else {
             // Verified! Set session and redirect to document
             $_SESSION['portal_patient_id'] = $doc_patient_id;
             header("Location: view.php?type={$doc_view_type}&hash={$hash}");
-        }    }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>

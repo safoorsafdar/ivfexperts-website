@@ -122,6 +122,39 @@ try {
 catch (Exception $e) {
 }
 
+// --- P2 Data Logic ---
+// 1. Find the nearest upcoming visit
+$next_visits = [];
+foreach ($histories as $h) {
+    if (!empty($h['next_visit']) && $h['next_visit'] >= date('Y-m-d')) {
+        $next_visits[] = $h['next_visit'];
+    }
+}
+foreach ($prescriptions as $rx) {
+    if (!empty($rx['next_visit']) && $rx['next_visit'] >= date('Y-m-d')) {
+        $next_visits[] = $rx['next_visit'];
+    }
+}
+sort($next_visits);
+$next_visit_date = $next_visits[0] ?? null;
+
+// 2. Pending labs
+$pending_labs = array_filter($lab_results, fn($l) => $l['status'] === 'Pending');
+$pending_count = count($pending_labs);
+
+// 3. Billing summary
+$total_paid = array_sum(array_column(array_filter($receipts, fn($r) => strtolower($r['status'] ?? '') === 'paid'), 'amount'));
+$total_pending = array_sum(array_column(array_filter($receipts, fn($r) => strtolower($r['status'] ?? '') !== 'paid'), 'amount'));
+
+// 4. Update Quick Stats count for UI
+$portal_tabs = [
+    ['id' => 'timeline', 'icon' => 'fa-notes-medical', 'label' => 'Clinical Timeline', 'count' => count($histories)],
+    ['id' => 'procedures', 'icon' => 'fa-syringe', 'label' => 'My Procedures', 'count' => count($advised_procedures)],
+    ['id' => 'labs', 'icon' => 'fa-vials', 'label' => 'Lab Results', 'count' => count($lab_results)],
+    ['id' => 'diagnostic', 'icon' => 'fa-image', 'label' => 'Scans & Reports', 'count' => count($ultrasounds) + count($semen)],
+    ['id' => 'prescriptions', 'icon' => 'fa-prescription', 'label' => 'Prescriptions', 'count' => count($prescriptions)],
+    ['id' => 'billing', 'icon' => 'fa-receipt', 'label' => 'Billing', 'count' => count($receipts)],
+];
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -198,6 +231,19 @@ catch (Exception $e) {
                             <?php
 endif; ?>
                         </div>
+
+                        <?php if ($next_visit_date): ?>
+                        <div class="mt-4 bg-indigo-500/10 border border-indigo-400/20 rounded-2xl px-4 py-2.5 flex items-center gap-3">
+                            <i class="fa-solid fa-calendar-star text-indigo-400 text-lg shrink-0"></i>
+                            <div>
+                                <div class="text-indigo-300 text-[10px] font-black uppercase tracking-wider leading-none mb-1">Next Appointment</div>
+                                <div class="text-white font-black text-sm">
+                                    <?php echo date('l, d F Y', strtotime($next_visit_date)); ?>
+                                </div>
+                            </div>
+                        </div>
+                        <?php
+endif; ?>
                     </div>
 
                     <!-- Quick Stats -->
@@ -221,6 +267,36 @@ endforeach; ?>
             </div>
         </div>
 
+        <?php if ($pending_count > 0): ?>
+        <div class="mb-6 bg-amber-500/10 border border-amber-500/20 rounded-2xl px-5 py-3.5 flex items-center gap-4">
+            <div class="w-10 h-10 bg-amber-500/20 rounded-xl flex items-center justify-center text-amber-500 text-xl shrink-0">
+                <i class="fa-solid fa-spinner animate-spin"></i>
+            </div>
+            <div>
+                <div class="text-amber-700 font-black text-sm"><?php echo $pending_count; ?> Lab Result<?php echo $pending_count > 1 ? 's' : ''; ?> Processing</div>
+                <div class="text-amber-600/70 text-xs font-medium mt-0.5">We'll notify you once they are confirmed. Check back soon.</div>
+            </div>
+        </div>
+        <?php
+endif; ?>
+
+        <!-- Mobile Navigation (shown on mobile, hidden on lg) -->
+        <div class="lg:hidden flex gap-2 overflow-x-auto pb-4 mb-6 -mx-4 px-4 scrollbar-hide">
+            <?php foreach ($portal_tabs as $tab): ?>
+            <button @click="activeTab = '<?php echo $tab['id']; ?>'"
+                    :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 border-slate-200'"
+                    class="shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black whitespace-nowrap border transition-all">
+                <i class="fa-solid <?php echo $tab['icon']; ?>"></i>
+                <?php echo $tab['label']; ?>
+                <?php if ($tab['count'] > 0): ?>
+                    <span class="bg-black/10 px-1.5 py-0.5 rounded-md text-[9px]"><?php echo $tab['count']; ?></span>
+                <?php
+    endif; ?>
+            </button>
+            <?php
+endforeach; ?>
+        </div>
+
         <!-- Main Content with Tabs -->
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
             
@@ -228,17 +304,7 @@ endforeach; ?>
             <div class="lg:col-span-1">
                 <div class="bg-slate-900 rounded-3xl border border-slate-800 p-2 shadow-xl sticky top-24">
                     <nav class="space-y-1">
-                        <?php
-$portal_tabs = [
-    ['id' => 'timeline', 'icon' => 'fa-notes-medical', 'label' => 'Clinical Timeline', 'count' => count($histories)],
-    ['id' => 'procedures', 'icon' => 'fa-syringe', 'label' => 'My Procedures', 'count' => count($advised_procedures)],
-    ['id' => 'labs', 'icon' => 'fa-vials', 'label' => 'Lab Results', 'count' => count($lab_results)],
-    ['id' => 'diagnostic', 'icon' => 'fa-image', 'label' => 'Scans & Reports', 'count' => count($ultrasounds) + count($semen)],
-    ['id' => 'prescriptions', 'icon' => 'fa-prescription', 'label' => 'Prescriptions', 'count' => count($prescriptions)],
-    ['id' => 'billing', 'icon' => 'fa-receipt', 'label' => 'Billing', 'count' => count($receipts)],
-];
-foreach ($portal_tabs as $tab):
-?>
+                        <?php foreach ($portal_tabs as $tab): ?>
                         <button @click="activeTab = '<?php echo $tab['id']; ?>'"
                                 :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm group">
@@ -270,10 +336,10 @@ endforeach; ?>
                         
                         <?php if (empty($histories)): ?>
                             <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center">
-                                <i class="fa-solid fa-calendar-day text-5xl text-slate-200 mb-4 block"></i>
-                                <div class="text-slate-400 font-bold">No clinical visits recorded yet.</div>
+                                <i class="fa-solid fa-calendar-day text-5xl text-slate-100 mb-4 block"></i>
+                                <div class="text-slate-400 font-bold max-w-xs mx-auto">Your clinical visit notes will appear here after your consultation with Dr. Adnan Jabbar.</div>
                             </div>
-                        <?php
+<?php
 else: ?>
                             <div class="relative border-l-2 border-indigo-100 ml-4 pl-8 space-y-12">
                                 <?php foreach ($histories as $h): ?>
@@ -337,8 +403,8 @@ endif; ?>
                             <i class="fa-solid fa-syringe text-indigo-600"></i> Advised & Upcoming Procedures
                         </h2>
                         <?php if (empty($advised_procedures)): ?>
-                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold">
-                                No procedures advised yet.
+                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                                No procedures have been advised for you at this time.
                             </div>
                         <?php
 else: ?>
@@ -380,15 +446,16 @@ endif; ?>
                             <i class="fa-solid fa-vials text-indigo-600"></i> Laboratory & Blood Tests
                         </h2>
 
-                        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                             <?php if (empty($lab_results)): ?>
                                 <div class="p-12 text-center">
                                     <i class="fa-solid fa-box-open text-5xl text-slate-100 mb-4 block"></i>
-                                    <div class="text-slate-400 font-bold">No laboratory results found.</div>
+                                    <div class="text-slate-400 font-bold max-w-xs mx-auto">Your lab results will appear here once your blood tests have been processed and uploaded by the clinic.</div>
                                 </div>
                             <?php
 else: ?>
-                                <table class="w-full text-left">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left min-w-[700px]">
                                     <thead>
                                         <tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                             <th class="px-6 py-4">Test Attribution</th>
@@ -488,8 +555,8 @@ usort($all_scans, function ($a, $b) {
 ?>
 
                             <?php if (empty($all_scans)): ?>
-                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center">
-                                    <div class="text-slate-400 font-bold">No diagnostic reports available.</div>
+                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                                    Ultrasound reports and semen analysis results will appear here after your diagnostic visit.
                                 </div>
                             <?php
 else: ?>
@@ -534,7 +601,7 @@ endif; ?>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <?php if (empty($prescriptions)): ?>
-                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold">No active prescriptions.</div>
+                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">No prescriptions found. Digital medication plans will appear here after your visit.</div>
                             <?php
 else: ?>
                                 <?php foreach ($prescriptions as $rx): ?>
@@ -552,8 +619,11 @@ else: ?>
                                             </span>
                                         </div>
                                         <p class="text-xs text-slate-500 line-clamp-2 mb-4"><?php
-        $rx_preview = strip_tags($rx['clinical_notes'] ?? $rx['diagnosis'] ?? '');
-        echo htmlspecialchars($rx_preview ?: 'Medication plan issued during consultation.');
+        $rx_preview = strip_tags($rx['clinical_notes'] ?? '');
+        if (empty($rx_preview))
+            $rx_preview = strip_tags($rx['diagnosis'] ?? '');
+        $rx_preview = mb_strimwidth(trim($rx_preview), 0, 120, '...');
+        echo htmlspecialchars($rx_preview ?: 'Medication plan — tap to view full details.');
 ?></p>
                                         <div class="flex gap-2">
                                             <a href="view.php?type=rx&hash=<?php echo $rx['qrcode_hash']; ?>" target="_blank" class="flex-1 bg-indigo-600 text-white text-[10px] font-black uppercase text-center py-2 rounded-xl hover:bg-slate-900 transition-all">View Record</a>
@@ -578,12 +648,33 @@ endif; ?>
                             <i class="fa-solid fa-receipt text-indigo-600"></i> Payment & Billing Records
                         </h2>
                         
-                        <div class="bg-white rounded-3xl border border-slate-200 overflow-hidden shadow-sm">
+                        <div class="grid grid-cols-2 gap-4 mb-6">
+                            <div class="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 text-center">
+                                <div class="text-2xl font-black text-emerald-700">Rs. <?php echo number_format($total_paid, 0); ?></div>
+                                <div class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Total Paid</div>
+                            </div>
+                            <?php if ($total_pending > 0): ?>
+                            <div class="bg-amber-50 border border-amber-100 rounded-3xl p-5 text-center">
+                                <div class="text-2xl font-black text-amber-700">Rs. <?php echo number_format($total_pending, 0); ?></div>
+                                <div class="text-[9px] font-black text-amber-500 uppercase tracking-widest mt-1">Pending Balance</div>
+                            </div>
+                            <?php
+else: ?>
+                            <div class="bg-slate-50 border border-slate-100 rounded-3xl p-5 text-center opacity-50">
+                                <div class="text-2xl font-black text-slate-400">Rs. 0</div>
+                                <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Pending Balance</div>
+                            </div>
+                            <?php
+endif; ?>
+                        </div>
+
+                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
                             <?php if (empty($receipts)): ?>
                                 <div class="p-12 text-center text-slate-400 font-bold">No billing history found.</div>
                             <?php
 else: ?>
-                                <table class="w-full text-left">
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-left min-w-[600px]">
                                     <thead>
                                         <tr class="bg-slate-50 text-[10px] font-black uppercase tracking-widest text-slate-400 border-b border-slate-100">
                                             <th class="px-6 py-4">Transaction / Service</th>
