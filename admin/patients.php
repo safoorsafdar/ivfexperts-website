@@ -2,193 +2,298 @@
 $pageTitle = "Patient Registry";
 require_once __DIR__ . '/includes/auth.php';
 
-// Handle Delete
+// ── Handle Delete ──────────────────────────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
-    $id = (int)$_POST['delete_id'];
-
+    $id = intval($_POST['delete_id']);
     try {
         $conn->begin_transaction();
-
-        // Delete child records first
         $conn->query("DELETE FROM patient_history WHERE patient_id = $id");
-
-        // Handle Prescriptions (must delete items/diagnoses first)
+        $conn->query("DELETE FROM advised_lab_tests WHERE prescription_id IN (SELECT id FROM prescriptions WHERE patient_id = $id)");
         $conn->query("DELETE FROM prescription_items WHERE prescription_id IN (SELECT id FROM prescriptions WHERE patient_id = $id)");
         $conn->query("DELETE FROM prescription_diagnoses WHERE prescription_id IN (SELECT id FROM prescriptions WHERE patient_id = $id)");
         $conn->query("DELETE FROM prescriptions WHERE patient_id = $id");
-
-        // Corrected table names from previous search
         $conn->query("DELETE FROM patient_ultrasounds WHERE patient_id = $id");
         $conn->query("DELETE FROM semen_analyses WHERE patient_id = $id");
         $conn->query("DELETE FROM patient_lab_results WHERE patient_id = $id");
         $conn->query("DELETE FROM receipts WHERE patient_id = $id");
         $conn->query("DELETE FROM advised_procedures WHERE patient_id = $id");
-
-        // Finally delete the patient
         $conn->query("DELETE FROM patients WHERE id = $id");
-
         $conn->commit();
         header("Location: patients.php?msg=deleted");
         exit;
-    }
-    catch (Exception $e) {
+    } catch (Exception $e) {
         $conn->rollback();
         die("Deletion Error: " . $e->getMessage());
     }
 }
 
-// Handle Search
-$search = trim($_GET['q'] ?? '');
-$msg = $_GET['msg'] ?? '';
+// ── Fetch ──────────────────────────────────────────────────────────────────────
+$search   = trim($_GET['q']   ?? '');
+$gender_f = trim($_GET['gender'] ?? '');
+$msg      = $_GET['msg'] ?? '';
 $patients = [];
+$total    = 0;
 
 try {
+    $where  = [];
+    $params = [];
+    $types  = '';
+
     if (!empty($search)) {
-        $stmt = $conn->prepare("SELECT p.*, h.name as hospital_name FROM patients p 
-                                LEFT JOIN hospitals h ON p.referring_hospital_id = h.id 
-                                WHERE p.mr_number LIKE ? 
-                                OR p.cnic LIKE ? 
-                                OR p.phone LIKE ? 
-                                OR p.first_name LIKE ? 
-                                OR p.last_name LIKE ? 
-                                OR p.spouse_name LIKE ? 
-                                OR p.spouse_phone LIKE ? 
-                                OR p.spouse_cnic LIKE ? 
-                                ORDER BY p.id DESC LIMIT 50");
         $like = "%$search%";
-        if ($stmt) {
-            $stmt->bind_param("ssssssss", $like, $like, $like, $like, $like, $like, $like, $like);
-            $stmt->execute();
-            $res = $stmt->get_result();
-            while ($row = $res->fetch_assoc())
-                $patients[] = $row;
-        }
+        $where[] = "(p.mr_number LIKE ? OR p.cnic LIKE ? OR p.phone LIKE ? OR p.first_name LIKE ? OR p.last_name LIKE ? OR p.spouse_name LIKE ? OR p.spouse_phone LIKE ? OR p.spouse_cnic LIKE ?)";
+        for ($i = 0; $i < 8; $i++) { $params[] = $like; $types .= 's'; }
     }
-    else {
-        $res = $conn->query("SELECT p.*, h.name as hospital_name FROM patients p LEFT JOIN hospitals h ON p.referring_hospital_id = h.id ORDER BY p.id DESC LIMIT 50");
-        if ($res) {
-            while ($row = $res->fetch_assoc())
-                $patients[] = $row;
-        }
+    if (!empty($gender_f)) {
+        $where[] = "p.gender = ?";
+        $params[] = $gender_f;
+        $types .= 's';
     }
-}
-catch (Exception $e) {
-}
+
+    $sql = "SELECT p.*, h.name AS hospital_name FROM patients p LEFT JOIN hospitals h ON p.referring_hospital_id = h.id";
+    if ($where) $sql .= " WHERE " . implode(' AND ', $where);
+    $sql .= " ORDER BY p.id DESC LIMIT 100";
+
+    if ($types) {
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $res = $stmt->get_result();
+    } else {
+        $res = $conn->query($sql);
+    }
+    if ($res) while ($row = $res->fetch_assoc()) $patients[] = $row;
+
+    // Total count
+    $r = $conn->query("SELECT COUNT(*) AS c FROM patients");
+    if ($r) $total = $r->fetch_assoc()['c'];
+
+} catch (Exception $e) {}
 
 include __DIR__ . '/includes/header.php';
 ?>
 
+<!-- Flash Messages -->
 <?php if ($msg === 'deleted'): ?>
-    <div class="bg-red-50 text-red-700 p-4 rounded-xl mb-6 border border-red-100 flex items-center gap-3 shadow-sm">
-        <i class="fa-solid fa-trash text-xl"></i>
-        <span class="font-bold">Patient record deleted successfully.</span>
-    </div>
-<?php
-endif; ?>
+<div class="flex items-center gap-3 bg-rose-50 border border-rose-200 text-rose-800 px-5 py-3 rounded-xl text-sm font-bold mb-6">
+    <i class="fa-solid fa-circle-check text-rose-500"></i> Patient record deleted permanently.
+</div>
+<?php endif; ?>
 
-<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-    <div class="w-full sm:w-96 relative">
-        <form method="GET">
-            <input type="text" name="q" value="<?php echo esc($search); ?>" placeholder="Search MR, CNIC, Phone, Name..." class="w-full pl-10 pr-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors bg-white">
-            <i class="fa-solid fa-search absolute left-3 top-3 text-gray-400"></i>
-        </form>
+<!-- Page Header -->
+<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+    <div>
+        <h1 class="text-2xl font-black text-gray-800 tracking-tight">Patient Registry</h1>
+        <p class="text-sm text-gray-400 font-bold mt-0.5"><?php echo number_format($total); ?> patients · showing up to 100 results</p>
     </div>
-    <a href="patients_add.php" class="shrink-0 bg-teal-600 hover:bg-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2">
+    <a href="patients_add.php"
+       class="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-black py-3 px-5 rounded-xl transition-all shadow-lg shadow-teal-100 active:scale-95 text-sm">
         <i class="fa-solid fa-user-plus"></i> Register Patient
     </a>
 </div>
 
-<div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+<!-- Search & Filters -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm p-4 mb-6">
+    <form method="GET" class="flex flex-col sm:flex-row gap-3">
+        <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+            <input type="text" name="q" value="<?php echo esc($search); ?>"
+                   placeholder="Search by name, MR number, CNIC, phone, spouse..."
+                   autofocus
+                   class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-500 focus:bg-white transition-all text-sm font-medium">
+        </div>
+        <select name="gender" class="px-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-500 text-sm font-bold text-gray-600 transition-all">
+            <option value="">All Genders</option>
+            <option value="Male"   <?php echo $gender_f === 'Male'   ? 'selected' : ''; ?>>Male</option>
+            <option value="Female" <?php echo $gender_f === 'Female' ? 'selected' : ''; ?>>Female</option>
+        </select>
+        <button type="submit"
+                class="px-5 py-2.5 bg-teal-600 hover:bg-teal-700 text-white rounded-xl font-black text-sm transition-all">
+            <i class="fa-solid fa-search mr-1.5"></i> Search
+        </button>
+        <?php if ($search || $gender_f): ?>
+        <a href="patients.php" class="px-4 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-600 rounded-xl font-black text-sm transition-all flex items-center gap-1.5">
+            <i class="fa-solid fa-times"></i> Clear
+        </a>
+        <?php endif; ?>
+    </form>
+</div>
+
+<!-- Patient Table -->
+<div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+    <?php if (empty($patients)): ?>
+    <div class="p-16 text-center">
+        <i class="fa-solid fa-users-slash text-5xl text-gray-100 mb-4 block"></i>
+        <h3 class="text-lg font-bold text-gray-400 mb-2">No patients found</h3>
+        <?php if ($search || $gender_f): ?>
+        <p class="text-sm text-gray-400">Try adjusting your search filters.</p>
+        <a href="patients.php" class="mt-4 inline-block text-teal-600 font-black text-sm hover:text-teal-700">Clear filters →</a>
+        <?php else: ?>
+        <p class="text-sm text-gray-400">Register your first patient to get started.</p>
+        <a href="patients_add.php" class="mt-4 inline-block bg-teal-600 text-white px-6 py-2.5 rounded-xl font-black text-sm hover:bg-teal-700 transition-all">Register First Patient</a>
+        <?php endif; ?>
+    </div>
+    <?php else: ?>
     <div class="overflow-x-auto">
-        <table class="w-full text-left text-sm text-gray-600">
-            <thead class="bg-gray-50 text-gray-700 uppercase font-semibold text-xs tracking-wider border-b border-gray-100">
-                <tr>
-                    <th class="px-6 py-4">MR Number</th>
-                    <th class="px-6 py-4">Patient Name</th>
-                    <th class="px-6 py-4">Phone / CNIC</th>
-                    <th class="px-6 py-4">Gender</th>
+        <table class="w-full text-left">
+            <thead>
+                <tr class="bg-gray-50/80 text-[9px] font-black uppercase tracking-widest text-gray-400 border-b border-gray-100">
+                    <th class="px-6 py-4">Patient</th>
+                    <th class="px-6 py-4">Contact</th>
+                    <th class="px-6 py-4">Spouse</th>
+                    <th class="px-6 py-4">Gender / Age</th>
                     <th class="px-6 py-4">Referred By</th>
                     <th class="px-6 py-4 text-right">Actions</th>
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-50">
-                <?php if (empty($patients)): ?>
-                    <tr>
-                        <td colspan="6" class="px-6 py-8 text-center text-gray-400">
-                            <i class="fa-solid fa-users-slash text-3xl mb-3 block"></i>
-                            No patients found.
-                        </td>
-                    </tr>
-                <?php
-else:
-    foreach ($patients as $p): ?>
-                    <tr class="hover:bg-gray-50 transition-colors">
-                        <td class="px-6 py-4 font-mono font-medium text-teal-700">
-                            <?php echo esc($p['mr_number']); ?>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-800"><?php echo esc($p['first_name'] . ' ' . $p['last_name']); ?></div>
-                            <div class="text-xs text-gray-500">Spouse: <?php echo esc($p['spouse_name']); ?></div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div><i class="fa-solid fa-phone text-gray-400 w-4"></i> <?php echo esc($p['phone'] ?: 'N/A'); ?></div>
-                            <div class="text-xs mt-1 text-gray-500"><i class="fa-regular fa-id-card text-gray-400 w-4"></i> <?php echo esc($p['cnic'] ?: 'N/A'); ?></div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-1 bg-gray-100 text-gray-600 rounded-full text-xs font-medium">
-                                <?php echo esc($p['gender']); ?>
-                            </span>
-                        </td>
-                        <td class="px-6 py-4 text-xs">
-                            <?php echo esc($p['hospital_name'] ?: 'Direct / Walk-in'); ?>
-                        </td>
-                        <td class="px-6 py-4 text-right whitespace-nowrap">
-                            <a href="patients_view.php?id=<?php echo $p['id']; ?>" class="text-teal-600 hover:text-teal-900 bg-teal-50 hover:bg-teal-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="Open File">
-                                <i class="fa-regular fa-folder-open"></i>
+                <?php foreach ($patients as $p): ?>
+                <tr class="hover:bg-teal-50/10 transition-colors group">
+                    <!-- Patient Identity -->
+                    <td class="px-6 py-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm shrink-0
+                                <?php echo $p['gender'] === 'Female' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                <?php echo strtoupper(substr($p['first_name'], 0, 1)); ?>
+                            </div>
+                            <div>
+                                <div class="font-black text-gray-800 text-sm leading-tight"><?php echo esc($p['first_name'] . ' ' . $p['last_name']); ?></div>
+                                <div class="font-mono text-teal-600 text-[10px] font-bold"><?php echo esc($p['mr_number']); ?></div>
+                            </div>
+                        </div>
+                    </td>
+
+                    <!-- Contact -->
+                    <td class="px-6 py-4">
+                        <?php if ($p['phone']): ?>
+                        <div class="text-sm text-gray-700 font-bold flex items-center gap-1.5">
+                            <i class="fa-solid fa-phone text-gray-300 text-xs"></i> <?php echo esc($p['phone']); ?>
+                        </div>
+                        <?php endif; ?>
+                        <?php if ($p['cnic']): ?>
+                        <div class="text-xs text-gray-400 font-mono mt-0.5 flex items-center gap-1.5">
+                            <i class="fa-solid fa-id-card text-gray-200 text-[10px]"></i> <?php echo esc($p['cnic']); ?>
+                        </div>
+                        <?php endif; ?>
+                    </td>
+
+                    <!-- Spouse -->
+                    <td class="px-6 py-4">
+                        <?php if (!empty($p['spouse_name'])): ?>
+                        <div class="flex items-center gap-1.5">
+                            <i class="fa-solid fa-heart text-pink-300 text-xs"></i>
+                            <span class="text-sm text-gray-600 font-bold"><?php echo esc($p['spouse_name']); ?></span>
+                        </div>
+                        <?php else: ?>
+                        <span class="text-gray-200 text-xs">—</span>
+                        <?php endif; ?>
+                    </td>
+
+                    <!-- Gender/Age -->
+                    <td class="px-6 py-4">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[9px] font-black uppercase
+                            <?php echo $p['gender'] === 'Female' ? 'bg-pink-50 text-pink-700' : 'bg-indigo-50 text-indigo-700'; ?>">
+                            <?php echo esc($p['gender'] ?? '—'); ?>
+                            <?php if ($p['patient_age']): ?> · <?php echo $p['patient_age']; ?>y<?php endif; ?>
+                        </span>
+                    </td>
+
+                    <!-- Referred By -->
+                    <td class="px-6 py-4">
+                        <span class="text-xs text-gray-500 font-bold"><?php echo esc($p['hospital_name'] ?: 'Direct'); ?></span>
+                    </td>
+
+                    <!-- Actions -->
+                    <td class="px-6 py-4">
+                        <div class="flex items-center justify-end gap-2">
+                            <a href="patients_view.php?id=<?php echo $p['id']; ?>"
+                               class="w-9 h-9 bg-teal-50 hover:bg-teal-600 text-teal-600 hover:text-white rounded-xl flex items-center justify-center transition-all text-sm"
+                               title="Open 360 Profile">
+                                <i class="fa-solid fa-folder-open"></i>
                             </a>
-                            <a href="patients_edit.php?id=<?php echo $p['id']; ?>" class="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block mr-1" title="Edit">
-                                <i class="fa-solid fa-pen-to-square"></i>
+                            <a href="patients_edit.php?id=<?php echo $p['id']; ?>"
+                               class="w-9 h-9 bg-gray-100 hover:bg-indigo-600 text-gray-500 hover:text-white rounded-xl flex items-center justify-center transition-all text-sm"
+                               title="Edit Patient">
+                                <i class="fa-solid fa-pen"></i>
                             </a>
-                            <button onclick="confirmDelete(<?php echo $p['id']; ?>, '<?php echo esc($p['first_name'] . ' ' . $p['last_name']); ?>')" class="text-red-600 hover:text-red-900 bg-red-50 hover:bg-red-100 px-3 py-1.5 rounded-md font-medium transition-colors inline-block cursor-pointer" title="Delete">
-                                <i class="fa-solid fa-trash"></i>
+                            <button onclick="confirmDelete(<?php echo $p['id']; ?>, '<?php echo esc(addslashes($p['first_name'] . ' ' . $p['last_name'])); ?>')"
+                                    class="w-9 h-9 bg-gray-100 hover:bg-rose-500 text-gray-400 hover:text-white rounded-xl flex items-center justify-center transition-all text-sm"
+                                    title="Delete Patient">
+                                <i class="fa-solid fa-trash text-xs"></i>
                             </button>
-                        </td>
-                    </tr>
-                <?php
-    endforeach;
-endif; ?>
+                        </div>
+                    </td>
+                </tr>
+                <?php endforeach; ?>
             </tbody>
         </table>
     </div>
+    <div class="px-6 py-3 border-t border-gray-50 bg-gray-50/30 flex items-center justify-between">
+        <span class="text-[10px] font-black text-gray-400 uppercase tracking-widest"><?php echo count($patients); ?> results displayed</span>
+        <?php if (!empty($search) || !empty($gender_f)): ?>
+        <a href="patients.php" class="text-[10px] font-black text-teal-600 hover:text-teal-800 uppercase tracking-widest">Clear filters →</a>
+        <?php endif; ?>
+    </div>
+    <?php endif; ?>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div id="deleteModal" style="display:none;position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,0.5);" onclick="if(event.target===this)closeDeleteModal()">
-    <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:#fff;border-radius:16px;padding:32px;max-width:400px;width:90%;box-shadow:0 25px 50px rgba(0,0,0,0.15);">
-        <div style="text-align:center;">
-            <div style="width:56px;height:56px;background:#fef2f2;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 16px;">
-                <i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;font-size:24px;"></i>
-            </div>
-            <h3 style="font-size:18px;font-weight:700;color:#1e293b;margin-bottom:8px;">Delete Patient?</h3>
-            <p style="color:#64748b;font-size:14px;margin-bottom:24px;">Are you sure you want to delete <strong id="deletePatientName"></strong>? This will also delete all related records (history, prescriptions, ultrasounds, lab results). This cannot be undone.</p>
-            <form id="deleteForm" method="POST" style="display:inline;">
-                <input type="hidden" name="delete_id" id="deleteId">
-                <button type="button" onclick="closeDeleteModal()" style="padding:10px 24px;border-radius:8px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-weight:600;font-size:14px;cursor:pointer;margin-right:8px;">Cancel</button>
-                <button type="submit" style="padding:10px 24px;border-radius:8px;border:none;background:#ef4444;color:#fff;font-weight:600;font-size:14px;cursor:pointer;">Delete</button>
-            </form>
+<!-- Delete Confirmation Modal (Alpine.js) -->
+<div id="deleteModal" x-data="{ show: false, name: '', pid: 0 }"
+     x-show="show"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     @keydown.escape.window="show = false"
+     class="fixed inset-0 z-50 flex items-center justify-center p-4"
+     style="display:none;">
+    <div class="absolute inset-0 bg-gray-900/60 backdrop-blur-sm" @click="show = false"></div>
+    <div class="relative bg-white rounded-3xl shadow-2xl p-8 max-w-md w-full z-10 text-center"
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="scale-95 opacity-0"
+         x-transition:enter-end="scale-100 opacity-100">
+        <div class="w-16 h-16 bg-rose-50 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <i class="fa-solid fa-triangle-exclamation text-rose-500 text-2xl"></i>
         </div>
+        <h3 class="text-xl font-black text-gray-800 mb-2">Delete Patient?</h3>
+        <p class="text-gray-500 text-sm mb-1">You are about to permanently delete</p>
+        <p class="font-black text-gray-800 text-lg mb-4" x-text="name"></p>
+        <p class="text-xs text-rose-600 bg-rose-50 rounded-xl p-3 mb-6 font-bold">
+            <i class="fa-solid fa-exclamation mr-1"></i>
+            This will delete ALL associated records — prescriptions, lab results, history, ultrasounds. This cannot be undone.
+        </p>
+        <form method="POST" class="flex gap-3">
+            <input type="hidden" name="delete_id" :value="pid">
+            <button type="button" @click="show = false"
+                    class="flex-1 py-3 rounded-2xl font-black text-gray-600 bg-gray-100 hover:bg-gray-200 transition-all text-sm">
+                Cancel
+            </button>
+            <button type="submit"
+                    class="flex-1 py-3 rounded-2xl font-black text-white bg-rose-500 hover:bg-rose-600 transition-all shadow-lg shadow-rose-100 text-sm">
+                <i class="fa-solid fa-trash mr-1"></i> Delete
+            </button>
+        </form>
     </div>
 </div>
+
 <script>
 function confirmDelete(id, name) {
-    document.getElementById('deleteId').value = id;
-    document.getElementById('deletePatientName').textContent = name;
-    document.getElementById('deleteModal').style.display = 'block';
-}
-function closeDeleteModal() {
-    document.getElementById('deleteModal').style.display = 'none';
+    const modal = document.getElementById('deleteModal');
+    if (modal && modal._x_dataStack) {
+        // Alpine.js approach
+        modal._x_dataStack[0].pid  = id;
+        modal._x_dataStack[0].name = name;
+        modal._x_dataStack[0].show = true;
+    } else {
+        // Fallback plain JS
+        if (confirm('Delete ' + name + '? This cannot be undone.')) {
+            const f = document.createElement('form');
+            f.method = 'POST';
+            const i = document.createElement('input');
+            i.type = 'hidden'; i.name = 'delete_id'; i.value = id;
+            f.appendChild(i); document.body.appendChild(f); f.submit();
+        }
+    }
 }
 </script>
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
-

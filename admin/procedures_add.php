@@ -90,8 +90,14 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h3 class="font-bold text-gray-800"><?php echo $edit_id ? 'Edit' : 'Advise'; ?> Medical Procedure / Treatment</h3>
+        <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center gap-3">
+            <div class="w-10 h-10 bg-rose-100 text-rose-600 rounded-xl flex items-center justify-center">
+                <i class="fa-solid fa-clipboard-check text-base"></i>
+            </div>
+            <div>
+                <h3 class="font-black text-gray-800 text-lg"><?php echo $edit_id ? 'Edit' : 'Advise'; ?> Medical Procedure</h3>
+                <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Treatment & Procedure Planning</p>
+            </div>
         </div>
         
         <div class="p-6 md:p-8">
@@ -219,12 +225,14 @@ endforeach; ?>
                     <textarea name="notes" rows="4" class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-gray-50" placeholder="Any specific requirements, expected timeline, or pre-procedure preparations..."><?php echo htmlspecialchars($_POST['notes'] ?? ($edit_data['notes'] ?? '')); ?></textarea>
                 </div>
 
-                <div class="mt-8 pt-6 border-t border-gray-100 flex justify-end gap-3">
-                    <a href="procedures.php" class="px-6 py-3 font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-lg transition-colors border border-gray-200 shadow-sm">
-                        Cancel
+                <div class="mt-8 pt-6 border-t border-gray-100 flex items-center justify-between gap-3">
+                    <a href="procedures.php" class="text-sm text-gray-500 hover:text-gray-700 font-bold flex items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-arrow-left text-xs"></i> Back
                     </a>
-                    <button type="submit" name="save_procedure" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-8 rounded-lg transition-colors shadow-lg shadow-indigo-200 flex items-center gap-2">
-                        <i class="fa-solid fa-clipboard-check"></i> <?php echo $edit_id ? 'Update Record' : 'Advise Procedure'; ?>
+                    <button type="submit" name="save_procedure"
+                            class="bg-rose-600 hover:bg-rose-700 text-white font-black py-3.5 px-8 rounded-2xl transition-all shadow-xl shadow-rose-100 active:scale-95 flex items-center gap-2.5">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                        <?php echo $edit_id ? 'Update Record' : 'Advise Procedure'; ?>
                     </button>
                 </div>
             </form>

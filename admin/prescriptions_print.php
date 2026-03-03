@@ -389,10 +389,10 @@ endif; ?>
         <!-- Footer Notes & Follow-up -->
         <div class="mt-2 flex justify-between items-start gap-4 px-2">
             <!-- General Notes -->
-            <?php if (!empty($rx['notes'])): ?>
+            <?php if (!empty($rx['general_advice'])): ?>
                 <div class="flex-grow pt-2 border-t border-gray-300">
                     <h3 class="text-[10px] font-bold uppercase tracking-wider text-gray-600 mb-1">Advice / General Notes</h3>
-                    <p class="text-[11px] whitespace-pre-wrap leading-snug"><?php echo esc($rx['notes']); ?></p>
+                    <p class="text-[11px] whitespace-pre-wrap leading-snug"><?php echo esc($rx['general_advice']); ?></p>
                 </div>
             <?php
 else: ?>
@@ -401,11 +401,11 @@ else: ?>
 endif; ?>
 
             <!-- Revisit Date -->
-            <?php if (!empty($rx['revisit_date'])): ?>
+            <?php if (!empty($rx['next_visit'])): ?>
                 <div class="pt-2 shrink-0 text-right">
                     <div class="inline-block border border-gray-300 rounded-full px-4 py-1.5 bg-gray-50 text-[11px] shadow-sm">
-                        <span class="font-bold text-gray-500 uppercase">Next Follow-up Visit:</span> 
-                        <span class="font-bold text-indigo-800 ml-2"><?php echo date('l, d M Y', strtotime($rx['revisit_date'])); ?></span>
+                        <span class="font-bold text-gray-500 uppercase">Next Follow-up Visit:</span>
+                        <span class="font-bold text-indigo-800 ml-2"><?php echo date('l, d M Y', strtotime($rx['next_visit'])); ?></span>
                     </div>
                 </div>
             <?php

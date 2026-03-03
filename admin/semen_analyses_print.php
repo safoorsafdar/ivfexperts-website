@@ -1,7 +1,5 @@
 <?php
 require_once __DIR__ . '/includes/auth.php';
-unlink('admin/migrate_definitions.php'); // Security: Delete the migration script after use
-unlink('admin/migrate_definitions_2.php'); // cleanup if exists
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)

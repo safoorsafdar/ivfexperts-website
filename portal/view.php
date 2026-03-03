@@ -1,7 +1,11 @@
 <?php
 session_start();
 if (!isset($_SESSION['portal_patient_id'])) {
-    die("Unauthorized Access. Please login via the Patient Portal.");
+    // Preserve hash and type for post-login redirect
+    $h = preg_replace('/[^a-f0-9]/i', '', $_GET['hash'] ?? '');
+    $t = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : 'rx';
+    header("Location: verify.php?hash={$h}&type={$t}");
+    exit;
 }
 
 $type = $_GET['type'] ?? '';
@@ -64,5 +68,25 @@ if ($doc_id > 0 && !empty($script)) {
     include $script;
 }
 else {
-    die("Document not found or you do not have permission to view it.");
+    // Clean error page
+    ?>
+    <!DOCTYPE html>
+    <html lang="en"><head><meta charset="UTF-8"><title>Not Found — IVF Experts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>body{background:linear-gradient(135deg,#0f172a,#1e1b4b,#1e3a5f);font-family:system-ui,sans-serif;}</style>
+    </head>
+    <body class="min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white/10 backdrop-blur border border-white/10 rounded-3xl p-10 max-w-sm w-full text-center">
+        <div class="w-16 h-16 bg-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <i class="fa-solid fa-file-circle-xmark text-rose-400 text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-black text-white mb-2">Document Not Found</h2>
+        <p class="text-white/50 text-sm mb-6">This document was not found or you do not have permission to view it.</p>
+        <a href="dashboard.php" class="block bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-indigo-500 transition-all">
+            ← Back to Dashboard
+        </a>
+    </div>
+    </body></html>
+    <?php
 }

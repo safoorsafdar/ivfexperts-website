@@ -215,9 +215,23 @@ include __DIR__ . '/includes/header.php';
                             </button>
 
                             <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-                                <div class="md:col-span-5 space-y-4">
+                                <div class="md:col-span-5 space-y-4 relative">
                                     <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Medication Name *</label>
-                                    <input type="text" x-model="row.medicine_name" placeholder="Search medicine..." class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-gray-800">
+                                    <input type="text" x-model="row.medicine_name"
+                                           @input.debounce.250ms="searchMeds(index, row.medicine_name)"
+                                           @blur.debounce.200ms="clearMedResults(index)"
+                                           placeholder="Type medicine name..."
+                                           class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-gray-800">
+                                    <div x-show="medResults[index] && medResults[index].length > 0"
+                                         class="absolute z-30 top-full left-0 w-full bg-white mt-1 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto">
+                                        <template x-for="med in (medResults[index] || [])">
+                                            <button type="button" @mousedown.prevent="selectMed(index, med.name)"
+                                                    class="w-full text-left px-5 py-3 hover:bg-teal-50 text-sm font-bold text-gray-800 border-b border-gray-50 last:border-0 transition-colors">
+                                                <i class="fa-solid fa-pills text-teal-400 mr-2 text-xs"></i>
+                                                <span x-text="med.name"></span>
+                                            </button>
+                                        </template>
+                                    </div>
                                 </div>
                                 <div class="md:col-span-2 space-y-4">
                                     <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Dosage</label>
@@ -246,13 +260,13 @@ include __DIR__ . '/includes/header.php';
                     </template>
                 </div>
 
-                <?php if (empty($meds_data)): ?>
                 <div x-show="rows.length === 0" class="text-center py-20 border-4 border-dashed border-gray-50 rounded-[3rem]">
                     <i class="fa-solid fa-pills text-6xl text-gray-100 mb-6 block"></i>
                     <p class="text-gray-300 font-bold uppercase tracking-widest text-sm">No medication added to this script.</p>
+                    <button type="button" @click="addMedRow" class="mt-6 bg-teal-600 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-teal-700 transition-all">
+                        + Add First Medication
+                    </button>
                 </div>
-                <?php
-endif; ?>
 
                 <div class="mt-12 flex items-center justify-between">
                     <button type="button" @click="step = 1" class="px-8 py-5 rounded-2xl font-black text-gray-400 hover:bg-gray-100 transition-all flex items-center gap-2">
@@ -371,43 +385,65 @@ endif; ?>
         return {
             step: 1,
             rows: [{ medicine_name: '', dosage: '', frequency: '1-0-1', duration: '', instructions: '' }],
+            medResults: {},
             icdSearch: '',
             icdResults: [],
             diagnosisText: '',
             labSearch: '',
             labResults: [],
             selectedLabs: [],
-            
+
             init() {
                 quill = new Quill('#notes-editor', {
                     theme: 'snow',
-                    placeholder: 'Enter clinical history and findings...',
-                    modules: { toolbar: [['bold', 'italic'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] }
+                    placeholder: 'Enter clinical history, complaints, and findings...',
+                    modules: { toolbar: [['bold', 'italic', 'underline'], [{ 'list': 'ordered'}, { 'list': 'bullet' }], ['clean']] }
                 });
             },
 
             addMedRow() { this.rows.push({ medicine_name: '', dosage: '', frequency: '1-0-1', duration: '', instructions: '' }); },
-            removeMedRow(idx) { this.rows.splice(idx, 1); },
+            removeMedRow(idx) { this.rows.splice(idx, 1); delete this.medResults[idx]; },
+
+            async searchMeds(idx, query) {
+                if (query.length < 2) { this.medResults[idx] = []; return; }
+                try {
+                    const res = await fetch(`api_search_medications.php?q=${encodeURIComponent(query)}`);
+                    this.medResults[idx] = await res.json();
+                } catch(e) { this.medResults[idx] = []; }
+            },
+            selectMed(idx, name) {
+                this.rows[idx].medicine_name = name;
+                this.medResults[idx] = [];
+            },
+            clearMedResults(idx) {
+                setTimeout(() => { this.medResults[idx] = []; }, 250);
+            },
 
             async searchICD() {
                 if (this.icdSearch.length < 3) { this.icdResults = []; return; }
-                const res = await fetch(`https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search?terms=${this.icdSearch}`);
-                const data = await res.json();
-                this.icdResults = data[3] || [];
+                try {
+                    const res = await fetch(`https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search?terms=${encodeURIComponent(this.icdSearch)}`);
+                    const data = await res.json();
+                    this.icdResults = data[3] || [];
+                } catch(e) { this.icdResults = []; }
             },
-            selectICD(res) {
-                this.diagnosisText += (this.diagnosisText ? "\n" : "") + res[1] + " (" + res[0] + ")";
+            selectICD(item) {
+                this.diagnosisText += (this.diagnosisText ? "\n" : "") + item[1] + " (" + item[0] + ")";
                 this.icdSearch = '';
                 this.icdResults = [];
             },
 
             async searchLabs() {
                 if (this.labSearch.length < 2) { this.labResults = []; return; }
-                const res = await fetch(`ajax_search_labs.php?q=${this.labSearch}`);
-                this.labResults = await res.json();
+                try {
+                    const res = await fetch(`api_search_lab_tests.php?q=${encodeURIComponent(this.labSearch)}`);
+                    this.labResults = await res.json();
+                } catch(e) { this.labResults = []; }
             },
             addLab(lab) {
-                this.selectedLabs.push({ id: lab.id, test_name: lab.test_name, for: 'Patient' });
+                if (!this.selectedLabs.find(l => l.id === lab.id)) {
+                    this.selectedLabs.push({ id: lab.id, test_name: lab.test_name, for: 'Patient' });
+                }
                 this.labSearch = '';
                 this.labResults = [];
             },
@@ -417,7 +453,7 @@ endif; ?>
             },
 
             prepareSubmit() {
-                document.getElementById('clinical_notes').value = quill.root.innerHTML;
+                document.getElementById('clinical_notes').value = quill ? quill.root.innerHTML : '';
             }
         }
     }

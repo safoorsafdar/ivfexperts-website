@@ -112,8 +112,20 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50/50">
-            <h3 class="font-bold text-gray-800">Edit Patient Details</h3>
+        <div class="px-8 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 bg-indigo-100 text-indigo-600 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-user-gear text-base"></i>
+                </div>
+                <div>
+                    <h3 class="font-black text-gray-800 text-lg">Edit Patient Details</h3>
+                    <p class="text-xs text-gray-400 font-bold"><?php echo esc($patient['first_name'] . ' ' . $patient['last_name']); ?> &middot; <?php echo esc($patient['mr_number']); ?></p>
+                </div>
+            </div>
+            <a href="patients_view.php?id=<?php echo $patient_id; ?>"
+               class="text-sm font-bold text-gray-500 hover:text-teal-600 flex items-center gap-1.5 transition-colors">
+                <i class="fa-solid fa-arrow-left text-xs"></i> Back to Profile
+            </a>
         </div>
         
         <div class="p-6 md:p-8">
@@ -239,9 +251,14 @@ endforeach; ?>
                     </select>
                 </div>
 
-                <div class="mt-8 flex justify-end">
-                    <button type="submit" class="bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-8 rounded-lg shadow-md hover:shadow-lg transition-all focus:outline-none focus:ring-2 focus:ring-teal-500 flex items-center gap-2">
-                        <i class="fa-solid fa-save"></i> Update Patient
+                <div class="mt-8 flex items-center justify-between gap-4 border-t border-gray-50 pt-6">
+                    <a href="patients_view.php?id=<?php echo $patient_id; ?>"
+                       class="text-sm text-gray-500 hover:text-gray-700 font-bold flex items-center gap-1.5 transition-colors">
+                        <i class="fa-solid fa-times text-xs"></i> Cancel
+                    </a>
+                    <button type="submit"
+                            class="bg-teal-600 hover:bg-teal-700 text-white font-black py-3.5 px-8 rounded-2xl shadow-xl shadow-teal-100 transition-all active:scale-95 flex items-center gap-2.5">
+                        <i class="fa-solid fa-floppy-disk"></i> Save Changes
                     </button>
                 </div>
             </form>

@@ -1,147 +1,248 @@
 <?php
+/**
+ * QR Verification Landing — The magic patient moment.
+ * When a patient scans a QR code from a physical report,
+ * they land here. CNIC-only verification to show the document.
+ */
 session_start();
 require_once dirname(__DIR__) . '/config/db.php';
 
-$hash = trim($_GET['hash'] ?? '');
+$hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
+$type = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : null;
+
 if (empty($hash)) {
-    die("Invalid or missing Security Hash. Please scan the QR code from your document natively.");
+    die("Invalid QR code. Please scan the code directly from your printed report.");
 }
 
-// 1. Find the document and the associated patient_id
-$patient_id = null;
-$doc_type = null;
+// ── Find document & patient across all tables ──────────────────────────────────
+$doc_patient_id = null;
+$doc_type_label = '';
+$doc_id         = null;
+$doc_view_type  = '';
 
-// Check Prescriptions
-$stmt = $conn->prepare("SELECT patient_id FROM prescriptions WHERE qrcode_hash = ?");
-$stmt->bind_param("s", $hash);
-$stmt->execute();
-$res = $stmt->get_result();
-if ($res->num_rows > 0) {
-    $patient_id = $res->fetch_assoc()['patient_id'];
-    $doc_type = 'prescription';
+$tables = [
+    'prescriptions'    => ['type' => 'rx',      'label' => 'Prescription',     'id_col' => 'id'],
+    'patient_ultrasounds' => ['type' => 'usg',   'label' => 'Ultrasound Report','id_col' => 'id'],
+    'semen_analyses'   => ['type' => 'sa',       'label' => 'Semen Analysis',   'id_col' => 'id'],
+    'receipts'         => ['type' => 'receipt',  'label' => 'Receipt',          'id_col' => 'id'],
+];
+
+foreach ($tables as $table => $meta) {
+    if ($doc_patient_id) break;
+    // If type hint is given, prioritize that table
+    if ($type && $meta['type'] !== $type) continue;
+
+    try {
+        $stmt = $conn->prepare("SELECT id, patient_id FROM {$table} WHERE qrcode_hash = ? LIMIT 1");
+        $stmt->bind_param('s', $hash);
+        $stmt->execute();
+        $row = $stmt->get_result()->fetch_assoc();
+        if ($row) {
+            $doc_patient_id = $row['patient_id'];
+            $doc_id         = $row['id'];
+            $doc_view_type  = $meta['type'];
+            $doc_type_label = $meta['label'];
+        }
+    } catch (Exception $e) {}
 }
 
-// Check Ultrasounds
-if (!$patient_id) {
-    $stmt = $conn->prepare("SELECT patient_id FROM patient_ultrasounds WHERE qrcode_hash = ?");
-    $stmt->bind_param("s", $hash);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($res->num_rows > 0) {
-        $patient_id = $res->fetch_assoc()['patient_id'];
-        $doc_type = 'ultrasound';
+// If type hint given but not found, search all tables
+if (!$doc_patient_id && $type) {
+    foreach ($tables as $table => $meta) {
+        if ($doc_patient_id) break;
+        try {
+            $stmt = $conn->prepare("SELECT id, patient_id FROM {$table} WHERE qrcode_hash = ? LIMIT 1");
+            $stmt->bind_param('s', $hash);
+            $stmt->execute();
+            $row = $stmt->get_result()->fetch_assoc();
+            if ($row) {
+                $doc_patient_id = $row['patient_id'];
+                $doc_id         = $row['id'];
+                $doc_view_type  = $meta['type'];
+                $doc_type_label = $meta['label'];
+            }
+        } catch (Exception $e) {}
     }
 }
 
-// Check Semen Analysis
-if (!$patient_id) {
-    $stmt = $conn->prepare("SELECT patient_id FROM semen_analyses WHERE qrcode_hash = ?");
-    $stmt->bind_param("s", $hash);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($res->num_rows > 0) {
-        $patient_id = $res->fetch_assoc()['patient_id'];
-        $doc_type = 'semen';
-    }
-}
-
-// Check Receipts
-if (!$patient_id) {
-    $stmt = $conn->prepare("SELECT patient_id FROM receipts WHERE qrcode_hash = ?");
-    $stmt->bind_param("s", $hash);
-    $stmt->execute();
-    $res = $stmt->get_result();
-    if ($res->num_rows > 0) {
-        $patient_id = $res->fetch_assoc()['patient_id'];
-        $doc_type = 'receipt';
-    }
-}
-
-if (!$patient_id) {
-    die("This document hash could not be found in our secure registry. It may have been revoked.");
-}
-
-// If already logged in as THIS patient, proceed
-if (isset($_SESSION['portal_patient_id']) && $_SESSION['portal_patient_id'] == $patient_id) {
-    header("Location: dashboard.php");
+if (!$doc_patient_id) {
+    // Invalid hash — show clean error page
+    ?>
+    <!DOCTYPE html>
+    <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Invalid QR — IVF Experts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>body{background:linear-gradient(135deg,#0f172a,#1e1b4b,#1e3a5f);font-family:system-ui,sans-serif;}</style>
+    </head><body class="min-h-screen flex items-center justify-center p-6">
+    <div class="bg-white/10 backdrop-blur border border-white/10 rounded-3xl p-10 max-w-sm w-full text-center">
+        <div class="w-16 h-16 bg-rose-500/20 rounded-2xl flex items-center justify-center mx-auto mb-5">
+            <i class="fa-solid fa-qrcode text-rose-400 text-2xl"></i>
+        </div>
+        <h2 class="text-xl font-black text-white mb-2">QR Code Not Found</h2>
+        <p class="text-white/50 text-sm mb-6 font-medium">This QR code is invalid, expired, or was not generated by IVF Experts.</p>
+        <a href="index.php" class="block w-full bg-indigo-600 text-white py-3.5 rounded-2xl font-black text-sm hover:bg-indigo-500 transition-all">
+            Go to Patient Portal
+        </a>
+    </div>
+    </body></html>
+    <?php
     exit;
 }
 
-// Optional: fetch partial phone to show as hint
-$stmt = $conn->prepare("SELECT phone, cnic, first_name FROM patients WHERE id = ?");
-$stmt->bind_param("i", $patient_id);
-$stmt->execute();
-$patient = $stmt->get_result()->fetch_assoc();
+// ── If already authenticated as the correct patient — show document directly ──
+if (isset($_SESSION['portal_patient_id']) && $_SESSION['portal_patient_id'] == $doc_patient_id) {
+    // Redirect to view.php which handles the document rendering
+    header("Location: view.php?type={$doc_view_type}&hash={$hash}");
+    exit;
+}
+
+// ── CNIC-only mini-verification ────────────────────────────────────────────────
+// Fetch patient name and masked CNIC for the hint
+try {
+    $stmt = $conn->prepare("SELECT first_name, last_name, cnic, phone FROM patients WHERE id = ?");
+    $stmt->bind_param('i', $doc_patient_id);
+    $stmt->execute();
+    $doc_patient = $stmt->get_result()->fetch_assoc();
+} catch (Exception $e) { $doc_patient = null; }
+
+// Mask the CNIC for the hint — show first 5 digits only
+$cnic_clean_db = preg_replace('/[^0-9]/', '', $doc_patient['cnic'] ?? '');
+$cnic_hint     = !empty($cnic_clean_db) ? substr($cnic_clean_db, 0, 5) . '-XXXXXXX-X' : '';
+
+// Phone hint — last 4 digits
+$phone_db  = $doc_patient['phone'] ?? '';
+$phone_hint = !empty($phone_db) ? 'XXXXXX' . substr($phone_db, -4) : '';
 
 $error = '';
 
-if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['verify'])) {
-    $phone_mr = trim($_POST['phone_mr'] ?? '');
-    $cnic_raw = trim($_POST['cnic'] ?? '');
-    $cnic_clean = preg_replace('/[^0-9]/', '', $cnic_raw);
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $cnic_input = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
-    $patient_cnic_clean = preg_replace('/[^0-9]/', '', $patient['cnic'] ?? '');
-
-    $phone_match = (!empty($patient['phone']) && $phone_mr === $patient['phone']);
-    $mr_match = (!empty($patient['mr_number']) && $phone_mr === $patient['mr_number']);
-    $cnic_match = (!empty($patient_cnic_clean) && $cnic_clean === $patient_cnic_clean);
-
-    if (($phone_match || $mr_match) && $cnic_match) {
-        $_SESSION['portal_patient_id'] = $patient_id;
-        $_SESSION['portal_patient_name'] = $patient['first_name'];
-        header("Location: dashboard.php");
+    if (strlen($cnic_input) < 13) {
+        $error = "Please enter your complete 13-digit CNIC number.";
+    } elseif ($cnic_input !== $cnic_clean_db) {
+        $error = "CNIC does not match our record for this document. Please try again.";
+    } else {
+        // Verified! Set session and redirect to document
+        $_SESSION['portal_patient_id'] = $doc_patient_id;
+        header("Location: view.php?type={$doc_view_type}&hash={$hash}");
         exit;
     }
-    else {
-        $error = "The provided details do not match our secure records for this document.";
-    }
 }
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>2FA Verification - IVF Experts</title>
+    <title>Verify to View — IVF Experts</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <style>
+        body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e3a5f 100%); }
+        .glass { background: rgba(255,255,255,0.06); backdrop-filter: blur(24px); border: 1px solid rgba(255,255,255,0.1); }
+        .glass-input { background: rgba(255,255,255,0.07); border: 1.5px solid rgba(255,255,255,0.12); color: white; transition: all 0.2s; }
+        .glass-input::placeholder { color: rgba(255,255,255,0.3); }
+        .glass-input:focus { background: rgba(255,255,255,0.12); border-color: rgba(99,102,241,0.7); outline: none; box-shadow: 0 0 0 4px rgba(99,102,241,0.15); }
+    </style>
 </head>
-<body class="bg-gray-50 flex items-center justify-center min-h-screen p-4">
+<body class="gradient-bg min-h-screen flex items-center justify-center p-4 md:p-8">
 
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8 max-w-md w-full">
-        <div class="text-center mb-6">
-            <div class="w-16 h-16 bg-sky-100 text-sky-600 rounded-full flex items-center justify-center text-2xl mx-auto mb-4">
-                <i class="fa-solid fa-lock"></i>
+    <!-- Ambient glow -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
+        <div class="absolute -top-32 -right-32 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-700/20 rounded-full blur-3xl"></div>
+    </div>
+
+    <div class="relative z-10 w-full max-w-sm mx-auto">
+        <div class="glass rounded-3xl p-8 md:p-10 shadow-2xl text-center">
+
+            <!-- Document Badge -->
+            <div class="inline-flex items-center gap-2 bg-indigo-500/20 border border-indigo-500/30 text-indigo-300 px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest mb-6">
+                <i class="fa-solid fa-shield-check text-indigo-400"></i>
+                Secure Document Access
             </div>
-            <h1 class="text-2xl font-bold text-gray-900 mb-1">Verify Identity</h1>
-            <p class="text-sm text-gray-500">Document registry located. To unlock and view your medical records, please complete the 2-Factor Authentication.</p>
-        </div>
 
-        <?php if (!empty($error)): ?>
-            <div class="bg-red-50 text-red-600 text-sm p-3 rounded-lg mb-4 border border-red-100 text-center">
+            <!-- Icon -->
+            <div class="relative mx-auto w-20 h-20 mb-6">
+                <div class="w-20 h-20 bg-indigo-500/20 rounded-3xl flex items-center justify-center">
+                    <i class="fa-solid fa-file-medical text-indigo-300 text-3xl"></i>
+                </div>
+                <div class="absolute -bottom-2 -right-2 w-8 h-8 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg">
+                    <i class="fa-solid fa-lock-open text-white text-xs"></i>
+                </div>
+            </div>
+
+            <!-- Title -->
+            <h1 class="text-2xl font-black text-white mb-1">Verify Identity</h1>
+            <p class="text-white/40 text-sm font-medium mb-2">
+                to view your <span class="text-indigo-400 font-black"><?php echo htmlspecialchars($doc_type_label); ?></span>
+            </p>
+
+            <!-- Patient Name Hint -->
+            <?php if (!empty($doc_patient['first_name'])): ?>
+            <p class="text-white/25 text-xs font-bold mb-6">
+                Document belongs to: <span class="text-white/50"><?php echo htmlspecialchars($doc_patient['first_name']); ?> ·</span>
+                CNIC starting <span class="text-white/50 font-mono"><?php echo substr($cnic_hint, 0, 5); ?>-****</span>
+            </p>
+            <?php else: ?>
+            <div class="mb-6"></div>
+            <?php endif; ?>
+
+            <!-- Error -->
+            <?php if ($error): ?>
+            <div class="flex items-center gap-2.5 bg-rose-500/15 border border-rose-500/25 text-rose-300 px-4 py-3 rounded-2xl text-sm font-bold mb-5 text-left">
+                <i class="fa-solid fa-circle-exclamation shrink-0 text-rose-400 text-base"></i>
                 <?php echo htmlspecialchars($error); ?>
             </div>
-        <?php
-endif; ?>
+            <?php endif; ?>
 
-        <form method="POST">
-            <div class="mb-4">
-                <label class="block text-sm font-bold text-gray-700 mb-2">Mobile Number OR MR Number</label>
-                <input type="text" name="phone_mr" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="e.g. 03001234567 or IVF-2310..." required autofocus value="<?php echo htmlspecialchars($_POST['phone_mr'] ?? ''); ?>">
-            </div>
-            
-            <div class="mb-6">
-                <label class="block text-sm font-bold text-gray-700 mb-2">CNIC Number</label>
-                <input type="text" name="cnic" class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-sky-500 font-mono" placeholder="13 digits (dashes will be ignored)" required value="<?php echo htmlspecialchars($_POST['cnic'] ?? ''); ?>">
-            </div>
-            
-            <button type="submit" name="verify" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-bold py-3 rounded-lg transition-colors shadow-md">
-                Unlock Records
-            </button>
-        </form>
+            <!-- CNIC Form -->
+            <form method="POST" class="text-left">
+                <label class="block text-[9px] font-black text-white/35 uppercase tracking-[0.2em] mb-2.5 text-center">
+                    Your CNIC Number
+                </label>
+                <div class="relative mb-4">
+                    <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400/70 text-sm"></i>
+                    <input type="text"
+                           name="cnic"
+                           value="<?php echo htmlspecialchars($_POST['cnic'] ?? ''); ?>"
+                           autofocus
+                           placeholder="XXXXX-XXXXXXX-X"
+                           maxlength="15"
+                           oninput="formatCNIC(this)"
+                           class="glass-input w-full pl-11 pr-5 py-4 rounded-2xl text-sm font-bold font-mono text-center">
+                </div>
 
+                <button type="submit"
+                        class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-indigo-900/50 active:scale-[0.98] flex items-center justify-center gap-2.5 text-sm">
+                    <i class="fa-solid fa-file-circle-check"></i>
+                    View My Document
+                </button>
+            </form>
+
+            <!-- Divider + Login Link -->
+            <div class="mt-6 pt-5 border-t border-white/10">
+                <p class="text-white/30 text-[10px] font-bold mb-3">Want to see all your records?</p>
+                <a href="index.php"
+                   class="inline-flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-xs font-black transition-colors">
+                    <i class="fa-solid fa-grid-2 text-[10px]"></i> Open Full Dashboard
+                </a>
+            </div>
+
+        </div>
     </div>
+
+    <script>
+    function formatCNIC(el) {
+        let v = el.value.replace(/\D/g, '').slice(0, 13);
+        if (v.length > 12)      v = v.slice(0,5) + '-' + v.slice(5,12) + '-' + v.slice(12);
+        else if (v.length > 5)  v = v.slice(0,5) + '-' + v.slice(5);
+        el.value = v;
+    }
+    </script>
 
 </body>
 </html>
