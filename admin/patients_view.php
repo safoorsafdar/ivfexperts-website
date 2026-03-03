@@ -35,6 +35,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } else { $error = "Operation failed: " . $stmt->error; }
     }
+    if (isset($_POST['delete_history'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM patient_history WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=history&msg=deleted"); exit;
+    }
+    if (isset($_POST['delete_rx'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM prescription_medications WHERE prescription_id = $id");
+        $conn->query("DELETE FROM prescription_lab_tests WHERE prescription_id = $id");
+        $conn->query("DELETE FROM prescriptions WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=rx&msg=deleted"); exit;
+    }
+    if (isset($_POST['delete_semen'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM semen_analyses WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=semen&msg=deleted"); exit;
+    }
+    if (isset($_POST['delete_usg'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM patient_ultrasounds WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=usg&msg=deleted"); exit;
+    }
+    if (isset($_POST['delete_lab'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM patient_lab_results WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=labs&msg=deleted"); exit;
+    }
+    if (isset($_POST['delete_procedure'])) {
+        $id = intval($_POST['record_id']);
+        $conn->query("DELETE FROM advised_procedures WHERE id = $id AND patient_id = $patient_id");
+        header("Location: patients_view.php?id={$patient_id}&tab=procedures&msg=deleted"); exit;
+    }
 }
 
 // ── Data Fetching ──────────────────────────────────────────────────────────────
@@ -90,7 +122,7 @@ include __DIR__ . '/includes/header.php';
 <?php if (!empty($_GET['msg'])): ?>
 <div class="mb-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3 rounded-xl text-sm font-bold">
     <i class="fa-solid fa-circle-check text-emerald-500"></i>
-    <?php $msgs = ['added'=>'Visit record added.','updated'=>'Visit record updated.']; echo $msgs[$_GET['msg']] ?? 'Done.'; ?>
+    <?php $msgs = ['added'=>'Visit record added.','updated'=>'Visit record updated.','deleted'=>'Record deleted.','rx_saved'=>'Prescription saved.']; echo $msgs[$_GET['msg']] ?? 'Done.'; ?>
 </div>
 <?php endif; ?>
 
@@ -302,6 +334,7 @@ include __DIR__ . '/includes/header.php';
                                         <?php echo date('d M Y, h:i A', strtotime($h['recorded_at'])); ?>
                                     </span>
                                 </div>
+                                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <button @click="openEditHistory({
                                             history_id: <?php echo $h['id']; ?>,
                                             clinical_notes: <?php echo json_encode($h['clinical_notes'] ?? ''); ?>,
@@ -311,9 +344,17 @@ include __DIR__ . '/includes/header.php';
                                             next_visit: <?php echo json_encode($h['next_visit'] ?? ''); ?>,
                                             record_for: <?php echo json_encode($h['record_for'] ?? 'Patient'); ?>
                                         })"
-                                        class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-emerald-600 hover:text-white text-gray-400 flex items-center justify-center transition-all text-xs opacity-0 group-hover:opacity-100">
+                                        class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-emerald-600 hover:text-white text-gray-400 flex items-center justify-center transition-all text-xs" title="Edit">
                                     <i class="fa-solid fa-pen"></i>
                                 </button>
+                                <form method="POST" class="inline" onsubmit="return confirm('Delete this visit record? This cannot be undone.')">
+                                    <input type="hidden" name="record_id" value="<?php echo $h['id']; ?>">
+                                    <button type="submit" name="delete_history" value="1"
+                                            class="w-8 h-8 rounded-xl bg-gray-100 hover:bg-rose-600 hover:text-white text-gray-400 flex items-center justify-center transition-all text-xs" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                                </div>
                             </div>
                             <!-- Card body -->
                             <div class="p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -414,6 +455,13 @@ include __DIR__ . '/includes/header.php';
                                    class="inline-flex items-center gap-1.5 px-4 py-1.5 bg-violet-600 text-white rounded-xl text-[10px] font-black hover:bg-violet-700 transition-all shadow-sm">
                                     <i class="fa-solid fa-print"></i> Print / View
                                 </a>
+                                <form method="POST" class="inline" onsubmit="return confirm('Delete this prescription? This cannot be undone.')">
+                                    <input type="hidden" name="record_id" value="<?php echo $rx['id']; ?>">
+                                    <button type="submit" name="delete_rx" value="1"
+                                            class="w-8 h-8 flex items-center justify-center rounded-xl bg-white border border-gray-200 text-rose-400 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all text-xs" title="Delete">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -473,10 +521,23 @@ include __DIR__ . '/includes/header.php';
                             </div>
                             <div class="flex items-center justify-between text-xs text-gray-400">
                                 <span class="font-bold"><?php echo date('d M Y', strtotime($sr['collection_time'])); ?></span>
-                                <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank"
-                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 text-white rounded-xl text-[10px] font-black hover:bg-cyan-700 transition-all">
-                                    <i class="fa-solid fa-print"></i> Report
-                                </a>
+                                <div class="flex items-center gap-1.5">
+                                    <a href="semen_analyses_add.php?edit=<?php echo $sr['id']; ?>"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black hover:bg-slate-200 transition-all" title="Edit">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+                                    <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-cyan-600 text-white rounded-xl text-[10px] font-black hover:bg-cyan-700 transition-all">
+                                        <i class="fa-solid fa-print"></i> Report
+                                    </a>
+                                    <form method="POST" class="inline" onsubmit="return confirm('Delete this semen analysis report? This cannot be undone.')">
+                                        <input type="hidden" name="record_id" value="<?php echo $sr['id']; ?>">
+                                        <button type="submit" name="delete_semen" value="1"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black hover:bg-rose-600 hover:text-white transition-all" title="Delete">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -517,12 +578,25 @@ include __DIR__ . '/includes/header.php';
                         </div>
                         <div class="p-4">
                             <h4 class="font-black text-gray-800 text-sm mb-1 truncate"><?php echo esc($u['report_title'] ?? 'Ultrasound Report'); ?></h4>
-                            <div class="flex items-center justify-between">
+                            <div class="flex items-center justify-between gap-2">
                                 <span class="text-xs text-gray-400 font-medium"><?php echo date('d M Y', strtotime($u['created_at'])); ?></span>
-                                <a href="ultrasounds_print.php?id=<?php echo $u['id']; ?>" target="_blank"
-                                   class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-black hover:bg-orange-600 transition-all">
-                                    <i class="fa-solid fa-print"></i> View
-                                </a>
+                                <div class="flex items-center gap-1.5">
+                                    <a href="ultrasounds_add.php?edit=<?php echo $u['id']; ?>"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black hover:bg-slate-200 transition-all" title="Edit">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+                                    <a href="ultrasounds_print.php?id=<?php echo $u['id']; ?>" target="_blank"
+                                       class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-500 text-white rounded-xl text-[10px] font-black hover:bg-orange-600 transition-all">
+                                        <i class="fa-solid fa-print"></i> View
+                                    </a>
+                                    <form method="POST" class="inline" onsubmit="return confirm('Delete this ultrasound report? This cannot be undone.')">
+                                        <input type="hidden" name="record_id" value="<?php echo $u['id']; ?>">
+                                        <button type="submit" name="delete_usg" value="1"
+                                                class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black hover:bg-rose-600 hover:text-white transition-all" title="Delete">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -600,12 +674,25 @@ include __DIR__ . '/includes/header.php';
                                         <div class="text-xs font-bold text-gray-600"><?php echo date('d M Y', strtotime($lr['test_date'])); ?></div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
+                                        <div class="flex items-center justify-end gap-1.5">
                                         <?php if (!empty($lr['scanned_report_path'])): ?>
                                         <a href="../<?php echo esc($lr['scanned_report_path']); ?>" target="_blank"
                                            class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-amber-500 text-white rounded-xl text-[10px] font-black hover:bg-amber-600 transition-all shadow-sm">
                                             <i class="fa-solid fa-file-pdf"></i> View
                                         </a>
                                         <?php endif; ?>
+                                        <a href="lab_results_add.php?edit=<?php echo $lr['id']; ?>"
+                                           class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black hover:bg-slate-200 transition-all" title="Edit">
+                                            <i class="fa-solid fa-pen"></i>
+                                        </a>
+                                        <form method="POST" class="inline" onsubmit="return confirm('Delete this lab result? This cannot be undone.')">
+                                            <input type="hidden" name="record_id" value="<?php echo $lr['id']; ?>">
+                                            <button type="submit" name="delete_lab" value="1"
+                                                    class="inline-flex items-center gap-1 px-2.5 py-1.5 bg-rose-50 text-rose-500 rounded-xl text-[10px] font-black hover:bg-rose-600 hover:text-white transition-all" title="Delete">
+                                                <i class="fa-solid fa-trash-can"></i>
+                                            </button>
+                                        </form>
+                                        </div>
                                     </td>
                                 </tr>
                                 <?php endforeach; ?>
@@ -660,10 +747,23 @@ include __DIR__ . '/includes/header.php';
                                         Rs. <?php echo number_format($ap['total_paid']); ?>
                                     </div>
                                 </div>
-                                <a href="receipts_add.php?patient_id=<?php echo $patient_id; ?>&procedure_id=<?php echo $ap['id']; ?>"
-                                   class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-5 py-2 rounded-xl text-xs font-black transition-all border border-emerald-100">
-                                    <i class="fa-solid fa-file-invoice-dollar"></i> Generate Bill
-                                </a>
+                                <div class="flex items-center gap-2">
+                                    <a href="procedures_add.php?edit=<?php echo $ap['id']; ?>"
+                                       class="inline-flex items-center gap-1.5 bg-slate-100 text-slate-600 hover:bg-slate-200 px-3 py-2 rounded-xl text-xs font-black transition-all" title="Edit">
+                                        <i class="fa-solid fa-pen"></i> Edit
+                                    </a>
+                                    <a href="receipts_add.php?patient_id=<?php echo $patient_id; ?>&procedure_id=<?php echo $ap['id']; ?>"
+                                       class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-4 py-2 rounded-xl text-xs font-black transition-all border border-emerald-100">
+                                        <i class="fa-solid fa-file-invoice-dollar"></i> Bill
+                                    </a>
+                                    <form method="POST" class="inline" onsubmit="return confirm('Delete this procedure? This cannot be undone.')">
+                                        <input type="hidden" name="record_id" value="<?php echo $ap['id']; ?>">
+                                        <button type="submit" name="delete_procedure" value="1"
+                                                class="inline-flex items-center gap-1 px-2.5 py-2 bg-rose-50 text-rose-500 rounded-xl text-xs font-black hover:bg-rose-600 hover:text-white transition-all" title="Delete">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </form>
+                                </div>
                             </div>
                         </div>
                     </div>
