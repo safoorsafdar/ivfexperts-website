@@ -39,12 +39,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
     }
 
     try {
-        // Insert Prescription (icd10_codes stored in dedicated JSON column if it exists)
-        $hasIcd10Col = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'icd10_codes'")->num_rows > 0;
-        if ($hasIcd10Col) {
-            $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        // Try with icd10_codes column first; fall back gracefully if column doesn't exist yet
+        $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+        if ($stmt) {
             $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
         } else {
+            // Column not yet added — insert without it
             $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("issssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $general_advice, $next_visit, $qrcode_hash);
         }
