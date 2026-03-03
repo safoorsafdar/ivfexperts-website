@@ -6,7 +6,7 @@ $results = [];
 
 if (strlen($q) >= 2) {
     $searchTerm = "%$q%";
-    $stmt = $conn->prepare("SELECT id, test_name FROM lab_tests_directory WHERE test_name LIKE ? ORDER BY test_name ASC LIMIT 10");
+    $stmt = $conn->prepare("SELECT id, test_name, category, cpt_code FROM lab_tests_directory WHERE test_name LIKE ? ORDER BY category ASC, test_name ASC LIMIT 15");
     $stmt->bind_param("s", $searchTerm);
     $stmt->execute();
     $res = $stmt->get_result();

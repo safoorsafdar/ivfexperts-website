@@ -25,16 +25,29 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
     $record_for     = $_POST['record_for']     ?? 'Patient';
     $clinical_notes = $_POST['clinical_notes'] ?? '';
     $diagnosis      = $_POST['diagnosis']      ?? '';
+    $icd10_codes    = $_POST['icd10_data']     ?? '[]';
     $general_advice = $_POST['general_advice'] ?? '';
     $next_visit     = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
     $medications_json = $_POST['medications_data'] ?? '[]';
     $lab_tests_json   = $_POST['lab_tests_data']   ?? '[]';
     $qrcode_hash    = bin2hex(random_bytes(16));
 
+    // Rebuild diagnosis text from ICD-10 selections if present
+    $icd_arr = json_decode($icd10_codes, true);
+    if (is_array($icd_arr) && count($icd_arr) > 0 && empty(trim($diagnosis))) {
+        $diagnosis = implode("\n", array_map(fn($d) => $d['description'] . ' (' . $d['icd10_code'] . ')', $icd_arr));
+    }
+
     try {
-        // Insert Prescription
-        $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
-        $stmt->bind_param("issssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $general_advice, $next_visit, $qrcode_hash);
+        // Insert Prescription (icd10_codes stored in dedicated JSON column if it exists)
+        $hasIcd10Col = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'icd10_codes'")->num_rows > 0;
+        if ($hasIcd10Col) {
+            $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
+        } else {
+            $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("issssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $general_advice, $next_visit, $qrcode_hash);
+        }
 
         if ($stmt->execute()) {
             $rx_id = $stmt->insert_id;
@@ -170,32 +183,71 @@ include __DIR__ . '/includes/header.php';
 
                     <div class="flex flex-col gap-4">
                         <label class="flex items-center gap-2 text-[10px] font-black uppercase text-gray-400 tracking-widest">
-                            <i class="fa-solid fa-stethoscope text-indigo-500"></i> Diagnosis / IC-10 Search
+                            <i class="fa-solid fa-stethoscope text-indigo-500"></i> Diagnosis — ICD-10 / SNOMED Search
                         </label>
+
+                        <!-- ICD-10 Search Box -->
                         <div class="relative">
-                            <input 
-                                type="text" 
-                                x-model="icdSearch" 
-                                @input.debounce.300ms="searchICD"
-                                placeholder="Search Diagnosis or ICD-10 Code..."
-                                class="w-full px-8 py-5 bg-indigo-50/50 text-indigo-900 font-bold border-none rounded-2xl focus:ring-2 focus:ring-indigo-400 placeholder-indigo-200"
-                            >
-                            <div x-show="icdResults.length > 0" class="absolute z-20 top-full left-0 w-full bg-white mt-2 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-60 overflow-y-auto">
-                                <template x-for="res in icdResults">
-                                    <button @click="selectICD(res)" type="button" class="w-full text-left px-6 py-4 hover:bg-indigo-50 flex items-center justify-between border-b border-gray-50 last:border-0 transition-colors">
-                                        <div class="font-bold text-gray-800" x-text="res[1]"></div>
-                                        <div class="text-[10px] font-black text-indigo-400" x-text="res[0]"></div>
+                            <div class="flex items-center gap-3 px-6 py-4 bg-indigo-50/60 rounded-2xl">
+                                <i class="fa-solid fa-magnifying-glass text-indigo-300"></i>
+                                <input
+                                    type="text"
+                                    x-model="icdSearch"
+                                    @input.debounce.300ms="searchICD"
+                                    @keydown.escape="icdResults = []"
+                                    placeholder="Search by diagnosis name or ICD-10 code (e.g. PCOS, N97, endometriosis)..."
+                                    class="flex-1 bg-transparent font-bold text-indigo-900 placeholder-indigo-300 focus:outline-none text-sm"
+                                    autocomplete="off"
+                                >
+                                <span x-show="icdLoading" class="text-indigo-300 text-xs animate-pulse">Searching…</span>
+                            </div>
+
+                            <!-- Search Results Dropdown -->
+                            <div x-show="icdResults.length > 0" @click.away="icdResults = []"
+                                 class="absolute z-30 top-full left-0 w-full bg-white mt-2 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-72 overflow-y-auto">
+                                <template x-for="res in icdResults" :key="res.icd10_code">
+                                    <button @click="selectICD(res)" type="button"
+                                            class="w-full text-left px-5 py-3.5 hover:bg-indigo-50 flex items-start justify-between gap-4 border-b border-gray-50 last:border-0 transition-colors group">
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-bold text-gray-800 text-sm leading-tight" x-text="res.description"></div>
+                                            <div class="text-[10px] text-indigo-400 font-bold mt-0.5" x-text="res.category"></div>
+                                            <div x-show="res.snomed_code" class="text-[9px] text-gray-400 font-mono mt-0.5">SNOMED: <span x-text="res.snomed_code"></span></div>
+                                        </div>
+                                        <div class="flex-shrink-0 text-right">
+                                            <span class="inline-block px-2.5 py-1 bg-indigo-600 text-white text-[11px] font-black rounded-lg" x-text="res.icd10_code"></span>
+                                        </div>
                                     </button>
                                 </template>
                             </div>
                         </div>
-                        <textarea 
-                            name="diagnosis" 
-                            x-model="diagnosisText" 
-                            rows="4" 
-                            class="w-full px-8 py-5 bg-gray-50 border-none rounded-[2rem] focus:ring-2 focus:ring-teal-500 text-sm font-medium"
-                            placeholder="Final clinical impression..."
+
+                        <!-- Selected Diagnosis Chips -->
+                        <div x-show="selectedDiagnoses.length > 0" class="flex flex-wrap gap-2">
+                            <template x-for="(dx, idx) in selectedDiagnoses" :key="dx.icd10_code">
+                                <div class="inline-flex items-center gap-2 pl-3 pr-2 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-sm shadow-indigo-200 group">
+                                    <div>
+                                        <span class="opacity-70 text-[9px] font-black tracking-widest" x-text="dx.icd10_code"></span>
+                                        <span class="mx-1">·</span>
+                                        <span x-text="dx.description"></span>
+                                        <span x-show="dx.snomed_code" class="ml-1.5 opacity-50 text-[9px] font-mono">SNOMED <span x-text="dx.snomed_code"></span></span>
+                                    </div>
+                                    <button type="button" @click="removeICD(idx)"
+                                            class="w-5 h-5 rounded-full bg-white/20 hover:bg-white/40 flex items-center justify-center transition-colors ml-1">
+                                        <i class="fa-solid fa-times text-[9px]"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+
+                        <!-- Free-text diagnosis (always visible for additional notes) -->
+                        <textarea
+                            name="diagnosis"
+                            x-model="diagnosisText"
+                            rows="3"
+                            class="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-teal-500 text-sm font-medium"
+                            placeholder="Additional clinical notes or free-text impression (optional — ICD-10 selections above are auto-included)..."
                         ></textarea>
+                        <input type="hidden" name="icd10_data" :value="JSON.stringify(selectedDiagnoses)">
                     </div>
                 </div>
 
@@ -320,11 +372,14 @@ include __DIR__ . '/includes/header.php';
                             <div x-show="labResults.length > 0" class="absolute z-30 top-full left-0 w-full bg-white mt-2 rounded-[1.5rem] shadow-2xl border border-gray-100 overflow-hidden max-h-60 overflow-y-auto">
                                 <template x-for="lab in labResults">
                                     <button @click="addLab(lab)" type="button" class="w-full text-left px-6 py-4 hover:bg-amber-50 flex items-center justify-between border-b border-gray-50 last:border-0">
-                                        <div>
-                                            <div class="font-bold text-gray-800" x-text="lab.test_name"></div>
-                                            <div class="text-[8px] font-black text-gray-400 uppercase" x-text="lab.department || 'General Lab'"></div>
+                                        <div class="flex-1 min-w-0">
+                                            <div class="font-bold text-gray-800 text-sm" x-text="lab.test_name"></div>
+                                            <div class="flex items-center gap-2 mt-0.5">
+                                                <span class="text-[9px] font-black text-gray-400 uppercase" x-text="lab.category || 'Lab'"></span>
+                                                <span x-show="lab.cpt_code" class="text-[9px] font-black font-mono px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded">CPT <span x-text="lab.cpt_code"></span></span>
+                                            </div>
                                         </div>
-                                        <i class="fa-solid fa-plus-circle text-amber-300"></i>
+                                        <i class="fa-solid fa-plus-circle text-amber-300 flex-shrink-0"></i>
                                     </button>
                                 </template>
                             </div>
@@ -401,6 +456,8 @@ include __DIR__ . '/includes/header.php';
             medResults: {},
             icdSearch: '',
             icdResults: [],
+            icdLoading: false,
+            selectedDiagnoses: [],   // [{icd10_code, description, category, snomed_code}]
             diagnosisText: '',
             labSearch: '',
             labResults: [],
@@ -433,17 +490,34 @@ include __DIR__ . '/includes/header.php';
             },
 
             async searchICD() {
-                if (this.icdSearch.length < 3) { this.icdResults = []; return; }
+                if (this.icdSearch.length < 2) { this.icdResults = []; return; }
+                this.icdLoading = true;
                 try {
-                    const res = await fetch(`https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search?terms=${encodeURIComponent(this.icdSearch)}`);
-                    const data = await res.json();
-                    this.icdResults = data[3] || [];
+                    // 1) Local database first (fast, offline-capable, fertility-focused)
+                    const local = await fetch(`api_search_icd10.php?q=${encodeURIComponent(this.icdSearch)}`);
+                    const localData = await local.json();
+                    if (localData.length > 0) {
+                        this.icdResults = localData;
+                    } else {
+                        // 2) NIH API fallback (full ICD-10-CM, requires internet)
+                        const nih = await fetch(`https://clinicaltables.nlm.nih.gov/api/icd10cm/v3/search?terms=${encodeURIComponent(this.icdSearch)}&maxList=15`);
+                        const nihData = await nih.json();
+                        this.icdResults = (nihData[3] || []).map(r => ({
+                            icd10_code: r[0], description: r[1], category: 'General (NIH)', snomed_code: ''
+                        }));
+                    }
                 } catch(e) { this.icdResults = []; }
+                this.icdLoading = false;
             },
             selectICD(item) {
-                this.diagnosisText += (this.diagnosisText ? "\n" : "") + item[1] + " (" + item[0] + ")";
+                if (!this.selectedDiagnoses.find(d => d.icd10_code === item.icd10_code)) {
+                    this.selectedDiagnoses.push(item);
+                }
                 this.icdSearch = '';
                 this.icdResults = [];
+            },
+            removeICD(idx) {
+                this.selectedDiagnoses.splice(idx, 1);
             },
 
             async searchLabs() {
