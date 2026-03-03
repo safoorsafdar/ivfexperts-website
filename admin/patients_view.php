@@ -120,9 +120,24 @@ include __DIR__ . '/includes/header.php';
 <?php endif; ?>
 
 <?php if (!empty($_GET['msg'])): ?>
-<div class="mb-4 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-800 px-5 py-3 rounded-xl text-sm font-bold">
-    <i class="fa-solid fa-circle-check text-emerald-500"></i>
-    <?php $msgs = ['added'=>'Visit record added.','updated'=>'Visit record updated.','deleted'=>'Record deleted.','rx_saved'=>'Prescription saved.']; echo $msgs[$_GET['msg']] ?? 'Done.'; ?>
+<?php
+$msgs = ['added'=>'Visit record added.','updated'=>'Visit record updated.','deleted'=>'Record deleted.','rx_saved'=>'Prescription saved.'];
+$msgText = $msgs[$_GET['msg']] ?? 'Done.';
+$isDelete = $_GET['msg'] === 'deleted';
+?>
+<div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 3500)"
+     x-transition:enter="transition ease-out duration-300"
+     x-transition:enter-start="opacity-0 translate-y-2"
+     x-transition:enter-end="opacity-100 translate-y-0"
+     x-transition:leave="transition ease-in duration-200"
+     x-transition:leave-start="opacity-100 translate-y-0"
+     x-transition:leave-end="opacity-0 translate-y-2"
+     class="fixed bottom-6 right-6 z-[9999] flex items-center gap-3 px-5 py-3.5 rounded-2xl shadow-2xl text-sm font-bold <?php echo $isDelete ? 'bg-red-600 text-white' : 'bg-emerald-600 text-white'; ?>">
+    <i class="fa-solid <?php echo $isDelete ? 'fa-trash-can' : 'fa-circle-check'; ?> text-base"></i>
+    <?php echo htmlspecialchars($msgText); ?>
+    <button @click="show = false" class="ml-2 opacity-70 hover:opacity-100 transition-opacity">
+        <i class="fa-solid fa-xmark text-xs"></i>
+    </button>
 </div>
 <?php endif; ?>
 
