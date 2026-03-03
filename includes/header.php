@@ -9,6 +9,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
 })(window,document,'script','dataLayer','GTM-53FTJBJB');</script>
 <!-- End Google Tag Manager -->
+<!-- Ahref Tag for Analytics -->
+<script src="https://analytics.ahrefs.com/analytics.js" data-key="nV1cW6C/22hc1qSjevD73g" async></script>
+<!-- End Ahref Tag for Analytics -->
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-HQ78PRNQWM"></script>
 <script>
