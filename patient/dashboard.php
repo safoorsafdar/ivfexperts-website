@@ -521,7 +521,7 @@ else: ?>
     endforeach; ?>
                                     </tbody>
                                 </table>
-                            <?php
+                            </div><?php
 endif; ?>
                         </div>
                     </div>
@@ -705,7 +705,7 @@ else: ?>
     endforeach; ?>
                                     </tbody>
                                 </table>
-                            <?php
+                            </div><?php
 endif; ?>
                         </div>
                     </div>
@@ -717,3 +717,4 @@ endif; ?>
 
 </body>
 </html>
+
