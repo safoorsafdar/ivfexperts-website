@@ -45,6 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_receipt'])) {
     $notes = trim($_POST['notes'] ?? '');
 
     $status = $_POST['status'] ?? 'Paid';
+    $payment_method = trim($_POST['payment_method'] ?? 'Cash');
     $advised_procedure_id = !empty($_POST['advised_procedure_id']) ? intval($_POST['advised_procedure_id']) : null;
     $current_edit_id = intval($_POST['edit_id'] ?? 0);
 
@@ -53,12 +54,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_receipt'])) {
     }
     else {
         if ($current_edit_id > 0) {
-            $stmt = $conn->prepare("UPDATE receipts SET patient_id=?, hospital_id=?, procedure_name=?, amount=?, status=?, advised_procedure_id=?, receipt_date=?, notes=? WHERE id=?");
-            $stmt->bind_param("iisdsissi", $patient_id, $hospital_id, $proc_name, $amount, $status, $advised_procedure_id, $date, $notes, $current_edit_id);
+            $stmt = $conn->prepare("UPDATE receipts SET patient_id=?, hospital_id=?, procedure_name=?, amount=?, status=?, payment_method=?, advised_procedure_id=?, receipt_date=?, notes=? WHERE id=?");
+            $stmt->bind_param("iisdssissi", $patient_id, $hospital_id, $proc_name, $amount, $status, $payment_method, $advised_procedure_id, $date, $notes, $current_edit_id);
         }
         else {
-            $stmt = $conn->prepare("INSERT INTO receipts (patient_id, hospital_id, procedure_name, amount, status, advised_procedure_id, receipt_date, qrcode_hash, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("iisdsisss", $patient_id, $hospital_id, $proc_name, $amount, $status, $advised_procedure_id, $date, $qrcode_hash, $notes);
+            $stmt = $conn->prepare("INSERT INTO receipts (patient_id, hospital_id, procedure_name, amount, status, payment_method, advised_procedure_id, receipt_date, qrcode_hash, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt->bind_param("iisdssisss", $patient_id, $hospital_id, $proc_name, $amount, $status, $payment_method, $advised_procedure_id, $date, $qrcode_hash, $notes);
         }
 
         if ($stmt) {
@@ -157,19 +158,30 @@ endforeach; ?>
 endif; ?>
                     </div>
 
-                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Amount Billed (Rs) *</label>
                             <input type="number" step="0.01" name="amount" value="<?php echo esc($edit_data['amount'] ?? ''); ?>" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono text-xl" required>
                         </div>
                         <div>
                             <label class="block text-sm font-bold text-gray-700 mb-1">Payment Status *</label>
-                             <select name="status" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                            <select name="status" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
                                 <?php $s = $edit_data['status'] ?? 'Paid'; ?>
-                                <option value="Paid" <?php echo $s == 'Paid' ? 'selected' : ''; ?>>Paid</option>
-                                <option value="Unpaid" <?php echo $s == 'Unpaid' ? 'selected' : ''; ?>>Unpaid</option>
-                                <option value="Pending" <?php echo $s == 'Pending' ? 'selected' : ''; ?>>Pending</option>
+                                <option value="Paid"     <?php echo $s == 'Paid'     ? 'selected' : ''; ?>>Paid</option>
+                                <option value="Pending"  <?php echo $s == 'Pending'  ? 'selected' : ''; ?>>Pending</option>
+                                <option value="Unpaid"   <?php echo $s == 'Unpaid'   ? 'selected' : ''; ?>>Unpaid</option>
                                 <option value="Past Due" <?php echo $s == 'Past Due' ? 'selected' : ''; ?>>Past Due</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-1">Payment Method *</label>
+                            <select name="payment_method" class="w-full px-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500" required>
+                                <?php $pm = $edit_data['payment_method'] ?? 'Cash'; ?>
+                                <option value="Cash"          <?php echo $pm == 'Cash'          ? 'selected' : ''; ?>>Cash</option>
+                                <option value="Card"          <?php echo $pm == 'Card'          ? 'selected' : ''; ?>>Credit / Debit Card</option>
+                                <option value="Online"        <?php echo $pm == 'Online'        ? 'selected' : ''; ?>>Online Transfer</option>
+                                <option value="Cheque"        <?php echo $pm == 'Cheque'        ? 'selected' : ''; ?>>Cheque</option>
+                                <option value="Insurance"     <?php echo $pm == 'Insurance'     ? 'selected' : ''; ?>>Insurance</option>
                             </select>
                         </div>
                         <div>

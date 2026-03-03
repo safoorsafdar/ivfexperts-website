@@ -66,8 +66,10 @@ $checks = [
     ],
     "receipts" => [
         "status" => "ENUM('Paid', 'Unpaid', 'Pending', 'Past Due') DEFAULT 'Paid' AFTER amount",
-        "advised_procedure_id" => "INT NULL AFTER status",
-        "qrcode_hash" => "VARCHAR(255) AFTER receipt_date"
+        "payment_method" => "VARCHAR(50) DEFAULT 'Cash' AFTER status",
+        "advised_procedure_id" => "INT NULL AFTER payment_method",
+        "qrcode_hash" => "VARCHAR(255) AFTER receipt_date",
+        "notes" => "TEXT AFTER qrcode_hash"
     ]
 ];
 
