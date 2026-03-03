@@ -59,28 +59,28 @@ $ids_csv = implode(',', $patient_ids);
 
 // Fetch all 5 document streams for all linked IDs with spouse attribution
 $prescriptions = [];
-$res = $conn->query("SELECT p.*, pt.first_name, pt.last_name FROM prescriptions p JOIN patients pt ON p.patient_id = pt.id WHERE p.patient_id IN ($ids_csv) ORDER BY p.created_at DESC");
+$res = $conn->query("SELECT p.*, pt.first_name, pt.last_name FROM prescriptions p JOIN patients pt ON p.patient_id = pt.id WHERE p.patient_id IN ($ids_csv) ORDER BY p.created_at DESC LIMIT 50");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $prescriptions[] = $row;
 }
 
 $ultrasounds = [];
-$res = $conn->query("SELECT u.*, pt.first_name, pt.last_name FROM patient_ultrasounds u JOIN patients pt ON u.patient_id = pt.id WHERE u.patient_id IN ($ids_csv) ORDER BY u.created_at DESC");
+$res = $conn->query("SELECT u.*, pt.first_name, pt.last_name FROM patient_ultrasounds u JOIN patients pt ON u.patient_id = pt.id WHERE u.patient_id IN ($ids_csv) ORDER BY u.created_at DESC LIMIT 50");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $ultrasounds[] = $row;
 }
 
 $semen = [];
-$res = $conn->query("SELECT s.*, pt.first_name, pt.last_name FROM semen_analyses s JOIN patients pt ON s.patient_id = pt.id WHERE s.patient_id IN ($ids_csv) ORDER BY s.collection_time DESC");
+$res = $conn->query("SELECT s.*, pt.first_name, pt.last_name FROM semen_analyses s JOIN patients pt ON s.patient_id = pt.id WHERE s.patient_id IN ($ids_csv) ORDER BY s.collection_time DESC LIMIT 50");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $semen[] = $row;
 }
 
 $receipts = [];
-$res = $conn->query("SELECT r.*, pt.first_name, pt.last_name FROM receipts r JOIN patients pt ON r.patient_id = pt.id WHERE r.patient_id IN ($ids_csv) ORDER BY r.receipt_date DESC");
+$res = $conn->query("SELECT r.*, pt.first_name, pt.last_name FROM receipts r JOIN patients pt ON r.patient_id = pt.id WHERE r.patient_id IN ($ids_csv) ORDER BY r.receipt_date DESC LIMIT 50");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $receipts[] = $row;
@@ -88,7 +88,7 @@ if ($res) {
 
 $lab_results = [];
 try {
-    $res = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female, pt.first_name, pt.last_name, pt.gender as pt_gender FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id JOIN patients pt ON plt.patient_id = pt.id WHERE plt.patient_id IN ($ids_csv) ORDER BY plt.status DESC, plt.test_date DESC, plt.id DESC");
+    $res = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female, pt.first_name, pt.last_name, pt.gender as pt_gender FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id JOIN patients pt ON plt.patient_id = pt.id WHERE plt.patient_id IN ($ids_csv) ORDER BY plt.status DESC, plt.test_date DESC, plt.id DESC LIMIT 50");
     if ($res) {
         while ($row = $res->fetch_assoc())
             $lab_results[] = $row;
@@ -99,7 +99,7 @@ catch (Exception $e) {
 
 $histories = [];
 try {
-    $res = $conn->query("SELECT h.*, pt.first_name, pt.last_name FROM patient_history h JOIN patients pt ON h.patient_id = pt.id WHERE h.patient_id IN ($ids_csv) ORDER BY h.recorded_at DESC");
+    $res = $conn->query("SELECT h.*, pt.first_name, pt.last_name FROM patient_history h JOIN patients pt ON h.patient_id = pt.id WHERE h.patient_id IN ($ids_csv) ORDER BY h.recorded_at DESC LIMIT 50");
     if ($res) {
         while ($row = $res->fetch_assoc())
             $histories[] = $row;
@@ -163,48 +163,53 @@ $portal_tabs = [
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>My Records — IVF Experts Portal</title>
     <meta name="robots" content="noindex, nofollow">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         [x-cloak] { display: none !important; }
-        body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+        body { font-family: 'Noto Sans', sans-serif; }
+        h1, h2, h3, h4, .font-heading { font-family: 'Figtree', sans-serif; }
         .prose-portal p { margin-bottom: 0.5em; }
         .prose-portal ul, .prose-portal ol { padding-left: 1.25em; margin-bottom: 0.5em; }
         .prose-portal li { margin-bottom: 0.15em; }
+        .medical-gradient { background: linear-gradient(135deg, #0891B2 0%, #0e7490 100%); }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen text-slate-900" x-data="{ activeTab: 'timeline' }">
 
     <!-- Navigation -->
-    <nav class="bg-slate-900 border-b border-slate-800 sticky top-0 z-50 shadow-xl shadow-slate-900/50">
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div class="w-9 h-9 bg-indigo-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-indigo-900/50">
+                <div class="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-cyan-100">
                     <i class="fa-solid fa-heart-pulse text-base"></i>
                 </div>
                 <div>
-                    <span class="font-black text-lg tracking-tight text-white">IVF<span class="text-indigo-400">EXPERTS</span></span>
-                    <span class="hidden sm:block text-[9px] uppercase font-black tracking-[0.2em] text-white/25 leading-none">Patient Portal</span>
+                    <span class="font-black text-lg tracking-tight text-slate-800">IVF<span class="text-cyan-600">EXPERTS</span></span>
+                    <span class="hidden sm:block text-[9px] uppercase font-black tracking-[0.2em] text-slate-400 leading-none">Patient Portal</span>
                 </div>
             </div>
 
             <div class="flex items-center gap-3">
-                <div class="hidden sm:flex items-center gap-2.5 bg-slate-800 rounded-xl px-3 py-2 border border-slate-700">
-                    <div class="w-7 h-7 bg-indigo-600/30 rounded-lg flex items-center justify-center text-indigo-400 font-black text-xs shrink-0">
+                <div class="hidden sm:flex items-center gap-2.5 bg-slate-50 rounded-xl px-3 py-2 border border-slate-200">
+                    <div class="w-7 h-7 bg-cyan-600/10 rounded-lg flex items-center justify-center text-cyan-600 font-bold text-xs shrink-0">
                         <?php echo strtoupper(substr($patient['first_name'], 0, 1)); ?>
                     </div>
                     <div>
-                        <div class="text-xs font-black text-white leading-tight"><?php echo htmlspecialchars($patient['first_name']); ?></div>
-                        <div class="text-[9px] text-white/30 font-mono leading-tight"><?php echo htmlspecialchars($patient['mr_number']); ?></div>
+                        <div class="text-xs font-bold text-slate-700 leading-tight"><?php echo htmlspecialchars($patient['first_name']); ?></div>
+                        <div class="text-[9px] text-slate-400 font-mono leading-tight"><?php echo htmlspecialchars($patient['mr_number']); ?></div>
                     </div>
                 </div>
-                <a href="profile.php" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600/20 hover:text-indigo-400 border border-slate-700 transition-all" title="My Profile">
+                <a href="profile.php" class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-400 hover:bg-cyan-50 hover:text-cyan-600 border border-slate-200 transition-all" title="My Profile">
                     <i class="fa-solid fa-user-gear text-sm"></i>
                 </a>
                 <form method="POST" action="dashboard.php" class="flex items-center">
                     <button type="submit" name="logout" value="1"
-                            class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 border border-slate-700 transition-all focus:outline-none"
+                            class="w-9 h-9 rounded-xl bg-white flex items-center justify-center text-slate-400 hover:bg-rose-50 hover:text-rose-500 border border-slate-200 transition-all focus:outline-none"
                             title="Sign Out">
                         <i class="fa-solid fa-right-from-bracket text-sm"></i>
                     </button>
@@ -217,18 +222,18 @@ $portal_tabs = [
         
         <!-- Dashboard Header -->
         <div class="mb-8">
-            <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-7 md:p-9 shadow-2xl">
+            <div class="bg-white rounded-3xl p-7 md:p-9 shadow-sm border border-slate-200">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div class="flex-1">
-                        <div class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-2">Patient Portal</div>
-                        <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">
+                        <div class="text-[9px] font-black text-cyan-600 uppercase tracking-[0.25em] mb-2">Patient Records</div>
+                        <h1 class="text-2xl md:text-3xl font-bold text-slate-900 tracking-tight mb-1">
                             <?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?>
                         </h1>
                         <div class="flex flex-wrap items-center gap-3 text-sm">
-                            <span class="font-mono text-indigo-300 text-xs"><?php echo htmlspecialchars($patient['mr_number']); ?></span>
+                            <span class="font-mono text-slate-400 text-xs"><?php echo htmlspecialchars($patient['mr_number']); ?></span>
                             <?php if ($patient['spouse_name']): ?>
-                            <span class="text-slate-500">·</span>
-                            <span class="flex items-center gap-1.5 text-pink-400 text-xs font-bold">
+                            <span class="text-slate-300">·</span>
+                            <span class="flex items-center gap-1.5 text-pink-500 text-xs font-bold">
                                 <i class="fa-solid fa-heart text-[10px]"></i> <?php echo htmlspecialchars($patient['spouse_name']); ?>
                             </span>
                             <?php
@@ -249,24 +254,24 @@ endif; ?>
                                         <div class="relative group cursor-help">
                                             <!-- Step Node -->
                                             <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all <?php
-        echo $is_done ? 'bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]' :
-            ($is_active ? 'bg-indigo-600 border-indigo-400 text-white animate-pulse' : 'bg-slate-800 border-slate-700 text-slate-500'); ?>">
+        echo $is_done ? 'bg-emerald-500 border-emerald-500 text-white shadow-lg shadow-emerald-100' :
+            ($is_active ? 'bg-cyan-600 border-cyan-500 text-white shadow-lg shadow-cyan-100' : 'bg-slate-50 border-slate-200 text-slate-400'); ?>">
                                                 <?php if ($is_done): ?>
                                                     <i class="fa-solid fa-check text-[10px]"></i>
                                                 <?php
         else: ?>
-                                                    <span class="text-[10px] font-black"><?php echo $idx + 1; ?></span>
+                                                    <span class="text-[10px] font-bold"><?php echo $idx + 1; ?></span>
                                                 <?php
         endif; ?>
                                             </div>
                                             <!-- Label -->
-                                            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-black uppercase tracking-wider <?php echo($is_done || $is_active) ? 'text-white' : 'text-slate-500'; ?>">
+                                            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-bold uppercase tracking-wider <?php echo($is_done || $is_active) ? 'text-slate-800' : 'text-slate-400'; ?>">
                                                 <?php echo htmlspecialchars($ap['procedure_name']); ?>
                                             </div>
                                         </div>
                                         <?php if ($idx < $total_steps - 1): ?>
                                             <!-- Connector Line -->
-                                            <div class="h-[2px] flex-1 mx-2 <?php echo $is_done ? 'bg-emerald-500' : 'bg-slate-700'; ?>"></div>
+                                            <div class="h-[2px] flex-1 mx-2 <?php echo $is_done ? 'bg-emerald-500' : 'bg-slate-100'; ?>"></div>
                                         <?php
         endif; ?>
                                     </div>
@@ -278,11 +283,11 @@ endif; ?>
 endif; ?>
 
                         <?php if ($next_visit_date): ?>
-                        <div class="mt-10 bg-indigo-500/10 border border-indigo-400/20 rounded-2xl px-4 py-2.5 flex items-center gap-3 w-fit">
-                            <i class="fa-solid fa-calendar-star text-indigo-400 text-lg shrink-0"></i>
+                        <div class="mt-10 bg-cyan-50 border border-cyan-100 rounded-2xl px-4 py-2.5 flex items-center gap-3 w-fit">
+                            <i class="fa-solid fa-calendar-star text-cyan-600 text-lg shrink-0"></i>
                             <div>
-                                <div class="text-indigo-300 text-[10px] font-black uppercase tracking-wider leading-none mb-1">Next Appointment</div>
-                                <div class="text-white font-black text-sm">
+                                <div class="text-cyan-700 text-[10px] font-bold uppercase tracking-wider leading-none mb-1">Next Appointment</div>
+                                <div class="text-slate-900 font-bold text-sm">
                                     <?php echo date('l, d F Y', strtotime($next_visit_date)); ?>
                                 </div>
                             </div>
@@ -295,15 +300,15 @@ endif; ?>
                     <div class="flex gap-3">
                         <?php
 $quick = [
-    ['n' => count($prescriptions), 'l' => 'Rx', 'c' => 'indigo', 'i' => 'fa-prescription'],
-    ['n' => count($lab_results), 'l' => 'Tests', 'c' => 'teal', 'i' => 'fa-vials'],
-    ['n' => count($ultrasounds), 'l' => 'Scans', 'c' => 'emerald', 'i' => 'fa-image'],
+    ['n' => count($prescriptions), 'l' => 'Rx', 'c' => 'cyan', 'i' => 'fa-prescription'],
+    ['n' => count($lab_results), 'l' => 'Tests', 'c' => 'emerald', 'i' => 'fa-vials'],
+    ['n' => count($ultrasounds), 'l' => 'Scans', 'c' => 'teal', 'i' => 'fa-image'],
 ];
 foreach ($quick as $q):
 ?>
-                        <div class="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 text-center min-w-[64px]">
-                            <div class="text-xl font-black text-white"><?php echo $q['n']; ?></div>
-                            <div class="text-[9px] font-black text-white/40 uppercase tracking-widest"><?php echo $q['l']; ?></div>
+                        <div class="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center min-w-[64px]">
+                            <div class="text-xl font-bold text-slate-900"><?php echo $q['n']; ?></div>
+                            <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"><?php echo $q['l']; ?></div>
                         </div>
                         <?php
 endforeach; ?>
@@ -329,12 +334,12 @@ endif; ?>
         <div class="lg:hidden flex gap-2 overflow-x-auto pb-4 mb-6 -mx-4 px-4 scrollbar-hide">
             <?php foreach ($portal_tabs as $tab): ?>
             <button @click="activeTab = '<?php echo $tab['id']; ?>'"
-                    :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200' : 'bg-white text-slate-500 border-slate-200'"
-                    class="shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-black whitespace-nowrap border transition-all">
+                    :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' : 'bg-white text-slate-500 border-slate-200'"
+                    class="shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap border transition-all">
                 <i class="fa-solid <?php echo $tab['icon']; ?>"></i>
                 <?php echo $tab['label']; ?>
                 <?php if ($tab['count'] > 0): ?>
-                    <span class="bg-black/10 px-1.5 py-0.5 rounded-md text-[9px]"><?php echo $tab['count']; ?></span>
+                    <span class="bg-black/5 px-1.5 py-0.5 rounded-md text-[9px]"><?php echo $tab['count']; ?></span>
                 <?php
     endif; ?>
             </button>
@@ -347,16 +352,16 @@ endforeach; ?>
             
             <!-- Sidebar Navigation -->
             <div class="lg:col-span-1">
-                <div class="bg-slate-900 rounded-3xl border border-slate-800 p-2 shadow-xl sticky top-24">
+                <div class="bg-white rounded-3xl border border-slate-200 p-2 shadow-sm sticky top-24">
                     <nav class="space-y-1">
                         <?php foreach ($portal_tabs as $tab): ?>
                         <button @click="activeTab = '<?php echo $tab['id']; ?>'"
-                                :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
+                                :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' : 'text-slate-500 hover:bg-slate-50 hover:text-cyan-600'"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm group">
                             <i class="fa-solid <?php echo $tab['icon']; ?> text-base shrink-0 group-hover:scale-110 transition-transform"></i>
-                            <span class="text-left flex-1 whitespace-nowrap"><?php echo $tab['label']; ?></span>
+                            <span class="text-left flex-1 whitespace-nowrap font-heading"><?php echo $tab['label']; ?></span>
                             <?php if ($tab['count'] > 0): ?>
-                            <span :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-white/20 text-white' : 'bg-slate-700 text-slate-400 group-hover:bg-slate-600'"
+                            <span :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-400 group-hover:bg-cyan-100 group-hover:text-cyan-600'"
                                   class="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 transition-colors">
                                 <?php echo $tab['count']; ?>
                             </span>
@@ -373,10 +378,14 @@ endforeach; ?>
             <div class="lg:col-span-3">
                 
                 <!-- Tab: Clinical Timeline -->
-                <div x-show="activeTab === 'timeline'" x-cloak>
+                <div x-show="activeTab === 'timeline'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-notes-medical text-indigo-600"></i> Clinical Visit History
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-notes-medical text-cyan-600"></i> Clinical Visit History
                         </h2>
                         
                         <?php if (empty($histories)): ?>
@@ -386,11 +395,11 @@ endforeach; ?>
                             </div>
 <?php
 else: ?>
-                            <div class="relative border-l-2 border-indigo-100 ml-4 pl-8 space-y-12">
+                            <div class="relative border-l-2 border-slate-100 ml-4 pl-8 space-y-12">
                                 <?php foreach ($histories as $h): ?>
                                     <div class="relative">
                                         <!-- Timeline Dot -->
-                                        <div class="absolute -left-[41px] top-0 w-5 h-5 bg-white border-4 border-indigo-600 rounded-full shadow-sm"></div>
+                                        <div class="absolute -left-[41px] top-0 w-5 h-5 bg-white border-4 border-cyan-600 rounded-full shadow-sm"></div>
                                         
                                         <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
                                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
@@ -398,9 +407,9 @@ else: ?>
                                                     <span class="text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
                                                         <?php echo date('d M Y', strtotime($h['recorded_at'])); ?> at <?php echo date('h:i A', strtotime($h['recorded_at'])); ?>
                                                     </span>
-                                                    <h3 class="text-lg font-black text-slate-800 mt-1"><?php echo htmlspecialchars($h['diagnosis'] ?: 'Clinical Assessment'); ?></h3>
+                                                    <h3 class="text-lg font-bold text-slate-800 mt-1"><?php echo htmlspecialchars($h['diagnosis'] ?: 'Clinical Assessment'); ?></h3>
                                                 </div>
-                                                <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider <?php echo $h['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
+                                                <span class="px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider <?php echo $h['record_for'] === 'Spouse' ? 'bg-pink-50 text-pink-600' : 'bg-cyan-50 text-cyan-700'; ?>">
                                                     <?php echo $h['record_for'] === 'Spouse' ? 'Partner Record' : 'Patient Record'; ?>
                                                 </span>
                                             </div>
@@ -426,7 +435,7 @@ else: ?>
                                             </div>
 
                                             <?php if ($h['next_visit']): ?>
-                                                <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-indigo-600 text-xs font-bold">
+                                                <div class="mt-4 pt-4 border-t border-slate-100 flex items-center gap-2 text-cyan-600 text-xs font-bold">
                                                     <i class="fa-solid fa-calendar-star"></i> Next Visit: <?php echo date('d M Y', strtotime($h['next_visit'])); ?>
                                                 </div>
                                             <?php
@@ -442,10 +451,14 @@ endif; ?>
                 </div>
 
                 <!-- Tab: My Procedures -->
-                <div x-show="activeTab === 'procedures'" x-cloak>
+                <div x-show="activeTab === 'procedures'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-syringe text-indigo-600"></i> Advised & Upcoming Procedures
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-syringe text-cyan-600"></i> Advised & Upcoming Procedures
                         </h2>
                         <?php if (empty($advised_procedures)): ?>
                             <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
@@ -464,8 +477,8 @@ else: ?>
                                                     • <?php echo htmlspecialchars($ap['first_name']); ?>
                                                 </div>
                                             </div>
-                                            <span class="text-[10px] font-black uppercase px-3 py-1 rounded-full
-                                                <?php echo $ap['status'] === 'Completed' ? 'bg-emerald-100 text-emerald-700' : ($ap['status'] === 'In Progress' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'); ?>">
+                                            <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-full
+                                                <?php echo $ap['status'] === 'Completed' ? 'bg-emerald-50 text-emerald-600' : ($ap['status'] === 'In Progress' ? 'bg-amber-50 text-amber-600' : 'bg-cyan-50 text-cyan-600'); ?>">
                                                 <?php echo htmlspecialchars($ap['status']); ?>
                                             </span>
                                         </div>
@@ -485,10 +498,14 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Lab Results -->
-                <div x-show="activeTab === 'labs'" x-cloak>
+                <div x-show="activeTab === 'labs'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-vials text-indigo-600"></i> Laboratory & Blood Tests
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-vials text-cyan-600"></i> Laboratory & Blood Tests
                         </h2>
 
                         <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
@@ -513,8 +530,8 @@ else: ?>
                                         <?php foreach ($lab_results as $lr): ?>
                                             <tr class="hover:bg-slate-50/50 transition-colors">
                                                 <td class="px-6 py-5">
-                                                    <div class="font-black text-slate-800"><?php echo htmlspecialchars($lr['test_name']); ?></div>
-                                                    <span class="text-[10px] font-bold uppercase <?php echo $lr['test_for'] === 'Spouse' ? 'text-pink-500' : 'text-indigo-500'; ?>">
+                                                    <div class="font-bold text-slate-800"><?php echo htmlspecialchars($lr['test_name']); ?></div>
+                                                    <span class="text-[10px] font-bold uppercase <?php echo $lr['test_for'] === 'Spouse' ? 'text-pink-500' : 'text-cyan-600'; ?>">
                                                         For: <?php echo $lr['test_for']; ?>
                                                     </span>
                                                 </td>
@@ -552,8 +569,8 @@ else: ?>
                                                 <td class="px-6 py-5 text-right">
                                                     <div class="text-xs font-bold text-slate-700 mb-2"><?php echo date('d M Y', strtotime($lr['test_date'])); ?></div>
                                                     <?php if (!empty($lr['scanned_report_path'])): ?>
-                                                        <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($lr['scanned_report_path']); ?>" target="_blank" class="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all">
-                                                            <i class="fa-solid fa-file-pdf mr-1"></i> Original PDF
+                                                        <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($lr['scanned_report_path']); ?>" target="_blank" class="text-[10px] font-bold uppercase text-cyan-700 bg-cyan-50 px-3 py-1.5 rounded-lg border border-cyan-100 hover:bg-cyan-600 hover:text-white transition-all">
+                                                            <i class="fa-solid fa-file-pdf mr-1 text-xs"></i> Original PDF
                                                         </a>
                                                     <?php
         else: ?>
@@ -573,10 +590,14 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Scans & Reports -->
-                <div x-show="activeTab === 'diagnostic'" x-cloak>
+                <div x-show="activeTab === 'diagnostic'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-image text-indigo-600"></i> Ultrasounds & Advanced Diagnostics
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-image text-cyan-600"></i> Ultrasounds & Advanced Diagnostics
                         </h2>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -606,13 +627,13 @@ usort($all_scans, function ($a, $b) {
                             <?php
 else: ?>
                                 <?php foreach ($all_scans as $s): ?>
-                                    <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex justify-between items-center group hover:border-indigo-200 transition-all">
+                                    <div class="bg-white rounded-3xl border border-slate-200 p-5 shadow-sm flex justify-between items-center group hover:border-cyan-200 transition-all">
                                         <div class="flex items-center gap-4">
-                                            <div class="w-12 h-12 rounded-2xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:bg-indigo-600 group-hover:text-white transition-all">
+                                            <div class="w-12 h-12 rounded-2xl bg-cyan-50 text-cyan-600 flex items-center justify-center text-xl group-hover:bg-cyan-600 group-hover:text-white transition-all">
                                                 <i class="<?php echo $s['icon']; ?>"></i>
                                             </div>
                                             <div>
-                                                <div class="text-[10px] font-black text-indigo-500 uppercase tracking-widest"><?php echo $s['type_label']; ?></div>
+                                                <div class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest font-heading mb-0.5"><?php echo $s['type_label']; ?></div>
                                                 <div class="font-black text-slate-800 leading-tight"><?php echo htmlspecialchars($s['report_title'] ?? ($s['auto_diagnosis'] ?: 'Diagnostic Report')); ?></div>
                                                 <div class="text-[10px] text-slate-400 mt-1 font-bold">
                                                     <?php echo date('d M Y', strtotime($s['created_at'])); ?> • <?php echo htmlspecialchars($s['first_name']); ?>
@@ -621,10 +642,10 @@ else: ?>
                                         </div>
                                         <div class="flex flex-col gap-2">
                                             <?php if ($s['type_label'] === 'Ultrasound'): ?>
-                                                <a href="view.php?type=usg&hash=<?php echo $s['qrcode_hash']; ?>" target="_blank" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-indigo-600 hover:text-white transition-all"><i class="fa-solid fa-eye text-xs"></i></a>
+                                                <a href="view.php?type=usg&hash=<?php echo $s['qrcode_hash']; ?>" target="_blank" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-cyan-600 hover:text-white transition-all border border-slate-100"><i class="fa-solid fa-eye text-xs"></i></a>
                                             <?php
         else: ?>
-                                                <a href="view.php?type=sa&hash=<?php echo $s['qrcode_hash']; ?>" target="_blank" class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-teal-600 hover:text-white transition-all"><i class="fa-solid fa-eye text-xs"></i></a>
+                                                <a href="view.php?type=sa&hash=<?php echo $s['qrcode_hash']; ?>" target="_blank" class="w-8 h-8 rounded-full bg-slate-50 flex items-center justify-center text-slate-400 hover:bg-teal-600 hover:text-white transition-all border border-slate-100"><i class="fa-solid fa-eye text-xs"></i></a>
                                             <?php
         endif; ?>
                                         </div>
@@ -638,10 +659,14 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Prescriptions -->
-                <div x-show="activeTab === 'prescriptions'" x-cloak>
+                <div x-show="activeTab === 'prescriptions'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-prescription-bottle-medical text-indigo-600"></i> Digital Prescriptions
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-prescription-bottle-medical text-cyan-600"></i> Digital Prescriptions
                         </h2>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -651,15 +676,15 @@ endif; ?>
 else: ?>
                                 <?php foreach ($prescriptions as $rx): ?>
                                     <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all">
-                                        <div class="flex justify-between items-start mb-4">
+                                         <div class="flex justify-between items-start mb-4">
                                             <div class="flex items-center gap-3">
-                                                <div class="w-10 h-10 bg-indigo-50 text-indigo-600 rounded-xl flex items-center justify-center font-black">Rx</div>
+                                                <div class="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center font-bold">Rx</div>
                                                 <div>
-                                                    <div class="text-sm font-black text-slate-800">E-Prescription #<?php echo $rx['id']; ?></div>
+                                                    <div class="text-sm font-bold text-slate-800">E-Prescription #<?php echo $rx['id']; ?></div>
                                                     <div class="text-[10px] text-slate-400 uppercase font-black"><?php echo htmlspecialchars($rx['first_name']); ?> • <?php echo date('d M Y', strtotime($rx['created_at'])); ?></div>
                                                 </div>
                                             </div>
-                                            <span class="text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded <?php echo($rx['record_for'] ?? 'Patient') === 'Spouse' ? 'bg-pink-50 text-pink-600' : 'bg-indigo-50 text-indigo-600'; ?>">
+                                            <span class="text-[9px] font-bold uppercase tracking-wider px-2 py-0.5 rounded <?php echo($rx['record_for'] ?? 'Patient') === 'Spouse' ? 'bg-pink-50 text-pink-600' : 'bg-cyan-50 text-cyan-600'; ?>">
                                                 <?php echo $rx['record_for'] ?? 'Patient'; ?>
                                             </span>
                                         </div>
@@ -671,8 +696,8 @@ else: ?>
         echo htmlspecialchars($rx_preview ?: 'Medication plan — tap to view full details.');
 ?></p>
                                         <div class="flex gap-2">
-                                            <a href="view.php?type=rx&hash=<?php echo $rx['qrcode_hash']; ?>" target="_blank" class="flex-1 bg-indigo-600 text-white text-[10px] font-black uppercase text-center py-2 rounded-xl hover:bg-slate-900 transition-all">View Record</a>
-                                            <a href="https://wa.me/?text=<?php echo urlencode('View my prescription from IVF Experts: https://patient.ivfexperts.pk/verify.php?hash=' . $rx['qrcode_hash'] . '&type=rx'); ?>" target="_blank" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-brands fa-whatsapp text-sm"></i></a>
+                                            <a href="view.php?type=rx&hash=<?php echo $rx['qrcode_hash']; ?>" target="_blank" class="flex-1 bg-cyan-600 text-white text-[10px] font-bold uppercase text-center py-2 rounded-xl hover:bg-cyan-700 shadow-sm shadow-cyan-100 transition-all">View Record</a>
+                                            <a href="https://wa.me/?text=<?php echo urlencode('View my prescription from IVF Experts: https://patient.ivfexperts.pk/verify.php?hash=' . $rx['qrcode_hash'] . '&type=rx'); ?>" target="_blank" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl border border-emerald-100 hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-brands fa-whatsapp text-sm"></i></a>
                                             <?php if ($rx['scanned_report_path']): ?>
                                                 <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="px-3 py-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all"><i class="fa-solid fa-file-pdf"></i></a>
                                             <?php
@@ -688,10 +713,14 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Billing -->
-                <div x-show="activeTab === 'billing'" x-cloak>
+                <div x-show="activeTab === 'billing'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
                     <div class="space-y-6">
-                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-                            <i class="fa-solid fa-receipt text-indigo-600"></i> Payment & Billing Records
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-receipt text-cyan-600"></i> Payment & Billing Records
                         </h2>
                         
                         <div class="grid grid-cols-2 gap-4 mb-6">
@@ -732,17 +761,17 @@ else: ?>
                                         <?php foreach ($receipts as $r): ?>
                                             <tr class="hover:bg-slate-50/50 transition-colors">
                                                 <td class="px-6 py-5">
-                                                    <div class="font-black text-slate-800"><?php echo htmlspecialchars($r['procedure_name']); ?></div>
+                                                    <div class="font-bold text-slate-800"><?php echo htmlspecialchars($r['procedure_name']); ?></div>
                                                     <div class="text-[10px] text-slate-400 mt-1 font-bold">
                                                         <?php echo date('d M Y', strtotime($r['receipt_date'])); ?> • <?php echo htmlspecialchars($r['first_name']); ?>
                                                     </div>
                                                 </td>
                                                 <td class="px-6 py-5">
-                                                    <div class="text-lg font-black text-emerald-600">Rs. <?php echo number_format($r['amount'], 0); ?></div>
-                                                    <div class="text-[9px] uppercase font-black text-slate-400 tracking-wider">Method: Paid Item</div>
+                                                    <div class="text-lg font-bold text-emerald-600 font-heading">Rs. <?php echo number_format($r['amount'], 0); ?></div>
+                                                    <div class="text-[9px] uppercase font-bold text-slate-400 tracking-wider">Method: Paid Item</div>
                                                 </td>
                                                 <td class="px-6 py-5 text-right">
-                                                    <a href="view.php?type=receipt&hash=<?php echo $r['qrcode_hash']; ?>" target="_blank" class="w-10 h-10 rounded-2xl bg-slate-100 inline-flex items-center justify-center text-slate-500 hover:bg-emerald-600 hover:text-white transition-all">
+                                                    <a href="view.php?type=receipt&hash=<?php echo $r['qrcode_hash']; ?>" target="_blank" class="w-10 h-10 rounded-2xl bg-cyan-50 inline-flex items-center justify-center text-cyan-600 hover:bg-cyan-600 hover:text-white border border-cyan-100 transition-all">
                                                         <i class="fa-solid fa-cloud-arrow-down text-sm"></i>
                                                     </a>
                                                 </td>

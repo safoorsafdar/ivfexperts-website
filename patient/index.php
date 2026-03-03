@@ -77,94 +77,87 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Portal — IVF Experts</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
-        body { font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
-        .gradient-bg {
-            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #1e3a5f 100%);
+        body { font-family: 'Noto Sans', sans-serif; }
+        h1, h2, h3, .font-heading { font-family: 'Figtree', sans-serif; }
+        .medical-bg {
+            background-color: #F8FAFC;
+            background-image: radial-gradient(at 0% 0%, hsla(192, 91%, 91%, 1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(152, 63%, 92%, 1) 0, transparent 50%);
         }
-        .glass-card {
-            background: rgba(255,255,255,0.06);
-            backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,0.1);
+        .white-card {
+            background: #FFFFFF;
+            border: 1px solid rgba(226, 232, 240, 0.8);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.02), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
         }
-        .glass-input {
-            background: rgba(255,255,255,0.07);
-            border: 1.5px solid rgba(255,255,255,0.12);
-            color: white;
+        .clean-input {
+            background: #F8FAFC;
+            border: 1px solid #E2E8F0;
+            color: #1E293B;
             transition: all 0.2s;
         }
-        .glass-input::placeholder { color: rgba(255,255,255,0.3); }
-        .glass-input:focus {
-            background: rgba(255,255,255,0.12);
-            border-color: rgba(99,102,241,0.7);
+        .clean-input:focus {
+            background: #FFFFFF;
+            border-color: #0891B2;
+            box-shadow: 0 0 0 4px rgba(8, 145, 178, 0.1);
             outline: none;
-            box-shadow: 0 0 0 4px rgba(99,102,241,0.15);
-        }
-        .scan-bar { animation: scan 2.5s ease-in-out infinite; }
-        @keyframes scan {
-            0%, 100% { top: 4px; opacity: 0.5; }
-            50% { top: calc(100% - 6px); opacity: 1; }
         }
     </style>
 </head>
-<body class="gradient-bg min-h-screen flex items-center justify-center p-4 md:p-8">
+<body class="medical-bg min-h-screen flex items-center justify-center p-6 text-slate-900">
 
-    <!-- Ambient glow blobs -->
-    <div class="fixed inset-0 overflow-hidden pointer-events-none" aria-hidden="true">
-        <div class="absolute -top-32 -right-32 w-80 h-80 bg-indigo-600/20 rounded-full blur-3xl"></div>
-        <div class="absolute -bottom-32 -left-32 w-80 h-80 bg-purple-700/20 rounded-full blur-3xl"></div>
-    </div>
-
-    <div class="relative z-10 w-full max-w-4xl mx-auto">
-        <div class="grid grid-cols-1 lg:grid-cols-5 gap-6 lg:gap-10 items-center">
-
-            <!-- LOGIN CARD (3 cols) -->
-            <div class="lg:col-span-3 glass-card rounded-3xl p-8 md:p-10 shadow-2xl">
-
-                <!-- Brand Mark -->
-                <div class="flex items-center gap-3 mb-10">
-                    <div class="w-11 h-11 bg-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-900/50">
-                        <i class="fa-solid fa-heart-pulse text-white text-lg"></i>
-                    </div>
-                    <div>
-                        <span class="font-black text-xl text-white tracking-tight">IVF<span class="text-indigo-400">EXPERTS</span></span>
-                        <div class="text-[9px] font-black text-white/30 uppercase tracking-[0.25em]">Patient Portal</div>
-                    </div>
+    <div class="max-w-md w-full">
+        <!-- Logo Area -->
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center gap-3 mb-4">
+                <div class="w-12 h-12 bg-cyan-600 rounded-2xl flex items-center justify-center text-white shadow-xl shadow-cyan-100">
+                    <i class="fa-solid fa-heart-pulse text-xl"></i>
                 </div>
+                <span class="font-black text-3xl tracking-tight text-slate-800">IVF<span class="text-cyan-600">EXPERTS</span></span>
+            </div>
+            <p class="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Patient Digital Portal</p>
+        </div>
 
-                <!-- Heading -->
-                <h1 class="text-2xl font-black text-white mb-1 leading-snug">
-                    Access your records,<br>
-                    <span class="text-indigo-400">securely.</span>
-                </h1>
-                <p class="text-white/40 text-sm font-medium mb-8">Prescriptions, lab results, scan reports & billing — all in one place.</p>
+        <div class="white-card rounded-[2.5rem] p-8 md:p-10 relative overflow-hidden">
+            <!-- Subtle Decorative Element -->
+            <div class="absolute -top-12 -right-12 w-32 h-32 bg-cyan-50 rounded-full blur-3xl opacity-60"></div>
+            
+            <div class="relative">
+                <h1 class="text-2xl font-bold text-slate-800 mb-2">Welcome Back</h1>
+                <p class="text-slate-500 text-sm mb-8 leading-relaxed">Please sign in to access your clinical records, test results, and treatment timeline.</p>
 
-                <!-- Error Message -->
                 <?php if ($error): ?>
-                <div class="flex items-center gap-2.5 bg-rose-500/15 border border-rose-500/25 text-rose-300 px-4 py-3 rounded-2xl text-sm font-bold mb-6">
-                    <i class="fa-solid fa-circle-exclamation shrink-0 text-rose-400"></i>
-                    <?php echo htmlspecialchars($error); ?>
-                </div>
+                    <div class="bg-rose-50 border border-rose-100 text-rose-600 px-4 py-3 rounded-2xl text-xs font-bold mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-circle-exclamation text-base"></i>
+                        <?php echo htmlspecialchars($error); ?>
+                    </div>
                 <?php
 endif; ?>
 
-                <!-- Login Form -->
-                <form action="index.php" method="POST" class="space-y-5">
+                <?php if (isset($_GET['expired'])): ?>
+                    <div class="bg-amber-50 border border-amber-100 text-amber-600 px-4 py-3 rounded-2xl text-xs font-bold mb-6 flex items-center gap-3">
+                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
+                        Session expired for your security. Please log in again.
+                    </div>
+                <?php
+endif; ?>
+
+                <form method="POST" class="space-y-5">
                     <input type="hidden" name="_csrf" value="<?php echo csrf_token(); ?>">
+                    
                     <div>
-                        <label class="block text-[9px] font-black text-white/35 uppercase tracking-[0.2em] mb-2.5">
-                            Mobile Number or MR Number
-                        </label>
+                        <label class="block text-[10px] font-black uppercase tracking-widest text-slate-400 mb-2 ml-1">Phone / MR Number</label>
                         <div class="relative">
-                            <i class="fa-solid fa-phone absolute left-4 top-1/2 -translate-y-1/2 text-indigo-400/70 text-sm"></i>
-                            <input type="text"
-                                   name="phone_mr"
+                            <i class="fa-solid fa-id-card absolute left-4 top-1/2 -translate-y-1/2 text-slate-300"></i>
+                            <input type="text" name="phone_mr" required 
+                                   class="clean-input w-full pl-11 pr-4 py-4 rounded-2xl text-sm font-medium placeholder:text-slate-300"
+                                   placeholder="03001234567 or MR-1234"
                                    value="<?php echo htmlspecialchars($_POST['phone_mr'] ?? ''); ?>"
-                                   autofocus
-                                   placeholder="03XX-XXXXXXX or IVF-XXXXXX"
-                                   class="glass-input w-full pl-11 pr-5 py-4 rounded-2xl text-sm font-bold">
                         </div>
                     </div>
 
