@@ -6,6 +6,7 @@
  */
 session_start();
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once __DIR__ . '/includes/rate_limit.php';
 
 $hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
 $type = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : null;
@@ -117,7 +118,10 @@ $phone_hint = !empty($phone_db) ? 'XXXXXX' . substr($phone_db, -4) : '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $cnic_input = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
+    if (!check_rate_limit('verify_attempts_' . $hash)) {
+        $error = "Too many failed attempts for this document. Please wait a few minutes.";
+    } else {
+        $cnic_input = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
     if (strlen($cnic_input) < 13) {
         $error = "Please enter your complete 13-digit CNIC number.";
@@ -127,7 +131,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Verified! Set session and redirect to document
         $_SESSION['portal_patient_id'] = $doc_patient_id;
         header("Location: view.php?type={$doc_view_type}&hash={$hash}");
-        exit;
     }
 }
 ?>

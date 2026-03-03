@@ -8,6 +8,7 @@ if (isset($_SESSION['portal_patient_id'])) {
 }
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once __DIR__ . '/includes/rate_limit.php';
 $error = '';
 
 // Preserve QR redirect across login flow
@@ -17,7 +18,10 @@ if (!empty($_GET['redirect_hash'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $phone_mr   = trim($_POST['phone_mr'] ?? '');
+    if (!check_rate_limit('login_attempts')) {
+        $error = "Too many attempts. Please wait a few minutes and try again.";
+    } else {
+        $phone_mr   = trim($_POST['phone_mr'] ?? '');
     $cnic_clean = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
     if (empty($phone_mr) || empty($cnic_clean)) {
@@ -50,7 +54,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         } catch (Exception $e) {
             $error = "System error. Please try again later.";
-        }
     }
 }
 ?>

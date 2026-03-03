@@ -1,10 +1,14 @@
 <?php
 if (!defined('BYPASS_AUTH')) {
     require_once __DIR__ . '/includes/auth.php';
-} else {
+}
+else {
     require_once __DIR__ . '/config/db.php';
     if (!function_exists('esc')) {
-        function esc($string) { return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8'); }
+        function esc($string)
+        {
+            return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8');
+        }
     }
 }
 
@@ -372,7 +376,8 @@ endif; ?>
         endforeach; ?>
                             </ul>
                         </div>
-                    <?php    endif; ?>
+                    <?php
+    endif; ?>
 
                     <!-- Spouse Tests -->
                     <?php if (!empty($spouse_tests)): ?>
@@ -387,7 +392,8 @@ endif; ?>
         endforeach; ?>
                             </ul>
                         </div>
-                    <?php    endif; ?>
+                    <?php
+    endif; ?>
                 </div>
             </div>
         <?php

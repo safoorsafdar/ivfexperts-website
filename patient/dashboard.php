@@ -6,7 +6,8 @@ if (!isset($_SESSION['portal_patient_id'])) {
 }
 
 // Logout — handled at top before any DB queries or HTML output
-if (isset($_GET['logout'])) {
+// Require POST for security (to prevent CSRF)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
     $_SESSION = [];
     session_destroy();
     header("Location: index.php");
@@ -165,11 +166,13 @@ catch (Exception $e) {
                         <div class="text-[9px] text-white/30 font-mono leading-tight"><?php echo htmlspecialchars($patient['mr_number']); ?></div>
                     </div>
                 </div>
-                <a href="?logout=1"
-                   class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 border border-slate-700 transition-all"
-                   title="Sign Out">
-                    <i class="fa-solid fa-right-from-bracket text-sm"></i>
-                </a>
+                <form method="POST" action="dashboard.php" class="flex items-center">
+                    <button type="submit" name="logout" value="1"
+                            class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 border border-slate-700 transition-all focus:outline-none"
+                            title="Sign Out">
+                        <i class="fa-solid fa-right-from-bracket text-sm"></i>
+                    </button>
+                </form>
             </div>
         </div>
     </nav>
@@ -192,25 +195,27 @@ catch (Exception $e) {
                             <span class="flex items-center gap-1.5 text-pink-400 text-xs font-bold">
                                 <i class="fa-solid fa-heart text-[10px]"></i> <?php echo htmlspecialchars($patient['spouse_name']); ?>
                             </span>
-                            <?php endif; ?>
+                            <?php
+endif; ?>
                         </div>
                     </div>
 
                     <!-- Quick Stats -->
                     <div class="flex gap-3">
                         <?php
-                        $quick = [
-                            ['n' => count($prescriptions), 'l' => 'Rx',     'c' => 'indigo', 'i' => 'fa-prescription'],
-                            ['n' => count($lab_results),   'l' => 'Tests',  'c' => 'teal',   'i' => 'fa-vials'],
-                            ['n' => count($ultrasounds),   'l' => 'Scans',  'c' => 'emerald','i' => 'fa-image'],
-                        ];
-                        foreach ($quick as $q):
-                        ?>
+$quick = [
+    ['n' => count($prescriptions), 'l' => 'Rx', 'c' => 'indigo', 'i' => 'fa-prescription'],
+    ['n' => count($lab_results), 'l' => 'Tests', 'c' => 'teal', 'i' => 'fa-vials'],
+    ['n' => count($ultrasounds), 'l' => 'Scans', 'c' => 'emerald', 'i' => 'fa-image'],
+];
+foreach ($quick as $q):
+?>
                         <div class="bg-white/10 backdrop-blur-sm border border-white/10 rounded-2xl px-4 py-3 text-center min-w-[64px]">
                             <div class="text-xl font-black text-white"><?php echo $q['n']; ?></div>
                             <div class="text-[9px] font-black text-white/40 uppercase tracking-widest"><?php echo $q['l']; ?></div>
                         </div>
-                        <?php endforeach; ?>
+                        <?php
+endforeach; ?>
                     </div>
                 </div>
             </div>
@@ -224,15 +229,16 @@ catch (Exception $e) {
                 <div class="bg-slate-900 rounded-3xl border border-slate-800 p-2 shadow-xl sticky top-24">
                     <nav class="space-y-1">
                         <?php
-                        $portal_tabs = [
-                            ['id' => 'timeline',      'icon' => 'fa-notes-medical',           'label' => 'Clinical Timeline', 'count' => count($histories)],
-                            ['id' => 'labs',          'icon' => 'fa-vials',                   'label' => 'Lab Results',       'count' => count($lab_results)],
-                            ['id' => 'diagnostic',    'icon' => 'fa-image',                   'label' => 'Scans & Reports',  'count' => count($ultrasounds) + count($semen)],
-                            ['id' => 'prescriptions', 'icon' => 'fa-prescription',            'label' => 'Prescriptions',    'count' => count($prescriptions)],
-                            ['id' => 'billing',       'icon' => 'fa-receipt',                 'label' => 'Billing',          'count' => count($receipts)],
-                        ];
-                        foreach ($portal_tabs as $tab):
-                        ?>
+$portal_tabs = [
+    ['id' => 'timeline', 'icon' => 'fa-notes-medical', 'label' => 'Clinical Timeline', 'count' => count($histories)],
+    ['id' => 'procedures', 'icon' => 'fa-syringe', 'label' => 'My Procedures', 'count' => count($advised_procedures)],
+    ['id' => 'labs', 'icon' => 'fa-vials', 'label' => 'Lab Results', 'count' => count($lab_results)],
+    ['id' => 'diagnostic', 'icon' => 'fa-image', 'label' => 'Scans & Reports', 'count' => count($ultrasounds) + count($semen)],
+    ['id' => 'prescriptions', 'icon' => 'fa-prescription', 'label' => 'Prescriptions', 'count' => count($prescriptions)],
+    ['id' => 'billing', 'icon' => 'fa-receipt', 'label' => 'Billing', 'count' => count($receipts)],
+];
+foreach ($portal_tabs as $tab):
+?>
                         <button @click="activeTab = '<?php echo $tab['id']; ?>'"
                                 :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-900/40' : 'text-slate-400 hover:bg-slate-800 hover:text-white'"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm group">
@@ -243,9 +249,11 @@ catch (Exception $e) {
                                   class="text-[9px] font-black px-2 py-0.5 rounded-full shrink-0 transition-colors">
                                 <?php echo $tab['count']; ?>
                             </span>
-                            <?php endif; ?>
+                            <?php
+    endif; ?>
                         </button>
-                        <?php endforeach; ?>
+                        <?php
+endforeach; ?>
                     </nav>
                 </div>
             </div>
@@ -290,14 +298,15 @@ else: ?>
                                                 <div class="prose prose-slate prose-sm max-w-none">
                                                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Observation / Advice</div>
                                                     <div class="text-slate-600 leading-relaxed"><?php
-                                                        // clinical_notes may contain HTML from Quill editor — render it safely (admin-generated content)
-                                                        $notes_html = $h['clinical_notes'];
-                                                        $advice_html = nl2br(htmlspecialchars($h['advice'] ?? ''));
-                                                        // Strip potentially dangerous tags but preserve Quill's formatting tags
-                                                        $allowed_tags = '<p><br><b><strong><em><i><u><ul><ol><li><span><s>';
-                                                        echo strip_tags($notes_html, $allowed_tags);
-                                                        if (!empty($h['advice'])) echo '<div class="mt-2 border-t border-slate-100 pt-2">' . $advice_html . '</div>';
-                                                    ?></div>
+        // clinical_notes may contain HTML from Quill editor — render it safely (admin-generated content)
+        $notes_html = $h['clinical_notes'];
+        $advice_html = nl2br(htmlspecialchars($h['advice'] ?? ''));
+        // Strip potentially dangerous tags but preserve Quill's formatting tags
+        $allowed_tags = '<p><br><b><strong><em><i><u><ul><ol><li><span><s>';
+        echo strip_tags($notes_html, $allowed_tags);
+        if (!empty($h['advice']))
+            echo '<div class="mt-2 border-t border-slate-100 pt-2">' . $advice_html . '</div>';
+?></div>
                                                 </div>
                                                 <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100">
                                                     <div class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2">Medication / Plan</div>
@@ -312,6 +321,49 @@ else: ?>
                                             <?php
         endif; ?>
                                         </div>
+                                    </div>
+                                <?php
+    endforeach; ?>
+                            </div>
+                        <?php
+endif; ?>
+                    </div>
+                </div>
+
+                <!-- Tab: My Procedures -->
+                <div x-show="activeTab === 'procedures'" x-cloak>
+                    <div class="space-y-6">
+                        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-syringe text-indigo-600"></i> Advised & Upcoming Procedures
+                        </h2>
+                        <?php if (empty($advised_procedures)): ?>
+                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold">
+                                No procedures advised yet.
+                            </div>
+                        <?php
+else: ?>
+                            <div class="space-y-4">
+                                <?php foreach ($advised_procedures as $ap): ?>
+                                    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                                        <div class="flex justify-between items-start">
+                                            <div>
+                                                <div class="font-black text-slate-800"><?php echo htmlspecialchars($ap['procedure_name']); ?></div>
+                                                <div class="text-xs text-slate-400 mt-1">
+                                                    Advised: <?php echo date('d M Y', strtotime($ap['date_advised'])); ?>
+                                                    • <?php echo htmlspecialchars($ap['first_name']); ?>
+                                                </div>
+                                            </div>
+                                            <span class="text-[10px] font-black uppercase px-3 py-1 rounded-full
+                                                <?php echo $ap['status'] === 'Completed' ? 'bg-emerald-100 text-emerald-700' : ($ap['status'] === 'In Progress' ? 'bg-amber-100 text-amber-700' : 'bg-indigo-100 text-indigo-700'); ?>">
+                                                <?php echo htmlspecialchars($ap['status']); ?>
+                                            </span>
+                                        </div>
+                                        <?php if ($ap['total_billed']): ?>
+                                            <div class="mt-3 pt-3 border-t border-slate-100 text-sm text-slate-600">
+                                                Total billed: <span class="font-black text-emerald-600">Rs. <?php echo number_format($ap['total_billed'], 0); ?></span>
+                                            </div>
+                                        <?php
+        endif; ?>
                                     </div>
                                 <?php
     endforeach; ?>
@@ -388,7 +440,7 @@ else: ?>
                                                 <td class="px-6 py-5 text-right">
                                                     <div class="text-xs font-bold text-slate-700 mb-2"><?php echo date('d M Y', strtotime($lr['test_date'])); ?></div>
                                                     <?php if (!empty($lr['scanned_report_path'])): ?>
-                                                        <a href="../<?php echo htmlspecialchars($lr['scanned_report_path']); ?>" target="_blank" class="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all">
+                                                        <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($lr['scanned_report_path']); ?>" target="_blank" class="text-[10px] font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1.5 rounded-lg border border-indigo-100 hover:bg-indigo-600 hover:text-white transition-all">
                                                             <i class="fa-solid fa-file-pdf mr-1"></i> Original PDF
                                                         </a>
                                                     <?php
@@ -421,15 +473,18 @@ $all_scans = array_merge(
     array_map(function ($i) {
         $i['type_label'] = 'Ultrasound';
         $i['icon'] = 'fa-solid fa-image';
-        return $i; }, $ultrasounds),
+        return $i;
+    }, $ultrasounds),
     array_map(function ($i) {
         $i['type_label'] = 'Semen Analysis';
         $i['icon'] = 'fa-solid fa-microscope';
         $i['report_title'] = 'Semen Analysis Report';
-        return $i; }, $semen)
+        return $i;
+    }, $semen)
 );
 usort($all_scans, function ($a, $b) {
-    return strtotime($b['created_at']) - strtotime($a['created_at']); });
+    return strtotime($b['created_at']) - strtotime($a['created_at']);
+});
 ?>
 
                             <?php if (empty($all_scans)): ?>
@@ -497,13 +552,13 @@ else: ?>
                                             </span>
                                         </div>
                                         <p class="text-xs text-slate-500 line-clamp-2 mb-4"><?php
-                                        $rx_preview = strip_tags($rx['clinical_notes'] ?? $rx['diagnosis'] ?? '');
-                                        echo htmlspecialchars($rx_preview ?: 'Medication plan issued during consultation.');
-                                        ?></p>
+        $rx_preview = strip_tags($rx['clinical_notes'] ?? $rx['diagnosis'] ?? '');
+        echo htmlspecialchars($rx_preview ?: 'Medication plan issued during consultation.');
+?></p>
                                         <div class="flex gap-2">
                                             <a href="view.php?type=rx&hash=<?php echo $rx['qrcode_hash']; ?>" target="_blank" class="flex-1 bg-indigo-600 text-white text-[10px] font-black uppercase text-center py-2 rounded-xl hover:bg-slate-900 transition-all">View Record</a>
                                             <?php if ($rx['scanned_report_path']): ?>
-                                                <a href="../<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="px-3 py-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all"><i class="fa-solid fa-file-pdf"></i></a>
+                                                <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="px-3 py-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all"><i class="fa-solid fa-file-pdf"></i></a>
                                             <?php
         endif; ?>
                                         </div>
