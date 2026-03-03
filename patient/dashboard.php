@@ -15,7 +15,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
 }
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once __DIR__ . '/includes/analytics_helper.php';
+
 $patient_id = intval($_SESSION['portal_patient_id']);
+
+// Instantiate Analytics Helper
+$analytics = new TreatmentAnalytics($conn);
+$follicle_trends = $analytics->getFollicleTrends($patient_id);
+$beta_hcg_trends = $analytics->getHormoneTrends($patient_id, 'hCG');
+$ids_csv = ''; // Initialize for safety
 
 // Fetch Patient Info
 $stmt = $conn->prepare("SELECT mr_number, first_name, last_name, gender, cnic, phone, spouse_name FROM patients WHERE id = ?");
@@ -151,6 +159,7 @@ $portal_tabs = [
     ['id' => 'timeline', 'icon' => 'fa-notes-medical', 'label' => 'Clinical Timeline', 'count' => count($histories)],
     ['id' => 'procedures', 'icon' => 'fa-syringe', 'label' => 'My Procedures', 'count' => count($advised_procedures)],
     ['id' => 'labs', 'icon' => 'fa-vials', 'label' => 'Lab Results', 'count' => count($lab_results)],
+    ['id' => 'analytics', 'icon' => 'fa-chart-line', 'label' => 'Treatment Analytics', 'count' => count($follicle_trends) + count($beta_hcg_trends)],
     ['id' => 'diagnostic', 'icon' => 'fa-image', 'label' => 'Scans & Reports', 'count' => count($ultrasounds) + count($semen)],
     ['id' => 'prescriptions', 'icon' => 'fa-prescription', 'label' => 'Prescriptions', 'count' => count($prescriptions)],
     ['id' => 'billing', 'icon' => 'fa-receipt', 'label' => 'Billing', 'count' => count($receipts)],
@@ -372,6 +381,18 @@ endforeach; ?>
 endforeach; ?>
                     </nav>
                 </div>
+
+                <!-- Partner Quick Link -->
+                <?php if ($patient['spouse_name']): ?>
+                <div class="mt-4 bg-pink-50 rounded-3xl border border-pink-100 p-2 shadow-sm">
+                    <a href="partner.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm text-pink-600 hover:bg-white shadow-sm shadow-pink-100 group">
+                        <i class="fa-solid fa-user-venus-mars text-base shrink-0 group-hover:scale-110 transition-transform"></i>
+                        <span class="text-left flex-1 whitespace-nowrap font-heading">Partner Profile</span>
+                        <i class="fa-solid fa-chevron-right text-[10px] opacity-30"></i>
+                    </a>
+                </div>
+                <?php
+endif; ?>
             </div>
 
             <!-- Content Area -->
@@ -589,6 +610,79 @@ endif; ?>
                     </div>
                 </div>
 
+                <!-- Tab: Treatment Analytics -->
+                <div x-show="activeTab === 'analytics'" 
+                     x-transition:enter="transition ease-out duration-300"
+                     x-transition:enter-start="opacity-0 translate-y-4"
+                     x-transition:enter-end="opacity-100 translate-y-0"
+                     x-cloak>
+                    <div class="space-y-8">
+                        <h2 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                            <i class="fa-solid fa-chart-line text-cyan-600"></i> Treatment Cycle Analytics
+                        </h2>
+
+                        <?php if (empty($follicle_trends) && empty($beta_hcg_trends)): ?>
+                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                                No analytics data available yet. Trends will appear once you have multiple scans or blood tests.
+                            </div>
+                        <?php
+else: ?>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Follicle Tracking -->
+                                <?php if (!empty($follicle_trends)): ?>
+                                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                                    <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                                        <i class="fa-solid fa-egg text-cyan-600"></i> Follicle Tracking
+                                    </h3>
+                                    <div class="space-y-6">
+                                        <?php foreach ($follicle_trends as $trend): ?>
+                                        <div class="relative pl-6 border-l-2 border-slate-100">
+                                            <div class="absolute -left-1.5 top-0 w-3 h-3 bg-cyan-600 rounded-full border-2 border-white"></div>
+                                            <div class="text-[10px] font-black text-slate-400 uppercase mb-2"><?php echo $trend['date']; ?></div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <?php foreach ($trend['follicles'] as $size): ?>
+                                                <div class="bg-cyan-50 border border-cyan-100 px-2 py-1 rounded-lg text-xs font-bold text-cyan-700">
+                                                    <?php echo $size; ?><span class="text-[9px] font-medium ml-0.5">mm</span>
+                                                </div>
+                                                <?php
+            endforeach; ?>
+                                            </div>
+                                        </div>
+                                        <?php
+        endforeach; ?>
+                                    </div>
+                                </div>
+                                <?php
+    endif; ?>
+
+                                <!-- Hormone Trends (Beta-hCG) -->
+                                <?php if (!empty($beta_hcg_trends)): ?>
+                                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                                    <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
+                                        <i class="fa-solid fa-droplet text-rose-500"></i> Hormone Trends (Beta-hCG)
+                                    </h3>
+                                    <div class="space-y-4">
+                                        <?php foreach ($beta_hcg_trends as $trend): ?>
+                                        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-2xl border border-slate-100">
+                                            <div class="text-[10px] font-black text-slate-400 uppercase"><?php echo $trend['date']; ?></div>
+                                            <div class="flex items-baseline gap-1">
+                                                <span class="text-lg font-black text-slate-800"><?php echo number_format($trend['value'], 1); ?></span>
+                                                <span class="text-[9px] font-bold text-slate-400 uppercase"><?php echo $trend['unit']; ?></span>
+                                            </div>
+                                        </div>
+                                        <?php
+        endforeach; ?>
+                                    </div>
+                                    <p class="text-[9px] text-slate-400 italic mt-4">* Hormone levels fluctuate during cycles; please consult your doctor for interpretation.</p>
+                                </div>
+                                <?php
+    endif; ?>
+                            </div>
+                        <?php
+endif; ?>
+                    </div>
+                </div>
+
                 <!-- Tab: Scans & Reports -->
                 <div x-show="activeTab === 'diagnostic'" 
                      x-transition:enter="transition ease-out duration-300"
@@ -633,7 +727,12 @@ else: ?>
                                                 <i class="<?php echo $s['icon']; ?>"></i>
                                             </div>
                                             <div>
-                                                <div class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest font-heading mb-0.5"><?php echo $s['type_label']; ?></div>
+                                                <div class="flex items-center gap-2 mb-0.5">
+                                                    <div class="text-[10px] font-bold text-cyan-600 uppercase tracking-widest font-heading"><?php echo $s['type_label']; ?></div>
+                                                    <span class="text-[8px] font-black uppercase px-1.5 py-0.5 rounded <?php echo($s['record_for'] ?? 'Patient') === 'Spouse' ? 'bg-pink-50 text-pink-600' : 'bg-cyan-50/50 text-cyan-700'; ?>">
+                                                        <?php echo $s['record_for'] ?? 'Patient'; ?>
+                                                    </span>
+                                                </div>
                                                 <div class="font-black text-slate-800 leading-tight"><?php echo htmlspecialchars($s['report_title'] ?? ($s['auto_diagnosis'] ?: 'Diagnostic Report')); ?></div>
                                                 <div class="text-[10px] text-slate-400 mt-1 font-bold">
                                                     <?php echo date('d M Y', strtotime($s['created_at'])); ?> • <?php echo htmlspecialchars($s['first_name']); ?>
