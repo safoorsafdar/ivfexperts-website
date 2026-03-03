@@ -1,5 +1,4 @@
 <?php
-define('BYPASS_AUTH', true);
 require_once __DIR__ . '/includes/auth.php';
 
 // Bypass auth if requested via CLI or specific param if needed, 

@@ -25,7 +25,7 @@ if ($type === 'sa') {
     $res = $stmt->get_result();
     if ($res->num_rows > 0) {
         $doc_id = $res->fetch_assoc()['id'];
-        $script = '../admin/semen_analyses_print.php';
+        $script = '../4me/semen_analyses_print.php';
     }
 }
 elseif ($type === 'usg') {
@@ -35,7 +35,7 @@ elseif ($type === 'usg') {
     $res = $stmt->get_result();
     if ($res->num_rows > 0) {
         $doc_id = $res->fetch_assoc()['id'];
-        $script = '../admin/ultrasounds_print.php';
+        $script = '../4me/ultrasounds_print.php';
     }
 }
 elseif ($type === 'rx') {
@@ -45,7 +45,7 @@ elseif ($type === 'rx') {
     $res = $stmt->get_result();
     if ($res->num_rows > 0) {
         $doc_id = $res->fetch_assoc()['id'];
-        $script = '../admin/prescriptions_print.php';
+        $script = '../4me/prescriptions_print.php';
     }
 }
 elseif ($type === 'receipt') {
@@ -55,7 +55,7 @@ elseif ($type === 'receipt') {
     $res = $stmt->get_result();
     if ($res->num_rows > 0) {
         $doc_id = $res->fetch_assoc()['id'];
-        $script = '../admin/receipts_print.php';
+        $script = '../4me/receipts_print.php';
     }
 }
 

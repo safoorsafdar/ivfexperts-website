@@ -8,7 +8,6 @@
  * Safe to re-run — uses ON DUPLICATE KEY UPDATE.
  */
 
-define('BYPASS_AUTH', true);
 require_once __DIR__ . '/includes/auth.php';
 
 header('Content-Type: text/html; charset=utf-8');

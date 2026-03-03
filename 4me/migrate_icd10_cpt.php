@@ -11,7 +11,6 @@
  * Safe to re-run (ON DUPLICATE KEY UPDATE / IF NOT EXISTS guards).
  */
 
-define('BYPASS_AUTH', true);
 require_once __DIR__ . '/includes/auth.php';
 
 header('Content-Type: text/html; charset=utf-8');

@@ -8,7 +8,6 @@
  * - Steps 2-5 are individually wrapped so one failure never blocks the rest
  */
 
-define('BYPASS_AUTH', true);
 require_once __DIR__ . '/includes/auth.php';
 
 // Allow long runtime and stream output immediately
