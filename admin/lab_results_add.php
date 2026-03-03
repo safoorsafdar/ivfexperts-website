@@ -120,6 +120,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
     }
 }
 
+// Pre-select patient when coming from patients_view.php via ?patient_id=X
+$preselected_patient = null;
+if (!$edit_data && !empty($_GET['patient_id'])) {
+    $pid_pre = intval($_GET['patient_id']);
+    $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number, gender FROM patients WHERE id = ?");
+    $pst->bind_param("i", $pid_pre);
+    $pst->execute();
+    $preselected_patient = $pst->get_result()->fetch_assoc() ?: null;
+}
+
 $pageTitle = $edit_id ? 'Edit Lab Result' : 'Record New Lab Result';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -137,12 +147,23 @@ include __DIR__ . '/includes/header.php';
         </div>
 
         <div class="p-6 md:p-8" x-data="labForm(<?php
-echo $edit_data ? json_encode([
-    'patient' => ['id' => $edit_data['patient_id'], 'mr_number' => $edit_data['mr_number'], 'first_name' => $edit_data['first_name'], 'last_name' => $edit_data['last_name'], 'gender' => $edit_data['gender']],
-    'test_id' => $edit_data['test_id'],
-    'test_for' => $edit_data['test_for'],
-    'status' => $edit_data['status']
-]) : 'null';
+if ($edit_data) {
+    echo json_encode([
+        'patient' => ['id' => $edit_data['patient_id'], 'mr_number' => $edit_data['mr_number'], 'first_name' => $edit_data['first_name'], 'last_name' => $edit_data['last_name'], 'gender' => $edit_data['gender']],
+        'test_id' => $edit_data['test_id'],
+        'test_for' => $edit_data['test_for'],
+        'status' => $edit_data['status']
+    ]);
+} elseif ($preselected_patient) {
+    echo json_encode([
+        'patient' => $preselected_patient,
+        'test_id' => '',
+        'test_for' => 'Patient',
+        'status' => 'Completed'
+    ]);
+} else {
+    echo 'null';
+}
 ?>, <?php echo json_encode($tests); ?>)">
             <?php if (!empty($error)): ?>
                 <div class="bg-red-50 text-red-600 p-4 rounded-xl mb-6 border border-red-100 flex items-center gap-2">

@@ -121,6 +121,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_usg'])) {
 // Map templates to JS
 $templates_json = json_encode(array_column($templates, 'body', 'id'));
 
+// Pre-select patient for new forms when coming from patients_view.php via ?patient_id=X
+$pre_patient_init = null;
+if ($edit_data) {
+    $pre_patient_init = ['id' => $edit_data['patient_id'], 'name' => $edit_data['first_name'] . ' ' . $edit_data['last_name'], 'mr' => $edit_data['mr_number']];
+} elseif (!empty($_GET['patient_id'])) {
+    $pid_pre = intval($_GET['patient_id']);
+    $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number FROM patients WHERE id = ?");
+    $pst->bind_param("i", $pid_pre);
+    $pst->execute();
+    $pre = $pst->get_result()->fetch_assoc();
+    if ($pre) {
+        $pre_patient_init = ['id' => $pre['id'], 'name' => $pre['first_name'] . ' ' . $pre['last_name'], 'mr' => $pre['mr_number']];
+    }
+}
+
 include __DIR__ . '/includes/header.php';
 ?>
 
@@ -156,7 +171,7 @@ endif; ?>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
                     <!-- AJAX Patient Search -->
-                    <div class="lg:col-span-1 relative" x-data="patientSearch(<?php echo $edit_data ? json_encode(['id' => $edit_data['patient_id'], 'name' => $edit_data['first_name'] . ' ' . $edit_data['last_name'], 'mr' => $edit_data['mr_number']]) : ''; ?>)">
+                    <div class="lg:col-span-1 relative" x-data="patientSearch(<?php echo json_encode($pre_patient_init); ?>)">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Search Patient (MR / Phone / Name) *</label>
                         <input type="hidden" name="patient_id" :value="selectedPatientId" required>
                         <div class="relative">
@@ -282,12 +297,12 @@ function loadTemplate(id) {
 }
 
 document.addEventListener('alpine:init', () => {
-    Alpine.data('patientSearch', () => ({
-        query: '',
+    Alpine.data('patientSearch', (initialData = null) => ({
+        query: initialData ? (initialData.name + ' (' + initialData.mr + ')') : '',
         results: [],
         isLoading: false,
-        selectedPatientId: '',
-        
+        selectedPatientId: initialData ? initialData.id : '',
+
         async search() {
             if (this.selectedPatientId) return; // Don't search if already selected
             if (this.query.length < 2) {

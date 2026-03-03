@@ -78,6 +78,24 @@ $common_procedures = [
     "Diagnostic Laparoscopy"
 ];
 
+// Pre-select patient when coming from patients_view.php or any ?patient_id= link
+$preselected_patient = null;
+if ($edit_data) {
+    $preselected_patient = [
+        'id' => $edit_data['patient_id'],
+        'first_name' => $edit_data['first_name'],
+        'last_name'  => $edit_data['last_name'],
+        'mr_number'  => $edit_data['mr_number'],
+        'phone'      => $edit_data['phone'] ?? '',
+    ];
+} elseif (!empty($_GET['patient_id'])) {
+    $pid_pre = intval($_GET['patient_id']);
+    $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number, phone FROM patients WHERE id = ?");
+    $pst->bind_param("i", $pid_pre);
+    $pst->execute();
+    $preselected_patient = $pst->get_result()->fetch_assoc() ?: null;
+}
+
 $pageTitle = $edit_id ? 'Edit Advised Treatment' : 'Advise New Treatment';
 include __DIR__ . '/includes/header.php';
 ?>
@@ -115,7 +133,7 @@ endif; ?>
 endif; ?>
                 
                 <!-- Patient Selection (AJAX component via Alpine) -->
-                <div class="mb-8" x-data="patientSearch()">
+                <div class="mb-8" x-data="patientSearch(<?php echo json_encode($preselected_patient); ?>)">
                     <label class="block text-sm font-bold text-slate-700 mb-2">Select Patient *</label>
                     
                     <div class="relative">
@@ -154,28 +172,6 @@ endif; ?>
                         </button>
                     </div>
 
-                    <?php
-// Preselect if passed in URL
-if (isset($_GET['patient_id'])) {
-    $pid = intval($_GET['patient_id']);
-    $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number, phone FROM patients WHERE id = ?");
-    $pst->bind_param("i", $pid);
-    $pst->execute();
-    $presel = $pst->get_result()->fetch_assoc();
-    if ($presel) {
-        echo "<script>
-                                document.addEventListener('alpine:init', () => {
-                                    setTimeout(() => {
-                                        const alpineEl = document.querySelector('[x-data=\"patientSearch()\"]');
-                                        if (alpineEl && alpineEl.__x) {
-                                            alpineEl.__x.$data.selectedPatient = " . json_encode($presel) . ";
-                                        }
-                                    }, 100);
-                                });
-                            </script>";
-    }
-}
-?>
 
                     <input type="hidden" name="patient_id" :value="selectedPatient?.id || ''" required>
                 </div>

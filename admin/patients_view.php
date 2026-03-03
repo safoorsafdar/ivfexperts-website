@@ -334,7 +334,7 @@ include __DIR__ . '/includes/header.php';
                                         <?php echo date('d M Y, h:i A', strtotime($h['recorded_at'])); ?>
                                     </span>
                                 </div>
-                                <div class="flex items-center gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <div class="flex items-center gap-1.5">
                                 <button @click="openEditHistory({
                                             history_id: <?php echo $h['id']; ?>,
                                             clinical_notes: <?php echo json_encode($h['clinical_notes'] ?? ''); ?>,
