@@ -22,15 +22,15 @@ if (!$patient)
 
 // Handling POST Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) {
-    $record_for     = $_POST['record_for']     ?? 'Patient';
+    $record_for = $_POST['record_for'] ?? 'Patient';
     $clinical_notes = $_POST['clinical_notes'] ?? '';
-    $diagnosis      = $_POST['diagnosis']      ?? '';
-    $icd10_codes    = $_POST['icd10_data']     ?? '[]';
+    $diagnosis = $_POST['diagnosis'] ?? '';
+    $icd10_codes = $_POST['icd10_data'] ?? '[]';
     $general_advice = $_POST['general_advice'] ?? '';
-    $next_visit     = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
+    $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
     $medications_json = $_POST['medications_data'] ?? '[]';
-    $lab_tests_json   = $_POST['lab_tests_data']   ?? '[]';
-    $qrcode_hash    = bin2hex(random_bytes(16));
+    $lab_tests_json = $_POST['lab_tests_data'] ?? '[]';
+    $qrcode_hash = bin2hex(random_bytes(16));
 
     // Rebuild diagnosis text from ICD-10 selections if present
     $icd_arr = json_decode($icd10_codes, true);
@@ -43,7 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
         $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
         if ($stmt) {
             $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
-        } else {
+        }
+        else {
             // Column not yet added — insert without it
             $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
             $stmt->bind_param("issssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $general_advice, $next_visit, $qrcode_hash);
@@ -57,7 +58,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
             if (is_array($meds)) {
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?, ?, ?, ?, ?, ?)");
                 foreach ($meds as $m) {
-                    if (empty($m['medicine_name'])) continue;
+                    if (empty($m['medicine_name']))
+                        continue;
                     $m_stmt->bind_param("isssss", $rx_id, $m['medicine_name'], $m['dosage'], $m['frequency'], $m['duration'], $m['instructions']);
                     $m_stmt->execute();
                 }
@@ -68,16 +70,19 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
             if (is_array($labs)) {
                 $l_stmt = $conn->prepare("INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for) VALUES (?, ?, ?, ?)");
                 foreach ($labs as $l) {
-                    if (empty($l['id'])) continue;
+                    if (empty($l['id']))
+                        continue;
                     $l_stmt->bind_param("iiis", $rx_id, $patient_id, $l['id'], $l['for']);
                     $l_stmt->execute();
                 }
             }
 
+            flash('success', 'Prescription saved and legalized successfully.');
             header("Location: patients_view.php?id=$patient_id&tab=rx&msg=rx_saved");
             exit;
         }
-    } catch (Exception $e) {
+    }
+    catch (Exception $e) {
         $save_error = "Could not save prescription: " . $e->getMessage();
     }
 }
@@ -91,7 +96,8 @@ include __DIR__ . '/includes/header.php';
         <i class="fa-solid fa-circle-exclamation text-red-500"></i> <?php echo htmlspecialchars($save_error); ?>
     </div>
 </div>
-<?php endif; ?>
+<?php
+endif; ?>
 
 <div class="max-w-7xl mx-auto px-4 py-8" x-data="prescriptionWizard()">
     

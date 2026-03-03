@@ -89,7 +89,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
                         test_date = ?, test_id = ?, test_for = ?, result_value = ?, 
                         status = ?, scanned_report_path = ? 
                         WHERE id = ?");
-                    $stmt->bind_param("isssisssssi",
+                    $stmt->bind_param("issssissssi",
                         $patient_id, $lab_city, $lab_name, $lab_mr_number,
                         $test_date, $test_id, $test_for, $result_value, $status, $file_path, $current_edit_id
                     );
@@ -98,14 +98,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
                     $stmt = $conn->prepare("INSERT INTO patient_lab_results 
                         (patient_id, lab_city, lab_name, lab_mr_number, test_date, test_id, test_for, result_value, status, scanned_report_path) 
                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
-                    $stmt->bind_param("isssisssss",
+                    $stmt->bind_param("isssissss",
                         $patient_id, $lab_city, $lab_name, $lab_mr_number,
                         $test_date, $test_id, $test_for, $result_value, $status, $file_path
                     );
                 }
 
                 if ($stmt->execute()) {
-                    header("Location: lab_results.php?success=1");
+                    // Redirect back to patient view if we know the patient_id
+                    $redirect_pid = intval($_POST['patient_id'] ?? 0);
+                    flash('success', 'Lab result saved successfully.');
+                    if ($redirect_pid > 0) {
+                        header("Location: patients_view.php?id={$redirect_pid}&tab=labs&msg=lab_saved");
+                    }
+                    else {
+                        header("Location: lab_results.php?success=1");
+                    }
                     exit;
                 }
                 else {
@@ -153,14 +161,16 @@ if ($edit_data) {
         'test_for' => $edit_data['test_for'],
         'status' => $edit_data['status']
     ]);
-} elseif ($preselected_patient) {
+}
+elseif ($preselected_patient) {
     echo json_encode([
         'patient' => $preselected_patient,
         'test_id' => '',
         'test_for' => 'Patient',
         'status' => 'Completed'
     ]);
-} else {
+}
+else {
     echo 'null';
 }
 ?>, <?php echo json_encode($tests); ?>)">
@@ -250,20 +260,23 @@ endif; ?>
                         <select name="test_id" x-model="test_id" required class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white">
                             <option value="">-- Choose Test --</option>
                             <?php
-                            $currentCat = null;
-                            foreach ($tests as $t):
-                                $cat = $t['category'] ?: 'Other';
-                                if ($cat !== $currentCat):
-                                    if ($currentCat !== null) echo '</optgroup>';
-                                    echo '<optgroup label="' . htmlspecialchars($cat) . '">';
-                                    $currentCat = $cat;
-                                endif;
-                            ?>
+$currentCat = null;
+foreach ($tests as $t):
+    $cat = $t['category'] ?: 'Other';
+    if ($cat !== $currentCat):
+        if ($currentCat !== null)
+            echo '</optgroup>';
+        echo '<optgroup label="' . htmlspecialchars($cat) . '">';
+        $currentCat = $cat;
+    endif;
+?>
                                 <option value="<?php echo $t['id']; ?>">
                                     <?php echo htmlspecialchars($t['test_name']); ?>
                                 </option>
-                            <?php endforeach;
-                            if ($currentCat !== null) echo '</optgroup>'; ?>
+                            <?php
+endforeach;
+if ($currentCat !== null)
+    echo '</optgroup>'; ?>
                         </select>
                         <div class="mt-2 text-xs bg-gray-50 p-2 rounded border border-gray-100 flex justify-between" x-show="test_id > 0">
                             <div>

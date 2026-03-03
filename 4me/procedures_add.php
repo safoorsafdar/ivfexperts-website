@@ -25,6 +25,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_procedure'])) {
     $procedure_name = trim($_POST['procedure_name'] ?? '');
     $date_advised = trim($_POST['date_advised'] ?? date('Y-m-d'));
     $notes = trim($_POST['notes'] ?? '');
+    $record_for = $_POST['record_for'] ?? 'Patient';
+    $status = $_POST['status'] ?? 'Advised';
     $current_edit_id = intval($_POST['edit_id'] ?? 0);
 
     // Check if new procedure name was entered manually
@@ -38,20 +40,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_procedure'])) {
     else {
         try {
             if ($current_edit_id > 0) {
-                $stmt = $conn->prepare("UPDATE advised_procedures SET patient_id=?, procedure_name=?, date_advised=?, notes=? WHERE id=?");
-                $stmt->bind_param("isssi", $patient_id, $procedure_name, $date_advised, $notes, $current_edit_id);
+                $stmt = $conn->prepare("UPDATE advised_procedures SET patient_id=?, procedure_name=?, date_advised=?, notes=?, record_for=?, status=? WHERE id=?");
+                $stmt->bind_param("isssss i", $patient_id, $procedure_name, $date_advised, $notes, $record_for, $status, $current_edit_id);
             }
             else {
-                $stmt = $conn->prepare("INSERT INTO advised_procedures (patient_id, procedure_name, date_advised, notes) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("isss", $patient_id, $procedure_name, $date_advised, $notes);
+                $stmt = $conn->prepare("INSERT INTO advised_procedures (patient_id, procedure_name, date_advised, notes, record_for, status) VALUES (?, ?, ?, ?, ?, ?)");
+                $stmt->bind_param("isssss", $patient_id, $procedure_name, $date_advised, $notes, $record_for, $status);
             }
 
-            if ($stmt->execute()) {
-                header("Location: procedures.php?success=1");
+            if ($stmt && $stmt->execute()) {
+                // Redirect back to patient view
+                flash('success', 'Procedure record saved successfully.');
+                header("Location: patients_view.php?id={$patient_id}&tab=procedures&msg=proc_saved");
                 exit;
             }
             else {
-                $error = "Database operation failed: " . $stmt->error;
+                $error = "Database operation failed: " . ($stmt ? $stmt->error : $conn->error);
             }
         }
         catch (Exception $e) {
@@ -83,11 +87,12 @@ if ($edit_data) {
     $preselected_patient = [
         'id' => $edit_data['patient_id'],
         'first_name' => $edit_data['first_name'],
-        'last_name'  => $edit_data['last_name'],
-        'mr_number'  => $edit_data['mr_number'],
-        'phone'      => $edit_data['phone'] ?? '',
+        'last_name' => $edit_data['last_name'],
+        'mr_number' => $edit_data['mr_number'],
+        'phone' => $edit_data['phone'] ?? '',
     ];
-} elseif (!empty($_GET['patient_id'])) {
+}
+elseif (!empty($_GET['patient_id'])) {
     $pid_pre = intval($_GET['patient_id']);
     $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number, phone FROM patients WHERE id = ?");
     $pst->bind_param("i", $pid_pre);

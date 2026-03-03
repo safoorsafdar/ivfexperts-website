@@ -64,6 +64,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                     $spouse_cnic, $spouse_phone, $hospital_id, $patient_id
                 );
                 if ($stmt->execute()) {
+                    flash('success', 'Patient details updated successfully.');
                     header("Location: patients_view.php?id=" . $patient_id . "&msg=updated");
                     exit;
                 }

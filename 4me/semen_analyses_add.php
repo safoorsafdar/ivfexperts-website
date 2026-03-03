@@ -105,9 +105,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
             // UPDATE mode
             $stmt = $conn->prepare("UPDATE semen_analyses SET patient_id=?, hospital_id=?, report_type=?, report_file_path=?, collection_time=?, examination_time=?, abstinence_days=?, volume=?, ph=?, concentration=?, pr_motility=?, np_motility=?, im_motility=?, normal_morphology=?, abnormal_morphology=?, appearance=?, liquefaction=?, viscosity=?, vitality=?, round_cells=?, debris=?, wbc=?, agglutination=?, auto_diagnosis=?, admin_notes=? WHERE id=?");
             if ($stmt) {
-                $stmt->bind_param("iisssssiddddddddssdssssssi", $patient_id, $hospital_id, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
+                $stmt->bind_param("iissssiddddddddsssdssssssi", $patient_id, $hospital_id, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
                 if ($stmt->execute()) {
-                    header("Location: semen_analyses.php?msg=saved");
+                    flash('success', 'Semen analysis report updated successfully.');
+                    header("Location: patients_view.php?id={$patient_id}&tab=semen&msg=saved");
                     exit;
                 }
                 else {
@@ -120,9 +121,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
             $stmt = $conn->prepare("INSERT INTO semen_analyses (patient_id, hospital_id, qrcode_hash, report_type, report_file_path, collection_time, examination_time, abstinence_days, volume, ph, concentration, pr_motility, np_motility, im_motility, normal_morphology, abnormal_morphology, appearance, liquefaction, viscosity, vitality, round_cells, debris, wbc, agglutination, auto_diagnosis, admin_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             if ($stmt) {
-                $stmt->bind_param("iissssssiddddddddssdssssss", $patient_id, $hospital_id, $qrcode_hash, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
+                $stmt->bind_param("iisssssiddddddddsssdssssss", $patient_id, $hospital_id, $qrcode_hash, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
                 if ($stmt->execute()) {
-                    header("Location: semen_analyses.php?msg=saved");
+                    flash('success', 'Semen analysis report saved successfully.');
+                    header("Location: patients_view.php?id={$patient_id}&tab=semen&msg=saved");
                     exit;
                 }
                 else {

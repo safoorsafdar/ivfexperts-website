@@ -58,6 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_usg'])) {
         $scanned_path = null;
         $scan_location = $_POST['scan_location'] ?? null;
         $scan_timestamp = null;
+        $record_for = $_POST['record_for'] ?? 'Patient';
 
         if (isset($_FILES['scanned_report']) && $_FILES['scanned_report']['error'] == UPLOAD_ERR_OK) {
             $allowed_types = ['image/jpeg', 'image/png', 'application/pdf'];
@@ -85,33 +86,38 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_usg'])) {
             if ($editing > 0) {
                 // UPDATE mode
                 if ($scanned_path) {
-                    $stmt = $conn->prepare("UPDATE patient_ultrasounds SET patient_id=?, hospital_id=?, report_title=?, content=?, scanned_report_path=?, scan_timestamp=?, scan_location_data=? WHERE id=?");
-                    $stmt->bind_param("iisssssi", $patient_id, $hospital_id, $report_title, $content, $scanned_path, $scan_timestamp, $scan_location, $editing);
+                    $stmt = $conn->prepare("UPDATE patient_ultrasounds SET patient_id=?, hospital_id=?, report_title=?, content=?, scanned_report_path=?, scan_timestamp=?, scan_location_data=?, record_for=? WHERE id=?");
+                    $stmt->bind_param("iissssssi", $patient_id, $hospital_id, $report_title, $content, $scanned_path, $scan_timestamp, $scan_location, $record_for, $editing);
                 }
                 else {
-                    $stmt = $conn->prepare("UPDATE patient_ultrasounds SET patient_id=?, hospital_id=?, report_title=?, content=? WHERE id=?");
-                    $stmt->bind_param("iissi", $patient_id, $hospital_id, $report_title, $content, $editing);
+                    $stmt = $conn->prepare("UPDATE patient_ultrasounds SET patient_id=?, hospital_id=?, report_title=?, content=?, record_for=? WHERE id=?");
+                    $stmt->bind_param("iisssi", $patient_id, $hospital_id, $report_title, $content, $record_for, $editing);
                 }
                 if ($stmt && $stmt->execute()) {
-                    header("Location: ultrasounds.php?msg=saved");
+                    flash('success', 'Ultrasound report saved successfully.');
+                    header("Location: patients_view.php?id={$patient_id}&tab=usg&msg=usg_saved");
                     exit;
                 }
                 else {
-                    $error = "Database Error: " . ($stmt ? $stmt->error : 'Statement failed');
+                    $error = "Database Error: " . ($stmt ? $stmt->error : $conn->error);
                 }
             }
             else {
                 // INSERT mode
-                $stmt = $conn->prepare("INSERT INTO patient_ultrasounds (patient_id, hospital_id, qrcode_hash, report_title, content, scanned_report_path, scan_timestamp, scan_location_data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+                $stmt = $conn->prepare("INSERT INTO patient_ultrasounds (patient_id, hospital_id, qrcode_hash, report_title, content, scanned_report_path, scan_timestamp, scan_location_data, record_for) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
                 if ($stmt) {
-                    $stmt->bind_param("iissssss", $patient_id, $hospital_id, $qrcode_hash, $report_title, $content, $scanned_path, $scan_timestamp, $scan_location);
+                    $stmt->bind_param("iissssss s", $patient_id, $hospital_id, $qrcode_hash, $report_title, $content, $scanned_path, $scan_timestamp, $scan_location, $record_for);
                     if ($stmt->execute()) {
-                        header("Location: ultrasounds.php?msg=saved");
+                        flash('success', 'Ultrasound report saved successfully.');
+                        header("Location: patients_view.php?id={$patient_id}&tab=usg&msg=usg_saved");
                         exit;
                     }
                     else {
                         $error = "Database Error: " . $stmt->error;
                     }
+                }
+                else {
+                    $error = "Statement preparation failed: " . $conn->error;
                 }
             }
         }
@@ -125,7 +131,8 @@ $templates_json = json_encode(array_column($templates, 'body', 'id'));
 $pre_patient_init = null;
 if ($edit_data) {
     $pre_patient_init = ['id' => $edit_data['patient_id'], 'name' => $edit_data['first_name'] . ' ' . $edit_data['last_name'], 'mr' => $edit_data['mr_number']];
-} elseif (!empty($_GET['patient_id'])) {
+}
+elseif (!empty($_GET['patient_id'])) {
     $pid_pre = intval($_GET['patient_id']);
     $pst = $conn->prepare("SELECT id, first_name, last_name, mr_number FROM patients WHERE id = ?");
     $pst->bind_param("i", $pid_pre);

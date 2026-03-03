@@ -53,10 +53,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         try {
             $stmt = $conn->prepare("INSERT INTO patients (mr_number, first_name, last_name, patient_age, date_of_birth, blood_group, gender, marital_status, gravida, para, abortions, years_married, cnic, phone, address, email, spouse_name, spouse_age, spouse_gender, spouse_cnic, spouse_phone, referring_hospital_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
             if ($stmt) {
-                // Total 22 params: sss i ssss iiii sssss i sss i
-                $stmt->bind_param("sssissssiiiisssssisssi", $mr_number, $first_name, $last_name, $patient_age, $date_of_birth, $blood_group, $gender, $marital_status, $gravida, $para, $abortions, $years_married, $cnic, $phone, $address, $email, $spouse_name, $spouse_age, $spouse_gender, $spouse_cnic, $spouse_phone, $hospital_id);
+                // 22 params: s s s i s s s s i i i i s s s s s i s s s i
+                $stmt->bind_param("sssissssiiissssssisssi",
+                    $mr_number, $first_name, $last_name, $patient_age,
+                    $date_of_birth, $blood_group, $gender, $marital_status,
+                    $gravida, $para, $abortions, $years_married,
+                    $cnic, $phone, $address, $email,
+                    $spouse_name, $spouse_age, $spouse_gender, $spouse_cnic, $spouse_phone,
+                    $hospital_id);
                 if ($stmt->execute()) {
                     $new_id = $conn->insert_id;
+                    flash('success', 'Patient registered successfully! Welcome to IVF Experts EMR.');
                     header("Location: patients_view.php?id=" . $new_id . "&msg=created");
                     exit;
                 }

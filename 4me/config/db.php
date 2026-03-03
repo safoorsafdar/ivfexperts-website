@@ -2,8 +2,11 @@
 /**
  * IVF Experts Database Configuration
  * Central connection file - included in all admin scripts
- * DO NOT commit real credentials to Git - use .env or server env vars in production
  */
+
+// === Disable strict exception mode so prepare() returns false on error
+// This allows fallback logic (e.g. graceful column detection) to work correctly
+mysqli_report(MYSQLI_REPORT_OFF);
 
 if (getenv('DB_HOST')) {
     define('DB_HOST', getenv('DB_HOST'));
@@ -23,15 +26,11 @@ $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 // === Check connection
 if ($conn->connect_error) {
-    // In production: log error instead of displaying
-    // error_log("Database connection failed: " . $conn->connect_error);
-    die("Connection failed: " . $conn->connect_error); // Remove die() in live site
+    // Log the error securely — do NOT display credentials to the browser
+    error_log("[IVF DB ERROR] Connection failed: " . $conn->connect_error);
+    die("<div style='font-family:sans-serif;padding:2rem;color:#c00;'>⚠️ Database connection failed. Please contact your system administrator.</div>");
 }
 
 // === Set charset to prevent encoding issues
 $conn->set_charset("utf8mb4");
-
-// === Optional: Throw exceptions on query errors (makes debugging easier)
-mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
-
 ?>
