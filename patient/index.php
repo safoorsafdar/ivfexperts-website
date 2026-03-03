@@ -9,6 +9,7 @@ if (isset($_SESSION['portal_patient_id'])) {
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
 require_once __DIR__ . '/includes/rate_limit.php';
+require_once __DIR__ . '/includes/csrf.php';
 $error = '';
 
 // Preserve QR redirect across login flow
@@ -18,7 +19,10 @@ if (!empty($_GET['redirect_hash'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!check_rate_limit('login_attempts')) {
+    if (!csrf_verify()) {
+        $error = "Security token mismatch. Please try again.";
+    }
+    elseif (!check_rate_limit('login_attempts')) {
         $error = "Too many attempts. Please wait a few minutes and try again.";
     }
     else {
@@ -41,7 +45,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $row = $stmt->get_result()->fetch_assoc();
 
                 if ($row) {
+                    session_regenerate_id(true);
                     $_SESSION['portal_patient_id'] = $row['id'];
+                    $_SESSION['session_start'] = time();
+                    $_SESSION['last_activity'] = time();
                     if (!empty($_SESSION['portal_redirect_hash'])) {
                         $h = $_SESSION['portal_redirect_hash'];
                         $t = $_SESSION['portal_redirect_type'];
@@ -60,7 +67,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             catch (Exception $e) {
                 $error = "System error. Please try again later.";
             }
-        }    }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -143,7 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 endif; ?>
 
                 <!-- Login Form -->
-                <form method="POST" class="space-y-4">
+                <form action="index.php" method="POST" class="space-y-5">
+                    <input type="hidden" name="_csrf" value="<?php echo csrf_token(); ?>">
                     <div>
                         <label class="block text-[9px] font-black text-white/35 uppercase tracking-[0.2em] mb-2.5">
                             Mobile Number or MR Number

@@ -7,6 +7,7 @@
 session_start();
 require_once dirname(__DIR__) . '/4me/config/db.php';
 require_once __DIR__ . '/includes/rate_limit.php';
+require_once __DIR__ . '/includes/csrf.php';
 
 $hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
 $type = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt']) ? $_GET['type'] : null;
@@ -128,7 +129,10 @@ $phone_hint = !empty($phone_db) ? 'XXXXXX' . substr($phone_db, -4) : '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!check_rate_limit('verify_attempts_' . $hash)) {
+    if (!csrf_verify()) {
+        $error = "Security token mismatch. Please try again.";
+    }
+    elseif (!check_rate_limit('verify_attempts_' . $hash)) {
         $error = "Too many failed attempts for this document. Please wait a few minutes.";
     }
     else {
@@ -142,7 +146,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         else {
             // Verified! Set session and redirect to document
+            session_regenerate_id(true);
             $_SESSION['portal_patient_id'] = $doc_patient_id;
+            $_SESSION['session_start'] = time();
+            $_SESSION['last_activity'] = time();
             header("Location: view.php?type={$doc_view_type}&hash={$hash}");
         }
     }
@@ -220,8 +227,10 @@ endif; ?>
 endif; ?>
 
             <!-- CNIC Form -->
-            <form method="POST" class="text-left">
-                <label class="block text-[9px] font-black text-white/35 uppercase tracking-[0.2em] mb-2.5 text-center">
+            <form action="" method="POST" class="space-y-5">
+            <input type="hidden" name="_csrf" value="<?php echo csrf_token(); ?>">
+            <div>
+    <label class="block text-[9px] font-black text-white/35 uppercase tracking-[0.2em] mb-2.5 text-center">
                     Your CNIC Number
                 </label>
                 <div class="relative mb-4">

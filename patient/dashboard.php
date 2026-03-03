@@ -199,6 +199,9 @@ $portal_tabs = [
                         <div class="text-[9px] text-white/30 font-mono leading-tight"><?php echo htmlspecialchars($patient['mr_number']); ?></div>
                     </div>
                 </div>
+                <a href="profile.php" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-indigo-600/20 hover:text-indigo-400 border border-slate-700 transition-all" title="My Profile">
+                    <i class="fa-solid fa-user-gear text-sm"></i>
+                </a>
                 <form method="POST" action="dashboard.php" class="flex items-center">
                     <button type="submit" name="logout" value="1"
                             class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 hover:bg-rose-500/20 hover:text-rose-400 border border-slate-700 transition-all focus:outline-none"
@@ -216,7 +219,7 @@ $portal_tabs = [
         <div class="mb-8">
             <div class="bg-gradient-to-r from-slate-900 to-indigo-950 rounded-3xl p-7 md:p-9 shadow-2xl">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
-                    <div>
+                    <div class="flex-1">
                         <div class="text-[9px] font-black text-indigo-400 uppercase tracking-[0.25em] mb-2">Patient Portal</div>
                         <h1 class="text-2xl md:text-3xl font-black text-white tracking-tight mb-1">
                             <?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?>
@@ -232,8 +235,50 @@ $portal_tabs = [
 endif; ?>
                         </div>
 
+                        <!-- Dynamic Treatment Journey Tracker -->
+                        <?php if (!empty($advised_procedures)): ?>
+                        <div class="mt-8 relative pt-4 pb-2 pr-4 overflow-x-auto scrollbar-hide">
+                            <div class="flex items-center min-w-[600px]">
+                                <?php
+    $total_steps = count($advised_procedures);
+    foreach ($advised_procedures as $idx => $ap):
+        $is_done = strtolower($ap['status']) === 'completed';
+        $is_active = strtolower($ap['status']) === 'in progress';
+?>
+                                    <div class="flex items-center flex-1 last:flex-none">
+                                        <div class="relative group cursor-help">
+                                            <!-- Step Node -->
+                                            <div class="w-7 h-7 rounded-full border-2 flex items-center justify-center transition-all <?php
+        echo $is_done ? 'bg-emerald-500 border-emerald-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.3)]' :
+            ($is_active ? 'bg-indigo-600 border-indigo-400 text-white animate-pulse' : 'bg-slate-800 border-slate-700 text-slate-500'); ?>">
+                                                <?php if ($is_done): ?>
+                                                    <i class="fa-solid fa-check text-[10px]"></i>
+                                                <?php
+        else: ?>
+                                                    <span class="text-[10px] font-black"><?php echo $idx + 1; ?></span>
+                                                <?php
+        endif; ?>
+                                            </div>
+                                            <!-- Label -->
+                                            <div class="absolute -bottom-6 left-1/2 -translate-x-1/2 whitespace-nowrap text-[8px] font-black uppercase tracking-wider <?php echo($is_done || $is_active) ? 'text-white' : 'text-slate-500'; ?>">
+                                                <?php echo htmlspecialchars($ap['procedure_name']); ?>
+                                            </div>
+                                        </div>
+                                        <?php if ($idx < $total_steps - 1): ?>
+                                            <!-- Connector Line -->
+                                            <div class="h-[2px] flex-1 mx-2 <?php echo $is_done ? 'bg-emerald-500' : 'bg-slate-700'; ?>"></div>
+                                        <?php
+        endif; ?>
+                                    </div>
+                                <?php
+    endforeach; ?>
+                            </div>
+                        </div>
+                        <?php
+endif; ?>
+
                         <?php if ($next_visit_date): ?>
-                        <div class="mt-4 bg-indigo-500/10 border border-indigo-400/20 rounded-2xl px-4 py-2.5 flex items-center gap-3">
+                        <div class="mt-10 bg-indigo-500/10 border border-indigo-400/20 rounded-2xl px-4 py-2.5 flex items-center gap-3 w-fit">
                             <i class="fa-solid fa-calendar-star text-indigo-400 text-lg shrink-0"></i>
                             <div>
                                 <div class="text-indigo-300 text-[10px] font-black uppercase tracking-wider leading-none mb-1">Next Appointment</div>
@@ -627,6 +672,7 @@ else: ?>
 ?></p>
                                         <div class="flex gap-2">
                                             <a href="view.php?type=rx&hash=<?php echo $rx['qrcode_hash']; ?>" target="_blank" class="flex-1 bg-indigo-600 text-white text-[10px] font-black uppercase text-center py-2 rounded-xl hover:bg-slate-900 transition-all">View Record</a>
+                                            <a href="https://wa.me/?text=<?php echo urlencode('View my prescription from IVF Experts: https://patient.ivfexperts.pk/verify.php?hash=' . $rx['qrcode_hash'] . '&type=rx'); ?>" target="_blank" class="px-3 py-2 bg-emerald-50 text-emerald-600 rounded-xl hover:bg-emerald-600 hover:text-white transition-all"><i class="fa-brands fa-whatsapp text-sm"></i></a>
                                             <?php if ($rx['scanned_report_path']): ?>
                                                 <a href="https://ivfexperts.pk/<?php echo htmlspecialchars($rx['scanned_report_path']); ?>" target="_blank" class="px-3 py-2 bg-slate-100 text-slate-500 rounded-xl hover:bg-slate-200 transition-all"><i class="fa-solid fa-file-pdf"></i></a>
                                             <?php
