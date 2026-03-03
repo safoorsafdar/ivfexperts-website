@@ -9,23 +9,20 @@
  */
 require_once __DIR__ . '/includes/auth.php';
 
-$results = [];
-$errors = [];
-
 function run_sql(mysqli $conn, string $label, string $sql): string
 {
     try {
         if ($conn->query($sql)) {
-            return "<tr><td class='p'>✅</td><td class='p'><b>{$label}</b></td><td class='p text-green'>OK</td></tr>";
+            return "<tr><td class='p'>OK</td><td class='p'><b>{$label}</b></td><td class='p text-green'>SUCCESS</td></tr>";
         }
         else {
-            return "<tr><td class='p'>❌</td><td class='p'><b>{$label}</b></td><td class='p text-red'>" . htmlspecialchars($conn->error) . "</td></tr>";
+            return "<tr><td class='p'>FAIL</td><td class='p'><b>{$label}</b></td><td class='p text-red'>" . htmlspecialchars($conn->error) . "</td></tr>";
         }
     }
     catch (Throwable $e) {
         $msg = $e->getMessage();
         $skip = strpos($msg, 'Duplicate column') !== false || strpos($msg, 'already exists') !== false;
-        $icon = $skip ? '⚪' : '❌';
+        $icon = $skip ? 'SKIP' : 'FAIL';
         $cls = $skip ? 'text-orange' : 'text-red';
         return "<tr><td class='p'>{$icon}</td><td class='p'><b>{$label}</b></td><td class='p {$cls}'>" . ($skip ? "Already exists — skipped" : htmlspecialchars($msg)) . "</td></tr>";
     }
@@ -36,20 +33,20 @@ function ensure_column(mysqli $conn, string $table, string $col, string $def): s
     try {
         $res = $conn->query("SHOW COLUMNS FROM `{$table}` LIKE '{$col}'");
         if ($res && $res->num_rows > 0) {
-            return "<tr><td class='p'>⚪</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-orange'>Already exists</td></tr>";
+            return "<tr><td class='p'>SKIP</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-orange'>Already exists</td></tr>";
         }
         $conn->query("ALTER TABLE `{$table}` ADD {$col} {$def}");
-        return "<tr><td class='p'>✅</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-green'>Added</td></tr>";
+        return "<tr><td class='p'>OK</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-green'>Added</td></tr>";
     }
     catch (Throwable $e) {
-        return "<tr><td class='p'>❌</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-red'>" . htmlspecialchars($e->getMessage()) . "</td></tr>";
+        return "<tr><td class='p'>FAIL</td><td class='p'><b>{$table}.{$col}</b></td><td class='p text-red'>" . htmlspecialchars($e->getMessage()) . "</td></tr>";
     }
 }
 
 $out = '';
 
 // ─────────────────────────────────────────────────────────────
-// SECTION 1: CORE TABLES
+// SECTION 1: CORE TABLES (CREATE IF NOT EXISTS)
 // ─────────────────────────────────────────────────────────────
 $out .= "<h2>1. Core Tables</h2><table width='100%'>";
 
@@ -70,8 +67,8 @@ $out .= run_sql($conn, "patients", "CREATE TABLE IF NOT EXISTS patients (
     patient_age INT,
     date_of_birth DATE,
     blood_group VARCHAR(10),
-    gender ENUM('Male', 'Female', 'Other') NOT NULL,
-    marital_status ENUM('Single', 'Married', 'Divorced', 'Widowed') DEFAULT 'Married',
+    gender ENUM('Male','Female','Other') NOT NULL,
+    marital_status ENUM('Single','Married','Divorced','Widowed') DEFAULT 'Married',
     gravida INT DEFAULT 0,
     para INT DEFAULT 0,
     abortions INT DEFAULT 0,
@@ -127,7 +124,7 @@ $out .= run_sql($conn, "prescription_items", "CREATE TABLE IF NOT EXISTS prescri
     INDEX (prescription_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
-$out .= run_sql($conn, "advised_lab_tests (prescription linking)", "CREATE TABLE IF NOT EXISTS advised_lab_tests (
+$out .= run_sql($conn, "advised_lab_tests", "CREATE TABLE IF NOT EXISTS advised_lab_tests (
     id INT AUTO_INCREMENT PRIMARY KEY,
     prescription_id INT,
     patient_id INT NOT NULL,
@@ -185,18 +182,32 @@ $out .= run_sql($conn, "patient_ultrasounds", "CREATE TABLE IF NOT EXISTS patien
 $out .= run_sql($conn, "semen_analyses", "CREATE TABLE IF NOT EXISTS semen_analyses (
     id INT AUTO_INCREMENT PRIMARY KEY,
     patient_id INT NOT NULL,
+    hospital_id INT,
+    qrcode_hash VARCHAR(64),
+    report_type VARCHAR(20) DEFAULT 'manual',
+    report_file_path VARCHAR(255),
     collection_time DATETIME,
+    examination_time DATETIME,
+    abstinence_days INT,
     volume DECIMAL(5,2),
+    ph DECIMAL(4,2),
     concentration DECIMAL(8,2),
     total_count DECIMAL(10,2),
     pr_motility DECIMAL(5,2) DEFAULT 0,
     np_motility DECIMAL(5,2) DEFAULT 0,
     im_motility DECIMAL(5,2) DEFAULT 0,
     normal_morphology DECIMAL(5,2),
+    abnormal_morphology DECIMAL(5,2),
+    appearance VARCHAR(50) DEFAULT 'Normal',
+    liquefaction VARCHAR(50) DEFAULT 'Complete',
+    viscosity VARCHAR(50) DEFAULT 'Normal',
     vitality DECIMAL(5,2),
-    wbc_count DECIMAL(5,2),
+    round_cells VARCHAR(50),
+    debris VARCHAR(50),
+    wbc VARCHAR(50),
+    agglutination VARCHAR(100),
     auto_diagnosis VARCHAR(255),
-    notes TEXT,
+    admin_notes TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
 
@@ -247,8 +258,6 @@ $out .= "</table>";
 // SECTION 2: ENSURE CRITICAL COLUMNS ON PRE-EXISTING TABLES
 // ─────────────────────────────────────────────────────────────
 $out .= "<h2>2. Ensuring Critical Columns</h2><table width='100%'>";
-
-// patients extra columns
 foreach ([
 ['patients', 'spouse_name', 'VARCHAR(150) AFTER email'],
 ['patients', 'spouse_age', 'INT AFTER spouse_name'],
@@ -257,6 +266,9 @@ foreach ([
 ['patients', 'spouse_phone', 'VARCHAR(20) AFTER spouse_cnic'],
 ['patients', 'referring_hospital_id', 'INT AFTER spouse_phone'],
 ['patients', 'photo_path', 'VARCHAR(255) AFTER referring_hospital_id'],
+['hospitals', 'city', 'VARCHAR(100) AFTER address'],
+['hospitals', 'phone', 'VARCHAR(30) AFTER city'],
+['medications', 'category', 'VARCHAR(100) AFTER generic_name'],
 ['prescriptions', 'record_for', "ENUM('Patient','Spouse') DEFAULT 'Patient' AFTER patient_id"],
 ['prescriptions', 'icd10_codes', 'JSON AFTER diagnosis'],
 ['patient_history', 'record_for', "ENUM('Patient','Spouse') DEFAULT 'Patient' AFTER patient_id"],
@@ -267,6 +279,7 @@ foreach ([
 ['patient_ultrasounds', 'record_for', "ENUM('Patient','Spouse') DEFAULT 'Patient' AFTER patient_id"],
 ['advised_procedures', 'record_for', "ENUM('Patient','Spouse') DEFAULT 'Patient' AFTER patient_id"],
 ['advised_procedures', 'status', "ENUM('Advised','In Progress','Completed','Cancelled') DEFAULT 'Advised' AFTER procedure_name"],
+['lab_tests_directory', 'category', 'VARCHAR(100) AFTER test_name'],
 ['lab_tests_directory', 'reference_range_male', 'TEXT AFTER reference_range'],
 ['lab_tests_directory', 'reference_range_female', 'TEXT AFTER reference_range_male'],
 ['lab_tests_directory', 'cpt_code', 'VARCHAR(20) AFTER reference_range_female'],
@@ -277,57 +290,110 @@ $out .= "</table>";
 
 // ─────────────────────────────────────────────────────────────
 // SECTION 3: SEED ESSENTIAL DATA
+// Column-aware: checks what exists before inserting
 // ─────────────────────────────────────────────────────────────
 $out .= "<h2>3. Seeding Essential Data</h2><table width='100%'>";
 
-$out .= run_sql($conn, "Default hospital (if none)", "INSERT IGNORE INTO hospitals (id, name, city) VALUES (1, 'IVF Experts Clinic', 'Lahore')");
+// --- Hospital (name only — city was added in Section 2) ---
+$out .= run_sql($conn, "Default hospital (if none)",
+    "INSERT IGNORE INTO hospitals (id, name) VALUES (1, 'IVF Experts Clinic')");
+// Backfill city now that the column is guaranteed
+$conn->query("UPDATE hospitals SET city='Lahore' WHERE id=1 AND (city IS NULL OR city='')");
 
-$out .= run_sql($conn, "Core fertility medications", "INSERT IGNORE INTO medications (name, category) VALUES
-    ('Clomiphene Citrate (Clomid)', 'Ovulation Induction'),
-    ('Letrozole (Femara)', 'Ovulation Induction'),
-    ('Gonadotropins (FSH/hMG)', 'Ovarian Stimulation'),
-    ('hCG (Ovitrelle)', 'Trigger Shot'),
-    ('Progesterone (Cyclogest)', 'Luteal Support'),
-    ('Metformin', 'Insulin Sensitizer'),
-    ('Folic Acid 5mg', 'Supplement'),
-    ('Aspirin 75mg', 'Anti-coagulant'),
-    ('Prednisolone', 'Immunosuppressant'),
-    ('Dydrogesterone (Duphaston)', 'Progesterone Support'),
-    ('Inositol', 'PCOS Support'),
-    ('CoQ10 (Ubiquinol)', 'Antioxidant'),
-    ('Vitamin D3', 'Supplement'),
-    ('Omega-3', 'Supplement'),
-    ('GnRH Agonist (Lupron)', 'Downregulation')
-");
+// --- Medications (name only — category was added in Section 2) ---
+$out .= run_sql($conn, "Core fertility medications",
+    "INSERT IGNORE INTO medications (name) VALUES
+    ('Clomiphene Citrate (Clomid)'),('Letrozole (Femara)'),
+    ('Gonadotropins (FSH/hMG)'),('hCG (Ovitrelle)'),
+    ('Progesterone (Cyclogest)'),('Metformin'),
+    ('Folic Acid 5mg'),('Aspirin 75mg'),('Prednisolone'),
+    ('Dydrogesterone (Duphaston)'),('Inositol'),
+    ('CoQ10 (Ubiquinol)'),('Vitamin D3'),('Omega-3'),
+    ('GnRH Agonist (Lupron)')");
 
-$out .= run_sql($conn, "Core IVF lab tests directory", "INSERT IGNORE INTO lab_tests_directory (test_name, category, unit, reference_range_male, reference_range_female) VALUES
-    ('FSH (Follicle Stimulating Hormone)', 'Hormonal', 'mIU/mL', '1.5–12.4', '3.5–12.5 (follicular)'),
-    ('LH (Luteinizing Hormone)', 'Hormonal', 'mIU/mL', '1.7–8.6', '2.4–12.6 (follicular)'),
-    ('AMH (Anti-Müllerian Hormone)', 'Ovarian Reserve', 'ng/mL', '1.0–10.0', '1.0–10.0 (age-dependent)'),
-    ('Prolactin', 'Hormonal', 'ng/mL', '2–18', '2–29'),
-    ('TSH (Thyroid Stimulating Hormone)', 'Thyroid', 'mIU/L', '0.4–4.0', '0.4–4.0'),
-    ('Testosterone (Total)', 'Hormonal', 'ng/dL', '300–1000', '15–70'),
-    ('Estradiol (E2)', 'Hormonal', 'pg/mL', '10–40', '30–400 (follicular)'),
-    ('Progesterone', 'Hormonal', 'ng/mL', '0.3–1.2', '1–28 (luteal)'),
-    ('Anti-Sperm Antibodies (ASA)', 'Immunological', 'units', 'Negative', 'Negative'),
-    ('CBC (Complete Blood Count)', 'Hematology', 'See report', 'Normal range', 'Normal range'),
-    ('Blood Group & Rh Factor', 'Hematology', 'Type', '-', '-'),
-    ('HBsAg (Hepatitis B)', 'Infectious', '-', 'Negative', 'Negative'),
-    ('Anti-HCV (Hepatitis C)', 'Infectious', '-', 'Negative', 'Negative'),
-    ('HIV 1&2', 'Infectious', '-', 'Non-reactive', 'Non-reactive'),
-    ('VDRL/RPR (Syphilis)', 'Infectious', '-', 'Non-reactive', 'Non-reactive'),
-    ('TORCH Panel', 'Infectious', '-', '-', 'IgG/IgM see report'),
-    ('Thyroid Antibodies (TPO Ab)', 'Thyroid', 'IU/mL', '<35', '<35'),
-    ('Random Blood Sugar', 'Metabolic', 'mg/dL', '70–140', '70–140'),
-    ('HbA1c', 'Metabolic', '%', '<5.7', '<5.7'),
-    ('Semen Analysis (WHO 6th Ed)', 'Andrology', 'See report', 'See WHO criteria', 'N/A'),
-    ('Sperm DNA Fragmentation Index', 'Andrology', '%', '<15 (ideal)', 'N/A'),
-    ('Karyotype', 'Genetic', '-', '46,XY normal', '46,XX normal'),
-    ('Y-Chromosome Microdeletion', 'Genetic', '-', 'No deletion', 'N/A')
-");
+// Backfill categories
+$cats = [
+    'Clomiphene Citrate (Clomid)' => 'Ovulation Induction',
+    'Letrozole (Femara)' => 'Ovulation Induction',
+    'Gonadotropins (FSH/hMG)' => 'Ovarian Stimulation',
+    'hCG (Ovitrelle)' => 'Trigger Shot',
+    'Progesterone (Cyclogest)' => 'Luteal Support',
+    'Metformin' => 'Insulin Sensitizer',
+    'Folic Acid 5mg' => 'Supplement',
+    'Aspirin 75mg' => 'Anti-coagulant',
+    'Prednisolone' => 'Immunosuppressant',
+    'Dydrogesterone (Duphaston)' => 'Progesterone Support',
+    'Inositol' => 'PCOS Support',
+    'CoQ10 (Ubiquinol)' => 'Antioxidant',
+    'Vitamin D3' => 'Supplement',
+    'Omega-3' => 'Supplement',
+    'GnRH Agonist (Lupron)' => 'Downregulation',
+];
+foreach ($cats as $n => $c) {
+    $ns = $conn->real_escape_string($n);
+    $cs = $conn->real_escape_string($c);
+    $conn->query("UPDATE medications SET category='{$cs}' WHERE name='{$ns}' AND (category IS NULL OR category='')");
+}
+$out .= "<tr><td class='p'>OK</td><td class='p'><b>medications.category backfill</b></td><td class='p text-green'>Done</td></tr>";
+
+// --- Lab tests directory (dynamic columns) ---
+$has_rm = $conn->query("SHOW COLUMNS FROM `lab_tests_directory` LIKE 'reference_range_male'")->num_rows > 0;
+$has_rf = $conn->query("SHOW COLUMNS FROM `lab_tests_directory` LIKE 'reference_range_female'")->num_rows > 0;
+$has_cat_lab = $conn->query("SHOW COLUMNS FROM `lab_tests_directory` LIKE 'category'")->num_rows > 0;
+
+$lab_tests = [
+    ['FSH (Follicle Stimulating Hormone)', 'Hormonal', 'mIU/mL', '1.5-12.4', '3.5-12.5 (follicular)'],
+    ['LH (Luteinizing Hormone)', 'Hormonal', 'mIU/mL', '1.7-8.6', '2.4-12.6 (follicular)'],
+    ['AMH (Anti-Mullerian Hormone)', 'Ovarian Reserve', 'ng/mL', '1.0-10.0', '1.0-10.0 (age-dependent)'],
+    ['Prolactin', 'Hormonal', 'ng/mL', '2-18', '2-29'],
+    ['TSH (Thyroid Stimulating Hormone)', 'Thyroid', 'mIU/L', '0.4-4.0', '0.4-4.0'],
+    ['Testosterone (Total)', 'Hormonal', 'ng/dL', '300-1000', '15-70'],
+    ['Estradiol (E2)', 'Hormonal', 'pg/mL', '10-40', '30-400 (follicular)'],
+    ['Progesterone', 'Hormonal', 'ng/mL', '0.3-1.2', '1-28 (luteal)'],
+    ['Anti-Sperm Antibodies (ASA)', 'Immunological', 'units', 'Negative', 'Negative'],
+    ['CBC (Complete Blood Count)', 'Hematology', 'See report', 'Normal range', 'Normal range'],
+    ['Blood Group and Rh Factor', 'Hematology', 'Type', '-', '-'],
+    ['HBsAg (Hepatitis B)', 'Infectious', '-', 'Negative', 'Negative'],
+    ['Anti-HCV (Hepatitis C)', 'Infectious', '-', 'Negative', 'Negative'],
+    ['HIV 1 and 2', 'Infectious', '-', 'Non-reactive', 'Non-reactive'],
+    ['VDRL/RPR (Syphilis)', 'Infectious', '-', 'Non-reactive', 'Non-reactive'],
+    ['TORCH Panel', 'Infectious', '-', '-', 'IgG/IgM see report'],
+    ['Thyroid Antibodies (TPO Ab)', 'Thyroid', 'IU/mL', 'less than 35', 'less than 35'],
+    ['Random Blood Sugar', 'Metabolic', 'mg/dL', '70-140', '70-140'],
+    ['HbA1c', 'Metabolic', '%', 'less than 5.7', 'less than 5.7'],
+    ['Semen Analysis (WHO 6th Ed)', 'Andrology', 'See report', 'See WHO criteria', 'N/A'],
+    ['Sperm DNA Fragmentation Index', 'Andrology', '%', 'less than 15', 'N/A'],
+    ['Karyotype', 'Genetic', '-', '46,XY normal', '46,XX normal'],
+    ['Y-Chromosome Microdeletion', 'Genetic', '-', 'No deletion', 'N/A'],
+];
+
+$inserted_labs = 0;
+foreach ($lab_tests as [$name, $cat, $unit, $rm, $rf]) {
+    $n = $conn->real_escape_string($name);
+    $u = $conn->real_escape_string($unit);
+    $cols = 'test_name, unit';
+    $vals = "'{$n}', '{$u}'";
+    if ($has_cat_lab) {
+        $cv = $conn->real_escape_string($cat);
+        $cols .= ', category';
+        $vals .= ", '{$cv}'";
+    }
+    if ($has_rm) {
+        $rv = $conn->real_escape_string($rm);
+        $cols .= ', reference_range_male';
+        $vals .= ", '{$rv}'";
+    }
+    if ($has_rf) {
+        $rv = $conn->real_escape_string($rf);
+        $cols .= ', reference_range_female';
+        $vals .= ", '{$rv}'";
+    }
+    if ($conn->query("INSERT IGNORE INTO lab_tests_directory ({$cols}) VALUES ({$vals})"))
+        $inserted_labs++;
+}
+$out .= "<tr><td class='p'>OK</td><td class='p'><b>Core IVF lab tests directory</b></td><td class='p text-green'>{$inserted_labs} tests seeded (duplicates skipped)</td></tr>";
 
 $out .= "</table>";
-
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -337,7 +403,7 @@ $out .= "</table>";
 <title>Master Migration — IVF Experts</title>
 <style>
   body { font-family: 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; margin: 0; padding: 2rem; }
-  h1 { color: #0f172a; border-bottom: 3px solid #2dd4bf; pb: 0.5rem; }
+  h1 { color: #0f172a; border-bottom: 3px solid #2dd4bf; padding-bottom: 0.5rem; }
   h2 { color: #0f172a; margin-top: 2rem; font-size: 1.1rem; background: #f1f5f9; padding: 0.5rem 1rem; border-radius: 8px; }
   table { width: 100%; border-collapse: collapse; margin-bottom: 1rem; }
   .p { padding: 6px 10px; font-size: 0.8rem; border-bottom: 1px solid #f1f5f9; }
@@ -351,24 +417,24 @@ $out .= "</table>";
 </style>
 </head>
 <body>
-<h1>🧬 IVF Experts — Master Database Migration</h1>
-<div class="warning">⚠️ <strong>Security Note:</strong> Delete or restrict this file after running. It should not be publicly accessible.</div>
+<h1>IVF Experts — Master Database Migration</h1>
+<div class="warning"><strong>Security Note:</strong> Delete or restrict this file after running. It should not be publicly accessible.</div>
 
 <?php echo $out; ?>
 
 <div class="summary">
-  <h2 style="margin-top:0; background:none; padding:0;">✅ Migration Complete!</h2>
+  <h2 style="margin-top:0; background:none; padding:0;">Migration Complete!</h2>
   <p>All required tables and columns have been verified. You can now use all admin features.</p>
   <p><strong>Next Steps:</strong></p>
   <ol>
-    <li>Click "Schema Check" below to verify everything is green</li>
-    <li>If any rows show ❌, check your DB user permissions on Hostinger</li>
-    <li>Delete or rename this file: <code>master_migration.php</code></li>
+    <li>Click "Schema Check" to verify everything looks correct</li>
+    <li>If any rows show FAIL, check your DB user permissions on Hostinger</li>
+    <li>Delete or rename this file after running</li>
   </ol>
   <br>
-  <a href="schema_check.php" class="btn">🔬 Schema Check</a>
-  <a href="patients.php" class="btn">👥 Patients</a>
-  <a href="dashboard.php" class="btn">📊 Dashboard</a>
+  <a href="schema_check.php" class="btn">Schema Check</a>
+  <a href="patients.php" class="btn">Patients</a>
+  <a href="dashboard.php" class="btn">Dashboard</a>
 </div>
 </body>
 </html>
