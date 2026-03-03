@@ -5,7 +5,7 @@
  * they land here. CNIC-only verification to show the document.
  */
 session_start();
-require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/4me/config/db.php';
 
 $hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
 $type = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : null;

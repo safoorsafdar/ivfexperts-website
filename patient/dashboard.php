@@ -5,7 +5,7 @@ if (!isset($_SESSION['portal_patient_id'])) {
     exit;
 }
 
-require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/4me/config/db.php';
 $patient_id = intval($_SESSION['portal_patient_id']);
 
 // Fetch Patient Info

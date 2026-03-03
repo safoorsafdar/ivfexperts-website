@@ -4,7 +4,7 @@
  * Adds sex-specific reference ranges and record attribution (Patient vs Spouse)
  */
 
-require_once dirname(__DIR__) . '/config/db.php';
+require_once __DIR__ . '/config/db.php';
 
 echo "<h1>IVF Experts - Spouse Enhancements Migration</h1>";
 echo "<pre>";

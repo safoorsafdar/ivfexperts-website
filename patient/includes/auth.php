@@ -9,6 +9,6 @@ if (!isset($_SESSION['portal_patient_id'])) {
     exit;
 }
 
-require_once dirname(__DIR__, 2) . '/config/db.php';
+require_once dirname(__DIR__, 2) . '/4me/config/db.php';
 $patient_id = intval($_SESSION['portal_patient_id']);
 ?>

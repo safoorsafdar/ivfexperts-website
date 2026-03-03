@@ -12,7 +12,7 @@ if (!defined('BYPASS_AUTH') || BYPASS_AUTH !== true) {
 }
 
 // Pass global config
-require_once dirname(__DIR__, 2) . '/config/db.php';
+require_once dirname(__DIR__) . '/config/db.php';
 // Provide standard function for sanitizing output
 function esc($string)
 {

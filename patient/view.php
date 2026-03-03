@@ -12,7 +12,7 @@ $type = $_GET['type'] ?? '';
 $hash = $_GET['hash'] ?? '';
 $patient_id = intval($_SESSION['portal_patient_id']);
 
-require_once dirname(__DIR__) . '/config/db.php';
+require_once dirname(__DIR__) . '/4me/config/db.php';
 
 // Route and Verify
 $doc_id = 0;
