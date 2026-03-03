@@ -331,7 +331,7 @@ include __DIR__ . '/includes/header.php';
                                     </span>
                                     <span class="text-xs font-bold text-gray-400">
                                         <i class="fa-regular fa-clock text-emerald-300 text-[10px] mr-1"></i>
-                                        <?php echo date('d M Y, h:i A', strtotime($h['recorded_at'])); ?>
+                                        <?php echo ($h['recorded_at'] && $h['recorded_at'] !== '0000-00-00 00:00:00') ? date('d M Y, h:i A', strtotime($h['recorded_at'])) : '—'; ?>
                                     </span>
                                 </div>
                                 <div class="flex items-center gap-1.5">
@@ -388,7 +388,7 @@ include __DIR__ . '/includes/header.php';
                                     <?php if (!empty($h['next_visit'])): ?>
                                     <div class="bg-slate-900 rounded-xl p-3 text-center shadow-lg">
                                         <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-0.5">Follow-up</div>
-                                        <div class="text-white font-black text-sm"><?php echo date('d M Y', strtotime($h['next_visit'])); ?></div>
+                                        <div class="text-white font-black text-sm"><?php echo ($h['next_visit'] && $h['next_visit'] !== '0000-00-00') ? date('d M Y', strtotime($h['next_visit'])) : '—'; ?></div>
                                     </div>
                                     <?php endif; ?>
                                 </div>
@@ -432,14 +432,14 @@ include __DIR__ . '/includes/header.php';
                                 <?php else: ?>
                                 <div class="text-sm font-bold text-gray-800">Digital Prescription</div>
                                 <?php endif; ?>
-                                <div class="text-xs text-gray-400 mt-1 font-medium"><?php echo date('d M Y', strtotime($rx['created_at'])); ?></div>
+                                <div class="text-xs text-gray-400 mt-1 font-medium"><?php echo ($rx['created_at'] && $rx['created_at'] !== '0000-00-00 00:00:00') ? date('d M Y', strtotime($rx['created_at'])) : '—'; ?></div>
                             </div>
                         </div>
                         <div class="border-t border-gray-50 px-5 py-3 flex items-center justify-between bg-gray-50/50">
                             <?php if (!empty($rx['next_visit'])): ?>
                             <span class="text-[10px] text-gray-400 font-bold flex items-center gap-1">
                                 <i class="fa-solid fa-calendar-check text-violet-400 text-[9px]"></i>
-                                Follow-up: <?php echo date('d M Y', strtotime($rx['next_visit'])); ?>
+                                Follow-up: <?php echo ($rx['next_visit'] && $rx['next_visit'] !== '0000-00-00') ? date('d M Y', strtotime($rx['next_visit'])) : '—'; ?>
                             </span>
                             <?php else: ?>
                             <span></span>
@@ -497,7 +497,7 @@ include __DIR__ . '/includes/header.php';
                                 <div class="w-10 h-10 bg-cyan-500/20 rounded-xl flex items-center justify-center border border-cyan-500/30">
                                     <i class="fa-solid fa-flask-vial text-cyan-400 text-sm"></i>
                                 </div>
-                                <span class="text-[9px] font-black text-slate-500 uppercase"><?php echo date('M Y', strtotime($sr['collection_time'])); ?></span>
+                                <span class="text-[9px] font-black text-slate-500 uppercase"><?php echo ($sr['collection_time'] && $sr['collection_time'] !== '0000-00-00 00:00:00') ? date('M Y', strtotime($sr['collection_time'])) : '—'; ?></span>
                             </div>
                             <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black border <?php echo $status === 'normal' ? 'bg-emerald-500/20 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/20 border-rose-500/30 text-rose-400'; ?>">
                                 <i class="fa-solid <?php echo $status === 'normal' ? 'fa-check-circle' : 'fa-triangle-exclamation'; ?> text-[8px]"></i>
@@ -520,7 +520,7 @@ include __DIR__ . '/includes/header.php';
                                 </div>
                             </div>
                             <div class="flex items-center justify-between text-xs text-gray-400">
-                                <span class="font-bold"><?php echo date('d M Y', strtotime($sr['collection_time'])); ?></span>
+                                <span class="font-bold"><?php echo ($sr['collection_time'] && $sr['collection_time'] !== '0000-00-00 00:00:00') ? date('d M Y', strtotime($sr['collection_time'])) : '—'; ?></span>
                                 <div class="flex items-center gap-1.5">
                                     <a href="semen_analyses_add.php?edit=<?php echo $sr['id']; ?>"
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black hover:bg-slate-200 transition-all" title="Edit">
@@ -579,7 +579,7 @@ include __DIR__ . '/includes/header.php';
                         <div class="p-4">
                             <h4 class="font-black text-gray-800 text-sm mb-1 truncate"><?php echo esc($u['report_title'] ?? 'Ultrasound Report'); ?></h4>
                             <div class="flex items-center justify-between gap-2">
-                                <span class="text-xs text-gray-400 font-medium"><?php echo date('d M Y', strtotime($u['created_at'])); ?></span>
+                                <span class="text-xs text-gray-400 font-medium"><?php echo ($u['created_at'] && $u['created_at'] !== '0000-00-00 00:00:00') ? date('d M Y', strtotime($u['created_at'])) : '—'; ?></span>
                                 <div class="flex items-center gap-1.5">
                                     <a href="ultrasounds_add.php?edit=<?php echo $u['id']; ?>"
                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black hover:bg-slate-200 transition-all" title="Edit">
@@ -671,7 +671,7 @@ include __DIR__ . '/includes/header.php';
                                         <div class="text-[10px] font-mono text-gray-500 bg-gray-50 px-2 py-1.5 rounded-lg max-w-[120px] truncate"><?php echo esc($ref ?: '—'); ?></div>
                                     </td>
                                     <td class="px-6 py-4">
-                                        <div class="text-xs font-bold text-gray-600"><?php echo date('d M Y', strtotime($lr['test_date'])); ?></div>
+                                        <div class="text-xs font-bold text-gray-600"><?php echo ($lr['test_date'] && $lr['test_date'] !== '0000-00-00') ? date('d M Y', strtotime($lr['test_date'])) : '—'; ?></div>
                                     </td>
                                     <td class="px-6 py-4 text-right">
                                         <div class="flex items-center justify-end gap-1.5">
@@ -732,7 +732,7 @@ include __DIR__ . '/includes/header.php';
                                 <i class="fa-solid <?php echo $statusCfg['icon']; ?> text-[8px]"></i>
                                 <?php echo esc($ap['status']); ?>
                             </span>
-                            <span class="text-[9px] font-black text-gray-300"><?php echo date('d M Y', strtotime($ap['date_advised'])); ?></span>
+                            <span class="text-[9px] font-black text-gray-300"><?php echo ($ap['date_advised'] && $ap['date_advised'] !== '0000-00-00') ? date('d M Y', strtotime($ap['date_advised'])) : '—'; ?></span>
                         </div>
                         <div class="p-6">
                             <h4 class="text-lg font-black text-gray-800 mb-0.5"><?php echo esc($ap['procedure_name']); ?></h4>
