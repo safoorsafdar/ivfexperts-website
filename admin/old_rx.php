@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $pageTitle = "Write Prescription";
 require_once __DIR__ . '/includes/auth.php';
 
@@ -33,21 +33,9 @@ if ($edit_id > 0) {
         while ($row = $res->fetch_assoc()) {
             $edit_diagnoses[$row['type']][] = $row;
         }
-
-        // Fetch Advised Lab Tests
-        $edit_lab_tests = [];
-        $res = $conn->query("SELECT * FROM prescription_lab_tests WHERE prescription_id = $edit_id");
-        while ($row = $res->fetch_assoc()) {
-            $edit_lab_tests[] = [
-                'id' => $row['test_id'],
-                'name' => $row['test_name'],
-                'advised_for' => $row['advised_for']
-            ];
-        }
     }
     else {
         $edit_id = 0;
-        $edit_lab_tests = [];
     }
 }
 
@@ -97,10 +85,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_rx'])) {
     $durations = $_POST['duration'] ?? [];
     $instructions = $_POST['instructions'] ?? [];
 
-    $adv_test_ids = $_POST['adv_test_id'] ?? [];
-    $adv_test_names = $_POST['adv_test_name'] ?? [];
-    $adv_test_for = $_POST['adv_test_for'] ?? [];
-
     if (empty($patient_id) || empty($hospital_id)) {
         $error = "Patient and Hospital fields are required.";
     }
@@ -148,7 +132,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_rx'])) {
                     // Clear existing items and diagnoses for re-insert (Cleanest way)
                     $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
                     $conn->query("DELETE FROM prescription_diagnoses WHERE prescription_id = $rx_id");
-                    $conn->query("DELETE FROM prescription_lab_tests WHERE prescription_id = $rx_id");
                 }
                 else {
                     // Insert Prescript Master
@@ -195,19 +178,6 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_rx'])) {
                     if (!empty($n)) {
                         $stmt_diag->bind_param("isss", $rx_id, $type_cpt, $c, $n);
                         $stmt_diag->execute();
-                    }
-                }
-
-                // Insert Advised Lab Tests
-                if (!empty($adv_test_names)) {
-                    $stmt_lab = $conn->prepare("INSERT INTO prescription_lab_tests (prescription_id, test_id, test_name, advised_for) VALUES (?, ?, ?, ?)");
-                    foreach ($adv_test_names as $k => $t_name) {
-                        if (!empty($t_name)) {
-                            $t_id = !empty($adv_test_ids[$k]) ? intval($adv_test_ids[$k]) : null;
-                            $t_for = $adv_test_for[$k] ?? 'Patient';
-                            $stmt_lab->bind_param("iiss", $rx_id, $t_id, $t_name, $t_for);
-                            $stmt_lab->execute();
-                        }
                     }
                 }
 
@@ -436,71 +406,6 @@ endforeach; ?>
                     </div>
                 </div>
 
-                <!-- Advised Laboratory Tests -->
-                <div class="bg-slate-50 border border-slate-200 rounded-xl p-6 mb-6">
-                    <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 flex justify-between items-center">
-                        <span><i class="fa-solid fa-vial-virus text-indigo-600 mr-2"></i> Advised Laboratory Investigations</span>
-                        <span class="text-[10px] text-gray-400 font-bold bg-white px-2 py-0.5 border rounded">SEARCH DIRECTORY</span>
-                    </h4>
-
-                    <!-- Selected Tests List -->
-                    <div class="mb-4 space-y-2">
-                        <template x-for="(test, idx) in selectedTests" :key="idx">
-                            <div class="flex items-center bg-white border border-slate-200 px-4 py-3 rounded-lg shadow-sm gap-4 transition-all hover:border-indigo-300">
-                                <input type="hidden" name="adv_test_id[]" :value="test.id">
-                                <input type="hidden" name="adv_test_name[]" :value="test.name">
-                                <input type="hidden" name="adv_test_for[]" :value="test.advised_for">
-                                
-                                <div class="flex-grow">
-                                    <div class="font-bold text-slate-800" x-text="test.name"></div>
-                                    <div class="text-[10px] text-slate-500 font-mono mt-0.5" x-text="'ID: ' + (test.id || 'Custom')"></div>
-                                </div>
-
-                                <!-- Attribution Toggle -->
-                                <div class="flex items-center gap-1 bg-slate-100 p-1 rounded-lg border border-slate-200">
-                                    <button type="button" @click="test.advised_for = 'Patient'" 
-                                        :class="test.advised_for === 'Patient' ? 'bg-indigo-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                                        class="px-3 py-1 rounded text-[10px] font-bold transition-all uppercase">Patient</button>
-                                    <button type="button" @click="test.advised_for = 'Spouse'" 
-                                        :class="test.advised_for === 'Spouse' ? 'bg-pink-600 text-white shadow-sm' : 'text-slate-500 hover:text-slate-700'"
-                                        class="px-3 py-1 rounded text-[10px] font-bold transition-all uppercase">Spouse</button>
-                                </div>
-
-                                <button type="button" @click="removeTest(idx)" class="text-slate-300 hover:text-red-500 transition-colors">
-                                    <i class="fa-solid fa-trash-can"></i>
-                                </button>
-                            </div>
-                        </template>
-                        <div x-show="selectedTests.length === 0" class="text-center py-4 text-slate-400 text-xs italic">
-                            Search for tests below to add them to this prescription.
-                        </div>
-                    </div>
-
-                    <!-- Search Input -->
-                    <div class="relative">
-                        <div class="relative group">
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fa-solid fa-search text-slate-400 group-focus-within:text-indigo-500 transition-colors"></i>
-                            </div>
-                            <input type="text" x-model="testQuery" @input.debounce.300ms="searchTest" placeholder="Search lab tests (e.g. HIV, HbA1c, Beta HCG)..." 
-                                class="w-full pl-10 pr-4 py-3 bg-white border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm" autocomplete="off" @keydown.enter.prevent="addCustomTest">
-                            <div x-show="testLoading" class="absolute right-3 top-3.5 text-indigo-500">
-                                <i class="fa-solid fa-spinner fa-spin"></i>
-                            </div>
-                        </div>
-                        
-                        <!-- Search Results Dropdown -->
-                        <div x-show="testResults.length > 0" @click.away="testResults = []" class="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-2xl overflow-hidden max-h-60 overflow-y-auto">
-                            <template x-for="t in testResults" :key="t.id">
-                                <div @click="addTest(t)" class="px-4 py-3 border-b border-gray-100 hover:bg-slate-50 cursor-pointer flex justify-between items-center transition-colors">
-                                    <span class="font-medium text-slate-700" x-text="t.test_name"></span>
-                                    <i class="fa-solid fa-plus text-slate-300"></i>
-                                </div>
-                            </template>
-                        </div>
-                    </div>
-                </div>
-
                 <!-- Follow-up, Notes & Manual Upload -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                     <div class="md:col-span-2">
@@ -591,8 +496,7 @@ document.addEventListener('alpine:init', () => {
         icdResults: [],
         icdLoading: false,
         selectedIcds: <?php echo json_encode(array_map(function ($d) {
-    return ['code' => $d['code'], 'name' => $d['description']];
-}, $edit_diagnoses['ICD'])); ?>,
+    return ['code' => $d['code'], 'name' => $d['description']]; }, $edit_diagnoses['ICD'])); ?>,
 
         async searchIcd() {
             if (this.icdQuery.length < 2) {
@@ -623,8 +527,7 @@ document.addEventListener('alpine:init', () => {
 
         // --- CPT / SNOMED Handling ---
         selectedProcs: <?php echo json_encode(array_map(function ($d) {
-    return ['code' => $d['code'], 'name' => $d['description']];
-}, $edit_diagnoses['CPT'])); ?>,
+    return ['code' => $d['code'], 'name' => $d['description']]; }, $edit_diagnoses['CPT'])); ?>,
         procCodeInput: '',
         procNameInput: '',
 
@@ -658,7 +561,7 @@ if (!empty($edit_items)) {
     echo json_encode($mapped);
 }
 else {
-    echo '[{"id": 1}]';
+    echo '[{id: 1}]';
 }
 ?>,
         nextId: <?php echo count($edit_items) + 1; ?>,
@@ -667,44 +570,6 @@ else {
         },
         removeRow(index) {
             this.rows.splice(index, 1);
-        },
-
-        // --- Lab Tests ---
-        selectedTests: <?php echo json_encode($edit_lab_tests); ?>,
-        testQuery: '',
-        testResults: [],
-        testLoading: false,
-
-        async searchTest() {
-            if (this.testQuery.length < 2) {
-                this.testResults = []; return;
-            }
-            this.testLoading = true;
-            try {
-                let res = await fetch(`api_search_lab_tests.php?q=${encodeURIComponent(this.testQuery)}`);
-                this.testResults = await res.json();
-            } catch (e) {
-                console.error(e);
-            }
-            this.testLoading = false;
-        },
-
-        addTest(t) {
-            this.selectedTests.push({ id: t.id, name: t.test_name, advised_for: 'Patient' });
-            this.testQuery = '';
-            this.testResults = [];
-        },
-
-        addCustomTest() {
-            if (this.testQuery.trim().length > 0) {
-                this.selectedTests.push({ id: null, name: this.testQuery.trim(), advised_for: 'Patient' });
-                this.testQuery = '';
-                this.testResults = [];
-            }
-        },
-
-        removeTest(idx) {
-            this.selectedTests.splice(idx, 1);
         },
 
         // --- Geolocation ---

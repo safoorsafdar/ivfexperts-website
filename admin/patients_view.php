@@ -276,7 +276,7 @@ endif; ?>
                 </div>
             </div>
         </div>
-    </div>
+    </div> <!-- End Section 3 -->
 
     <!-- Right Column: Tabs & Content -->
     <div class="w-full lg:w-2/3">
@@ -589,7 +589,7 @@ else:
 endif; ?>
             </div>
         </div>
-    </div> <!-- End Tab 2 -->
+    </div> <!-- End Section 2 -->
 
     <!-- Section 3: Prescriptions -->
     <div id="rx">
@@ -858,6 +858,8 @@ endif; ?>
             </div>
         </div>
 
-    </div>
+    </div> <!-- End Right Column -->
+
+</div> <!-- End Main Container -->
 
 <?php include __DIR__ . '/includes/footer.php'; ?>
