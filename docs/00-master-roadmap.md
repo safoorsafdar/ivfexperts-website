@@ -19,8 +19,13 @@
 | Analytics & Tracking | [10-analytics-tracking.md](10-analytics-tracking.md) | 🔴 Not Started | 0 | 12 |
 | Link Building | [11-link-building.md](11-link-building.md) | 🔴 Not Started | 0 | 10 |
 | WhatsApp & Email | [12-whatsapp-email-marketing.md](12-whatsapp-email-marketing.md) | 🔴 Not Started | 0 | 11 |
+| Competitor Analysis | [13-competitor-analysis.md](13-competitor-analysis.md) | 🔴 Not Started | 0 | 15 |
+| Social Media Strategy | [14-social-media-strategy.md](14-social-media-strategy.md) | 🔴 Not Started | 0 | 14 |
+| Reputation Management | [15-reputation-management.md](15-reputation-management.md) | 🔴 Not Started | 0 | 13 |
+| Patient Journey Map | [16-patient-journey-map.md](16-patient-journey-map.md) | 🔴 Not Started | 0 | 13 |
+| Pricing Strategy | [17-pricing-strategy.md](17-pricing-strategy.md) | 🔴 Not Started | 0 | 12 |
 
-**Overall: 0 / 153 tasks complete**
+**Overall: 0 / 208 tasks complete**
 
 ---
 
