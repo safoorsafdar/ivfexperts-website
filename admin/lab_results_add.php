@@ -27,9 +27,9 @@ if (!file_exists($upload_dir)) {
     mkdir($upload_dir, 0777, true);
 }
 
-// Fetch all defined tests
+// Fetch all defined tests, grouped by category
 $tests = [];
-$res = $conn->query("SELECT id, test_name, unit, reference_range_male, reference_range_female FROM lab_tests_directory ORDER BY test_name ASC");
+$res = $conn->query("SELECT id, test_name, unit, reference_range_male, reference_range_female, category FROM lab_tests_directory ORDER BY category ASC, test_name ASC");
 if ($res) {
     while ($row = $res->fetch_assoc())
         $tests[] = $row;
@@ -250,12 +250,21 @@ endif; ?>
                         <label class="block text-sm font-bold text-slate-700 mb-1">Select Laboratory Test *</label>
                         <select name="test_id" x-model="test_id" required class="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 bg-white">
                             <option value="">-- Choose Test --</option>
-                            <?php foreach ($tests as $t): ?>
+                            <?php
+                            $currentCat = null;
+                            foreach ($tests as $t):
+                                $cat = $t['category'] ?: 'Other';
+                                if ($cat !== $currentCat):
+                                    if ($currentCat !== null) echo '</optgroup>';
+                                    echo '<optgroup label="' . htmlspecialchars($cat) . '">';
+                                    $currentCat = $cat;
+                                endif;
+                            ?>
                                 <option value="<?php echo $t['id']; ?>">
                                     <?php echo htmlspecialchars($t['test_name']); ?>
                                 </option>
-                            <?php
-endforeach; ?>
+                            <?php endforeach;
+                            if ($currentCat !== null) echo '</optgroup>'; ?>
                         </select>
                         <div class="mt-2 text-xs bg-gray-50 p-2 rounded border border-gray-100 flex justify-between" x-show="test_id > 0">
                             <div>
