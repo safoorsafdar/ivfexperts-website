@@ -1,4 +1,8 @@
 <?php
+/**
+ * PATIENT 360 PROFILE - PREMIUM REDESIGN
+ * This file implements a high-end, sectional layout for patient data.
+ */
 $pageTitle = "Patient 360 Profile";
 require_once __DIR__ . '/includes/auth.php';
 
@@ -66,7 +70,6 @@ catch (Exception $e) {
 
 include __DIR__ . '/includes/header.php';
 ?>
-
 <div class="max-w-[1400px] mx-auto px-4 py-8">
 
     <!-- Premium Hero Section -->
@@ -85,9 +88,9 @@ include __DIR__ . '/includes/header.php';
                     </div>
                 </div>
                 <div>
-                    <h1 class="text-3xl font-black tracking-tight mb-1"><?php echo esc($patient['first_name'] . ' ' . $patient['last_name']); ?></h1>
+                    <h1 class="text-3xl font-black tracking-tight mb-1"><?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?></h1>
                     <div class="flex items-center gap-4 text-teal-50">
-                        <span class="font-mono bg-white/10 px-3 py-1 rounded-lg text-sm border border-white/10">ID: <?php echo esc($patient['mr_number']); ?></span>
+                        <span class="font-mono bg-white/10 px-3 py-1 rounded-lg text-sm border border-white/10">ID: <?php echo htmlspecialchars($patient['mr_number']); ?></span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-cake-candles text-xs"></i> <?php echo $patient['patient_age'] ?? 'N/A'; ?> Yrs</span>
                         <span class="flex items-center gap-1.5"><i class="fa-solid fa-droplet text-xs text-red-300"></i> <?php echo $patient['blood_group'] ?? 'N/A'; ?></span>
                     </div>
@@ -102,7 +105,7 @@ include __DIR__ . '/includes/header.php';
                 </div>
                 <div class="flex-1">
                     <div class="text-[10px] font-bold text-pink-200 uppercase tracking-[0.2em]">Spouse / Partner</div>
-                    <div class="font-bold text-lg leading-tight"><?php echo esc($patient['spouse_name']); ?></div>
+                    <div class="font-bold text-lg leading-tight"><?php echo htmlspecialchars($patient['spouse_name']); ?></div>
                     <div class="text-xs text-white/60"><?php echo $patient['spouse_age'] ? $patient['spouse_age'] . ' Yrs' : 'Profile Link Ready'; ?></div>
                 </div>
                 <a href="patients_edit.php?id=<?php echo $patient['id']; ?>#spouse" class="text-white/40 hover:text-white transition-colors"><i class="fa-solid fa-pen-circle"></i></a>
@@ -156,7 +159,6 @@ endif; ?>
             </a>
         </div>
     </nav>
-
     <!-- Main Command Center Grid -->
     <div class="grid grid-cols-1 gap-10">
 
@@ -172,7 +174,6 @@ endif; ?>
                         <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">History & Examination Timeline</p>
                     </div>
                 </div>
-                <!-- Mini Toggle for Quick Form -->
                 <button @click="$dispatch('open-history-form')" class="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl shadow-teal-100 transition-all active:scale-95">
                     <i class="fa-solid fa-plus-circle mr-2"></i> Add Visit Record
                 </button>
@@ -190,28 +191,23 @@ endif; ?>
 else:
     foreach ($histories as $idx => $h): ?>
                     <div class="relative pl-14 group">
-                        <!-- Timeline Node -->
                         <div class="absolute left-0 top-3 w-12 h-12 bg-white border-4 border-teal-50 rounded-2xl flex items-center justify-center z-10 shadow-sm group-hover:border-teal-400 transition-colors">
                             <i class="fa-solid fa-calendar-day text-teal-600"></i>
                         </div>
-                        
-                        <!-- Content Card -->
                         <div class="bg-white rounded-[2rem] border border-gray-100 shadow-sm hover:shadow-2xl hover:-translate-y-1 transition-all duration-500 overflow-hidden">
                             <div class="p-8">
                                 <div class="flex flex-wrap justify-between items-center gap-4 mb-6 border-b border-gray-50 pb-6">
                                     <div class="flex items-center gap-3">
                                         <span class="text-xs font-black px-4 py-1.5 bg-teal-900 text-white rounded-full shadow-lg shadow-teal-100">VISIT #<?php echo count($histories) - $idx; ?></span>
                                         <span class="text-[10px] font-bold uppercase px-3 py-1 rounded-lg <?php echo $h['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-indigo-100 text-indigo-700'; ?>">
-                                            <?php echo $h['record_for']; ?>
+                                            <?php echo htmlspecialchars($h['record_for']); ?>
                                         </span>
                                     </div>
                                     <div class="text-sm font-bold text-gray-400 flex items-center gap-2">
                                         <i class="fa-regular fa-clock text-teal-500"></i> <?php echo date('d M Y, h:i A', strtotime($h['recorded_at'])); ?>
                                     </div>
                                 </div>
-
                                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                                    <!-- Body -->
                                     <div class="lg:col-span-8 space-y-6">
                                         <?php if (!empty($h['clinical_notes'])): ?>
                                         <div>
@@ -222,7 +218,6 @@ else:
                                         </div>
                                         <?php
         endif; ?>
-                                        
                                         <?php if (!empty($h['diagnosis'])): ?>
                                         <div class="bg-indigo-50/50 rounded-2xl p-6 border border-indigo-100/50">
                                             <h4 class="text-[10px] font-black text-indigo-400 uppercase tracking-[.2em] mb-3">Diagnosis / Impression</h4>
@@ -231,8 +226,6 @@ else:
                                         <?php
         endif; ?>
                                     </div>
-
-                                    <!-- Right Sidebar -->
                                     <div class="lg:col-span-4 space-y-6">
                                         <?php if (!empty($h['medication'])): ?>
                                         <div class="bg-white rounded-2xl border border-pink-100/50 overflow-hidden shadow-inner">
@@ -244,15 +237,13 @@ else:
                                         </div>
                                         <?php
         endif; ?>
-
                                         <?php if (!empty($h['advice'])): ?>
                                         <div class="bg-teal-50/30 rounded-2xl p-6 border border-teal-100/30">
                                             <h4 class="text-[10px] font-black text-teal-500 uppercase tracking-[.2em] mb-2">Advice</h4>
-                                            <p class="text-xs text-gray-600 leading-relaxed"><?php echo nl2br(esc($h['advice'])); ?></p>
+                                            <p class="text-xs text-gray-600 leading-relaxed"><?php echo nl2br(htmlspecialchars($h['advice'])); ?></p>
                                         </div>
                                         <?php
         endif; ?>
-
                                         <?php if (!empty($h['next_visit'])): ?>
                                         <div class="bg-teal-900 rounded-2xl p-4 text-center shadow-xl shadow-teal-100">
                                             <div class="text-[9px] font-bold text-teal-400 uppercase tracking-widest mb-1">Follow-up Appointment</div>
@@ -271,7 +262,7 @@ endif; ?>
             </div>
         </section>
 
-        <!-- Semen Analysis Results -->
+        <!-- Semen Analysis Section -->
         <section id="semen" class="scroll-mt-32">
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-4">
@@ -287,7 +278,6 @@ endif; ?>
                     <i class="fa-solid fa-plus-circle"></i> New Analysis
                 </a>
             </div>
-
             <?php if (empty($semen_reports)): ?>
                 <div class="bg-white border border-gray-100 rounded-[2rem] p-12 text-center shadow-sm">
                     <i class="fa-solid fa-microscope text-5xl text-gray-100 mb-4 block"></i>
@@ -299,7 +289,6 @@ else: ?>
                     <?php foreach ($semen_reports as $sr): ?>
                         <div class="group bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm hover:shadow-2xl transition-all relative overflow-hidden">
                             <div class="absolute top-0 right-0 w-32 h-32 bg-sky-50 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-150"></div>
-                            
                             <div class="relative z-10">
                                 <div class="flex justify-between items-start mb-6">
                                     <div class="w-10 h-10 bg-sky-600 text-white rounded-xl flex items-center justify-center shadow-lg shadow-sky-100">
@@ -307,12 +296,10 @@ else: ?>
                                     </div>
                                     <div class="text-[10px] font-black text-gray-300 uppercase"><?php echo date('M Y', strtotime($sr['collection_time'])); ?></div>
                                 </div>
-                                
                                 <h4 class="text-lg font-black text-gray-800 mb-2">Andrology Report</h4>
                                 <div class="inline-flex items-center px-3 py-1 rounded-full bg-sky-50 text-sky-700 text-[10px] font-bold border border-sky-100 mb-6">
-                                    <i class="fa-solid fa-robot mr-1 text-[8px]"></i> <?php echo esc($sr['auto_diagnosis'] ?: 'Processing Diagnosis...'); ?>
+                                    <i class="fa-solid fa-robot mr-1 text-[8px]"></i> <?php echo htmlspecialchars($sr['auto_diagnosis'] ?: 'Processing Diagnosis...'); ?>
                                 </div>
-                                
                                 <div class="flex items-center justify-between border-t border-gray-50 pt-6">
                                     <div class="text-xs text-gray-400 font-bold italic"><?php echo date('d M Y', strtotime($sr['collection_time'])); ?></div>
                                     <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank" class="w-10 h-10 bg-gray-50 hover:bg-sky-100 text-gray-400 hover:text-sky-600 rounded-full flex items-center justify-center transition-all">
@@ -328,7 +315,7 @@ else: ?>
 endif; ?>
         </section>
 
-        <!-- Dynamic Prescription Wallet -->
+        <!-- Prescription Vault -->
         <section id="rx" class="scroll-mt-32">
             <div class="flex items-center justify-between mb-8">
                 <div class="flex items-center gap-4">
@@ -344,7 +331,6 @@ endif; ?>
                     <i class="fa-solid fa-plus-circle"></i> Create New Web Rx
                 </a>
             </div>
-
             <?php if (empty($prescriptions)): ?>
                 <div class="bg-indigo-50/30 border border-indigo-100 border-dashed rounded-[2.5rem] p-16 text-center">
                     <i class="fa-solid fa-prescription-bottle-medical text-6xl text-indigo-100 mb-6 block"></i>
@@ -375,7 +361,7 @@ else: ?>
                                     </td>
                                     <td class="p-8">
                                         <span class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase <?php echo $rx['record_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-teal-100 text-teal-700 shadow-sm shadow-teal-50'; ?>">
-                                            <?php echo $rx['record_for']; ?>
+                                            <?php echo htmlspecialchars($rx['record_for']); ?>
                                         </span>
                                     </td>
                                     <td class="p-8">
@@ -404,24 +390,210 @@ else: ?>
             <?php
 endif; ?>
         </section>
+        <!-- Ultrasound Section -->
+        <section id="usg" class="scroll-mt-32">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-image"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-gray-800 tracking-tight">Ultrasound Gallery</h2>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Diagnostic Imaging & Follicular Monitoring</p>
+                    </div>
+                </div>
+                <a href="ultrasounds_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl shadow-emerald-100 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> Add Scan
+                </a>
+            </div>
+            <?php if (empty($ultrasounds)): ?>
+                <div class="bg-white border border-gray-100 rounded-[2.5rem] p-16 text-center shadow-sm">
+                    <i class="fa-solid fa-camera-retro text-5xl text-gray-100 mb-4 block"></i>
+                    <p class="text-gray-400 font-bold italic">No diagnostic scans recorded yet.</p>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <?php foreach ($ultrasounds as $u): ?>
+                        <div class="bg-white rounded-[2.5rem] border border-gray-100 p-6 shadow-sm hover:shadow-2xl transition-all duration-500 group">
+                            <div class="relative rounded-2xl overflow-hidden mb-6 aspect-video bg-gray-100 flex items-center justify-center text-gray-300">
+                                <?php if (!empty($u['scanned_report_path'])): ?>
+                                    <img src="../<?php echo htmlspecialchars($u['scanned_report_path']); ?>" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700">
+                                <?php else: ?>
+                                    <i class="fa-solid fa-image-slash text-4xl"></i>
+                                <?php endif; ?>
+                                <div class="absolute inset-0 bg-gradient-to-t from-gray-900/40 to-transparent"></div>
+                                <div class="absolute bottom-4 left-4">
+                                    <span class="text-[10px] font-black uppercase text-white tracking-[0.2em] bg-emerald-600/80 px-3 py-1 rounded-lg backdrop-blur-sm">
+                                        <?php echo htmlspecialchars($u['record_for']); ?> Scan
+                                    </span>
+                                </div>
+                            </div>
+                            <h4 class="font-black text-gray-800 mb-2 truncate"><?php echo htmlspecialchars($u['report_title']); ?></h4>
+                            <div class="flex items-center justify-between text-xs font-bold text-gray-400">
+                                <span><?php echo date('d M Y', strtotime($u['created_at'])); ?></span>
+                                <div class="flex gap-2">
+                                    <a href="ultrasounds_print.php?id=<?php echo $u['id']; ?>" target="_blank" class="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-emerald-50 hover:text-emerald-600 transition-colors">
+                                        <i class="fa-solid fa-print"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
+        </section>
 
-        <!-- Continue with Scans, Labs, Procedures... -->
-        <!-- Redacted for brevity in this tool call, keeping UI flowing... -->
-        <section id="waiting" class="py-20 text-center bg-gray-50 rounded-[3rem] border-2 border-dashed border-gray-200">
-            <i class="fa-solid fa-hourglass-start text-5xl text-gray-200 mb-6 animate-spin-slow"></i>
-            <h3 class="text-gray-400 font-black uppercase tracking-[.2em]">Full Dashboard UI Initializing...</h3>
-            <p class="text-gray-400 text-sm italic">Completing the construction of Ultra-Modern Scans & Labs UI...</p>
+        <!-- Lab Hub Section -->
+        <section id="labs" class="scroll-mt-32">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-vials"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-gray-800 tracking-tight">Lab Investigation Hub</h2>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Medical Test Results & Trends</p>
+                    </div>
+                </div>
+                <a href="lab_results_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl shadow-amber-100 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> Post Lab Result
+                </a>
+            </div>
+            <?php if (empty($lab_results)): ?>
+                <div class="bg-white border border-gray-100 rounded-[3rem] p-16 text-center text-gray-300">
+                    <i class="fa-solid fa-vial-circle-check text-5xl mb-4 block"></i>
+                    <p class="font-bold">No lab investigations have been posted to this profile.</p>
+                </div>
+            <?php else: ?>
+                <div class="bg-white rounded-[2.5rem] border border-gray-100 overflow-hidden shadow-sm">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left">
+                            <thead>
+                                <tr class="bg-gray-50/50 text-[10px] uppercase font-black tracking-widest text-gray-400 border-b border-gray-100">
+                                    <th class="px-8 py-6">Test Detail</th>
+                                    <th class="px-8 py-6">Subject</th>
+                                    <th class="px-8 py-6 text-center">Result</th>
+                                    <th class="px-8 py-6">Reference</th>
+                                    <th class="px-8 py-6 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-50">
+                                <?php foreach ($lab_results as $lr): ?>
+                                    <tr class="hover:bg-amber-50/10 group transition-colors">
+                                        <td class="px-8 py-6">
+                                            <div class="font-black text-gray-800 tracking-tight mb-1"><?php echo htmlspecialchars($lr['test_name']); ?></div>
+                                            <div class="text-[10px] text-gray-400 font-bold flex items-center gap-2 uppercase tracking-tighter">
+                                                <i class="fa-solid fa-calendar text-[8px]"></i> <?php echo date('d M Y', strtotime($lr['test_date'])); ?>
+                                                <span class="mx-1">•</span>
+                                                <i class="fa-solid fa-microscope text-[8px]"></i> <?php echo htmlspecialchars($lr['lab_name'] ?: 'Internal Lab'); ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <span class="px-3 py-1 rounded-full text-[9px] font-black uppercase <?php echo $lr['test_for'] === 'Spouse' ? 'bg-pink-100 text-pink-700' : 'bg-teal-100 text-teal-700'; ?>">
+                                                <?php echo htmlspecialchars($lr['test_for']); ?>
+                                            </span>
+                                        </td>
+                                        <td class="px-8 py-6 text-center">
+                                            <?php if ($lr['status'] === 'Pending'): ?>
+                                                <span class="inline-flex items-center gap-1.5 text-amber-600 italic font-bold">
+                                                    <i class="fa-solid fa-clock-rotate-left animate-pulse"></i> Pending
+                                                </span>
+                                            <?php else: ?>
+                                                <div class="flex flex-col items-center">
+                                                    <span class="text-lg font-black text-gray-900"><?php echo htmlspecialchars($lr['result_value']); ?></span>
+                                                    <span class="text-[10px] font-bold text-gray-400 uppercase"><?php echo htmlspecialchars($lr['unit']); ?></span>
+                                                </div>
+                                            <?php endif; ?>
+                                        </td>
+                                        <td class="px-8 py-6">
+                                            <div class="text-[11px] font-mono text-gray-500 leading-relaxed bg-gray-50 p-2 rounded-lg max-w-[150px] truncate">
+                                                <?php 
+                                                    $targetGender = ($lr['test_for'] === 'Patient') ? ($patient['gender'] ?? 'Male') : (($patient['gender'] === 'Male') ? 'Female' : 'Male');
+                                                    echo ($targetGender === 'Male') ? htmlspecialchars($lr['reference_range_male']) : htmlspecialchars($lr['reference_range_female']); 
+                                                ?>
+                                            </div>
+                                        </td>
+                                        <td class="px-8 py-6 text-right">
+                                            <?php if (!empty($lr['scanned_report_path'])): ?>
+                                                <a href="../<?php echo htmlspecialchars($lr['scanned_report_path']); ?>" target="_blank" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-50 text-indigo-700 text-xs font-black rounded-xl hover:bg-indigo-600 hover:text-white transition-all">
+                                                    <i class="fa-solid fa-paperclip"></i> VIEW
+                                                </a>
+                                            <?php endif; ?>
+                                        </td>
+                                    </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </section>
+
+        <!-- Procedure Section -->
+        <section id="procedures" class="scroll-mt-32">
+            <div class="flex items-center justify-between mb-8">
+                <div class="flex items-center gap-4">
+                    <div class="w-12 h-12 bg-rose-100 text-rose-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                        <i class="fa-solid fa-clipboard-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-2xl font-black text-gray-800 tracking-tight">Procedure Tracker</h2>
+                        <p class="text-xs text-gray-400 font-bold uppercase tracking-widest">Recommended Treatments & Billing</p>
+                    </div>
+                </div>
+                <a href="procedures_add.php?patient_id=<?php echo $patient['id']; ?>" class="bg-rose-600 hover:bg-rose-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-xl shadow-rose-100 transition-all flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> Log Recommendation
+                </a>
+            </div>
+            <?php if (empty($advised_procedures)): ?>
+                <div class="bg-white border border-gray-100 rounded-[3rem] p-16 text-center text-gray-400">
+                    <i class="fa-solid fa-notes-medical text-5xl mb-4 block text-gray-100"></i>
+                    <p class="font-bold">No clinical procedures have been documented yet.</p>
+                </div>
+            <?php else: ?>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <?php foreach ($advised_procedures as $ap): 
+                        $statusMeta = match ($ap['status']) {
+                            'Advised' => ['bg' => 'bg-amber-50', 'text' => 'text-amber-700', 'border' => 'border-amber-100', 'icon' => 'fa-clock'],
+                            'In Progress' => ['bg' => 'bg-sky-50', 'text' => 'text-sky-700', 'border' => 'border-sky-100', 'icon' => 'fa-spinner fa-spin'],
+                            'Completed' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700', 'border' => 'border-emerald-100', 'icon' => 'fa-check-double'],
+                            default => ['bg' => 'bg-gray-50', 'text' => 'text-gray-600', 'border' => 'border-gray-100', 'icon' => 'fa-folder']
+                        };
+                    ?>
+                        <div class="bg-white rounded-[2rem] border border-gray-100 p-8 shadow-sm hover:shadow-2xl transition-all group flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-center justify-between mb-6">
+                                    <div class="flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase <?php echo $statusMeta['bg'] . ' ' . $statusMeta['text'] . ' ' . $statusMeta['border']; ?>">
+                                        <i class="fa-solid <?php echo $statusMeta['icon']; ?>"></i> <?php echo htmlspecialchars($ap['status']); ?>
+                                    </div>
+                                    <span class="text-[10px] font-black uppercase tracking-widest text-gray-300"><?php echo date('d M Y', strtotime($ap['date_advised'])); ?></span>
+                                </div>
+                                <h4 class="text-xl font-black text-gray-800 mb-2"><?php echo htmlspecialchars($ap['procedure_name']); ?></h4>
+                                <div class="text-[11px] font-bold text-gray-400 uppercase mb-4">Assigned To: <?php echo htmlspecialchars($ap['record_for'] ?? 'Patient'); ?></div>
+                                <?php if (!empty($ap['notes'])): ?>
+                                    <p class="text-xs text-gray-500 bg-gray-50 p-4 rounded-xl italic mb-6">"<?php echo htmlspecialchars($ap['notes']); ?>"</p>
+                                <?php endif; ?>
+                            </div>
+                            <div class="flex items-center justify-between border-t border-gray-50 pt-6 mt-4">
+                                <div class="flex flex-col">
+                                    <span class="text-[9px] font-black text-gray-400 uppercase">Billing Status</span>
+                                    <span class="text-lg font-black <?php echo $ap['total_paid'] > 0 ? 'text-emerald-600' : 'text-gray-300'; ?>">
+                                        <?php echo $ap['total_paid'] > 0 ? 'Rs. ' . number_format($ap['total_paid']) : 'No Payments'; ?>
+                                    </span>
+                                </div>
+                                <a href="receipts_add.php?patient_id=<?php echo $patient['id']; ?>&procedure_id=<?php echo $ap['id']; ?>" class="bg-emerald-50 text-emerald-700 hover:bg-emerald-600 hover:text-white px-6 py-2.5 rounded-xl text-xs font-black transition-all border border-emerald-100 flex items-center gap-2">
+                                    <i class="fa-solid fa-file-invoice-dollar"></i> GENERATE BILL
+                                </a>
+                            </div>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+            <?php endif; ?>
         </section>
 
     </div>
-</div>
+<!-- END CHUNK 4 -->
 
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Outfit:wght@500;600;700;800;900&display=swap');
-    body { font-family: 'Inter', sans-serif; background-color: #FBFBFF; }
-    h1, h2, h3, h4, .font-black { font-family: 'Outfit', sans-serif; }
-    .scrollbar-hide::-webkit-scrollbar { display: none; }
-    .animate-spin-slow { animation: spin 8s linear infinite; }
-</style>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+
+
