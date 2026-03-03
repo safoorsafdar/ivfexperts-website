@@ -5,6 +5,14 @@ if (!isset($_SESSION['portal_patient_id'])) {
     exit;
 }
 
+// Logout — handled at top before any DB queries or HTML output
+if (isset($_GET['logout'])) {
+    $_SESSION = [];
+    session_destroy();
+    header("Location: index.php");
+    exit;
+}
+
 require_once dirname(__DIR__) . '/4me/config/db.php';
 $patient_id = intval($_SESSION['portal_patient_id']);
 
@@ -113,12 +121,6 @@ try {
 catch (Exception $e) {
 }
 
-// Logout handler
-if (isset($_GET['logout'])) {
-    session_destroy();
-    header("Location: index.php");
-    exit;
-}
 ?>
 <!DOCTYPE html>
 <html lang="en">

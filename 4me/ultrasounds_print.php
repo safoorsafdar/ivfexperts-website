@@ -1,5 +1,12 @@
 <?php
-require_once __DIR__ . '/includes/auth.php';
+if (!defined('BYPASS_AUTH')) {
+    require_once __DIR__ . '/includes/auth.php';
+} else {
+    require_once __DIR__ . '/config/db.php';
+    if (!function_exists('esc')) {
+        function esc($string) { return htmlspecialchars($string ?? '', ENT_QUOTES, 'UTF-8'); }
+    }
+}
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($id <= 0)

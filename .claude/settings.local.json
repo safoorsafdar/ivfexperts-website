@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ls /e/Github/ivfexperts/admin/*.php)",
+      "Bash(grep -n \"prescriptions\\\\|qrcode_hash\\\\|record_for\\\\|clinical_notes\" /e/Github/ivfexperts/admin/migrate*.php)"
+    ]
+  }
+}
