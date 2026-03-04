@@ -20,10 +20,10 @@ if ($edit_id > 0) {
     }
 }
 
-// Check if directories exist
-$upload_dir = dirname(__DIR__) . '/uploads/labs/';
+// Ensure upload directory exists inside 4me/
+$upload_dir = __DIR__ . '/uploads/labs/';
 if (!file_exists($upload_dir)) {
-    mkdir($upload_dir, 0777, true);
+    mkdir($upload_dir, 0755, true);
 }
 
 // Fetch all defined tests, grouped by category
@@ -70,8 +70,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_lab_result'])) {
 
                 if (move_uploaded_file($file_tmp, $dest_path)) {
                     // Delete old file if updating
-                    if (!empty($file_path) && file_exists(dirname(__DIR__) . '/' . $file_path)) {
-                        unlink(dirname(__DIR__) . '/' . $file_path);
+                    if (!empty($file_path) && file_exists(__DIR__ . '/' . $file_path)) {
+                        unlink(__DIR__ . '/' . $file_path);
                     }
                     $file_path = 'uploads/labs/' . $new_file_name;
                 }
