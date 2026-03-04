@@ -1,6 +1,6 @@
 <?php
 /**
- * deploycheck.php — Verify which version of prescriptions_edit.php is running on the server.
+ * deploycheck.php — Verify DB state of prescription_items for rx 1 and 2.
  * DELETE after use.
  */
 require_once __DIR__ . '/config/db.php';
