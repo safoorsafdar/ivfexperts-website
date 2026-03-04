@@ -17,31 +17,65 @@ $error = $success = '';
 // ── Handle Add / Edit Clinical History ────────────────────────────────────────
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['add_history']) || isset($_POST['edit_history'])) {
-        $notes = $_POST['clinical_notes'] ?? '';
-        $diagnosis = $_POST['diagnosis'] ?? '';
-        $medication = $_POST['medication'] ?? '';
-        $advice = $_POST['advice'] ?? '';
+        // ── Auto-ensure patient_history columns exist (safe to run every time) ──
+        $colChecks = [
+            'record_for' => "ALTER TABLE patient_history ADD COLUMN record_for ENUM('Patient','Spouse') DEFAULT 'Patient'",
+            'next_visit' => "ALTER TABLE patient_history ADD COLUMN next_visit DATE",
+            'clinical_notes' => "ALTER TABLE patient_history ADD COLUMN clinical_notes TEXT",
+            'diagnosis' => "ALTER TABLE patient_history ADD COLUMN diagnosis TEXT",
+            'medication' => "ALTER TABLE patient_history ADD COLUMN medication TEXT",
+            'advice' => "ALTER TABLE patient_history ADD COLUMN advice TEXT",
+        ];
+        foreach ($colChecks as $col => $sql) {
+            $chk = $conn->query("SHOW COLUMNS FROM patient_history LIKE '$col'");
+            if ($chk && $chk->num_rows === 0) {
+                $conn->query($sql);
+            }
+        }
+
+        $notes = trim($_POST['clinical_notes'] ?? '');
+        $diagnosis = trim($_POST['diagnosis'] ?? '');
+        $medication = trim($_POST['medication'] ?? '');
+        $advice = trim($_POST['advice'] ?? '');
         $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
-        $record_for = $_POST['record_for'] ?? 'Patient';
+        $record_for = in_array($_POST['record_for'] ?? '', ['Patient', 'Spouse']) ? $_POST['record_for'] : 'Patient';
 
         if (isset($_POST['add_history'])) {
             $stmt = $conn->prepare("INSERT INTO patient_history (patient_id, clinical_notes, diagnosis, medication, advice, next_visit, record_for) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param('issssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
+            if (!$stmt) {
+                $error = "DB prepare() failed: " . $conn->error;
+                error_log("[patients_view INSERT history] " . $conn->error);
+            }
+            else {
+                $stmt->bind_param('issssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
+            }
         }
         else {
-            $history_id = intval($_POST['history_id']);
+            $history_id = intval($_POST['history_id'] ?? 0);
             $stmt = $conn->prepare("UPDATE patient_history SET clinical_notes=?, diagnosis=?, medication=?, advice=?, next_visit=?, record_for=? WHERE id=? AND patient_id=?");
-            $stmt->bind_param('ssssssii', $notes, $diagnosis, $medication, $advice, $next_visit, $record_for, $history_id, $patient_id);
+            if (!$stmt) {
+                $error = "DB prepare() failed: " . $conn->error;
+                error_log("[patients_view UPDATE history] " . $conn->error);
+            }
+            else {
+                $stmt->bind_param('ssssssii', $notes, $diagnosis, $medication, $advice, $next_visit, $record_for, $history_id, $patient_id);
+            }
         }
-        if ($stmt->execute()) {
-            $action = isset($_POST['add_history']) ? 'added' : 'updated';
-            header("Location: patients_view.php?id={$patient_id}&tab=history&msg={$action}");
-            exit;
-        }
-        else {
-            $error = "Operation failed: " . $stmt->error;
+
+        if (empty($error) && isset($stmt) && $stmt) {
+            if ($stmt->execute()) {
+                $action = isset($_POST['add_history']) ? 'added' : 'updated';
+                header("Location: patients_view.php?id={$patient_id}&tab=history&msg={$action}");
+                exit;
+            }
+            else {
+                $error = "Save failed: " . $stmt->error;
+                error_log("[patients_view history execute] " . $stmt->error);
+            }
         }
     }
+
+
     if (isset($_POST['delete_history'])) {
         $id = intval($_POST['record_id']);
         $conn->query("DELETE FROM patient_history WHERE id = $id AND patient_id = $patient_id");
@@ -973,34 +1007,29 @@ endif; ?>
             <form method="POST" class="flex-1 overflow-y-auto p-10 space-y-8 custom-scrollbar">
                 <input type="hidden" name="history_id" :value="editHistory ? editHistory.history_id : ''">
                 
-                <!-- Clinical Attribution -->
-                <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Record For</label>
-                    <div class="grid grid-cols-2 gap-4">
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="record_for" value="Patient" class="peer sr-only" :checked="!editHistory || editHistory.record_for === 'Patient'">
-                            <div class="p-5 rounded-2xl bg-slate-50 border-2 border-transparent transition-all peer-checked:bg-white peer-checked:border-brand-500 peer-checked:shadow-xl peer-checked:shadow-brand-100 group-hover:bg-white">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-400 peer-checked:text-brand-600 transition-colors">
-                                        <i class="fa-solid fa-user-nurse text-xl"></i>
-                                    </div>
-                                    <span class="text-xs font-black text-slate-900 uppercase">Patient</span>
-                                </div>
-                            </div>
-                        </label>
-                        <label class="relative cursor-pointer group">
-                            <input type="radio" name="record_for" value="Spouse" class="peer sr-only" :checked="editHistory && editHistory.record_for === 'Spouse'">
-                            <div class="p-5 rounded-2xl bg-slate-50 border-2 border-transparent transition-all peer-checked:bg-white peer-checked:border-rose-500 peer-checked:shadow-xl peer-checked:shadow-rose-100 group-hover:bg-white">
-                                <div class="flex items-center gap-4">
-                                    <div class="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center text-slate-400 peer-checked:text-rose-500 transition-colors">
-                                        <i class="fa-solid fa-heart text-xl"></i>
-                                    </div>
-                                    <span class="text-xs font-black text-slate-900 uppercase">Spouse</span>
-                                </div>
-                            </div>
-                        </label>
-                    </div>
+                <!-- Record For — compact inline toggle -->
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-xs font-medium text-slate-500">Record for:</span>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="record_for" value="Patient" class="peer sr-only"
+                               :checked="!editHistory || editHistory.record_for !== 'Spouse'">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all
+                                     border-gray-200 text-gray-500 bg-white
+                                     peer-checked:border-teal-500 peer-checked:text-teal-700 peer-checked:bg-teal-50">
+                            <i class="fa-solid fa-user text-[10px]"></i> Patient
+                        </span>
+                    </label>
+                    <label class="cursor-pointer">
+                        <input type="radio" name="record_for" value="Spouse" class="peer sr-only"
+                               :checked="editHistory && editHistory.record_for === 'Spouse'">
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border-2 transition-all
+                                     border-gray-200 text-gray-500 bg-white
+                                     peer-checked:border-rose-400 peer-checked:text-rose-700 peer-checked:bg-rose-50">
+                            <i class="fa-solid fa-heart text-[10px]"></i> Spouse
+                        </span>
+                    </label>
                 </div>
+
 
                 <!-- Notes & Findings -->
                 <div class="space-y-6">
