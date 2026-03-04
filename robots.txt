@@ -6,29 +6,6 @@ User-agent: *
 Allow: /
 Crawl-delay: 2
 
-# =============================================
-# AI CRAWLER EXPLICIT ALLOW
-# Ensures content is indexed by AI search engines
-# =============================================
-
-User-agent: GPTBot
-Allow: /
-
-User-agent: OAI-SearchBot
-Allow: /
-
-User-agent: ClaudeBot
-Allow: /
-
-User-agent: PerplexityBot
-Allow: /
-
-User-agent: Google-Extended
-Allow: /
-
-User-agent: Applebot-Extended
-Allow: /
-
 # Block admin & system directories
 Disallow: /admin/
 Disallow: /config/
@@ -54,6 +31,29 @@ Disallow: /update_scans_db.php
 Disallow: /test_500.php
 Disallow: /test_db.php
 Disallow: /fix_images.py
+
+# =============================================
+# AI CRAWLER EXPLICIT ALLOW
+# Ensures content is indexed by AI search engines
+# =============================================
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
 
 # Sitemap
 Sitemap: https://ivfexperts.pk/sitemap.xml
