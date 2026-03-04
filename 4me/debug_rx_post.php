@@ -1,18 +1,34 @@
 <?php
-/**
- * debug_rx_post.php — Temporary script to debug prescription_items INSERT
- * DELETE after use.
- */
 require_once __DIR__ . '/config/db.php';
 header('Content-Type: text/plain');
 
-echo "=== POST DATA ===\n";
-echo json_encode($_POST, JSON_PRETTY_PRINT) . "\n\n";
+echo "=== All prescription_items rows ===\n";
+$res = $conn->query("SELECT * FROM prescription_items ORDER BY prescription_id, id");
+if ($res) {
+    while ($r = $res->fetch_assoc())
+        echo json_encode($r) . "\n";
+}
+else {
+    echo "Error: " . $conn->error . "\n";
+}
 
-echo "=== TEST INSERT ===\n";
-// Simulate what the edit page does
-$rx_id = 2; // test with prescription 2
-$meds_post = $_POST['meds'] ?? [['medicine_name' => 'TestMed', 'dosage' => '10mg', 'frequency' => 'OD', 'duration' => '7d', 'instructions' => '']];
+echo "\n=== With TRIM filter (what edit page sees for id=2) ===\n";
+$res2 = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = 2 AND TRIM(COALESCE(medicine_name,'')) != '' ORDER BY id");
+if ($res2) {
+    $count = 0;
+    while ($r = $res2->fetch_assoc()) {
+        echo json_encode($r) . "\n";
+        $count++;
+    }
+    echo "(total: $count rows)\n";
+}
+
+echo "\n=== Without filter (raw count per prescription) ===\n";
+$res3 = $conn->query("SELECT prescription_id, COUNT(*) c, SUM(CASE WHEN TRIM(COALESCE(medicine_name,'')) != '' THEN 1 ELSE 0 END) as has_name FROM prescription_items GROUP BY prescription_id");
+if ($res3) {
+    while ($r = $res3->fetch_assoc())
+        echo "rx_id={$r['prescription_id']}: total={$r['c']}, with_name={$r['has_name']}\n";
+}
 
 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
 echo "Prepare result: " . ($m_stmt ? "SUCCESS" : "FAILED: " . $conn->error) . "\n";
