@@ -92,7 +92,7 @@ try {
         die("Patient not found.");
 
     $pid = intval($patient_id);
-    $histories = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY recorded_at DESC")->fetch_all(MYSQLI_ASSOC);
+    $histories = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY COALESCE(created_at, id) DESC")->fetch_all(MYSQLI_ASSOC);
     $semen_reports = $conn->query("SELECT * FROM semen_analyses WHERE patient_id = $pid ORDER BY collection_time DESC")->fetch_all(MYSQLI_ASSOC);
     $prescriptions = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
     $ultrasounds = $conn->query("SELECT * FROM patient_ultrasounds WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
@@ -189,30 +189,30 @@ endif; ?>
                     </span>
                 </div>
                 <!-- Gender Icon Badge -->
-                <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl border-4 border-slate-950 flex items-center justify-center text-white shadow-lg <?php echo($patient['gender'] === 'Female') ? 'bg-rose-500' : 'bg-indigo-500'; ?>">
+                <div class="absolute -bottom-1 -right-1 w-8 h-8 rounded-xl border-4 border-white flex items-center justify-center text-white shadow-lg <?php echo($patient['gender'] === 'Female') ? 'bg-rose-500' : 'bg-indigo-500'; ?>">
                     <i class="fa-solid <?php echo($patient['gender'] === 'Female') ? 'fa-venus' : 'fa-mars'; ?> text-xs"></i>
                 </div>
             </div>
 
-            <h2 class="text-white text-xl font-black mt-6 leading-tight tracking-tight"><?php echo esc($patient['first_name'] . ' ' . $patient['last_name']); ?></h2>
-            <div class="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
-                <span class="text-[10px] font-mono text-brand-400 font-black tracking-widest"><?php echo esc($patient['mr_number']); ?></span>
+            <h2 class="text-slate-800 text-xl font-semibold mt-6 leading-tight tracking-tight"><?php echo esc($patient['first_name'] . ' ' . $patient['last_name']); ?></h2>
+            <div class="inline-flex items-center gap-2 mt-2 px-3 py-1 bg-teal-50 rounded-full border border-teal-100">
+                <span class="text-[10px] font-mono text-teal-600 font-semibold tracking-widest"><?php echo esc($patient['mr_number']); ?></span>
             </div>
             
             <div class="flex items-center gap-3 mt-6">
                 <div class="flex flex-col items-center">
                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Age</span>
-                    <span class="text-sm font-black text-white"><?php echo esc($patient['patient_age'] ?: '—'); ?>y</span>
+                    <span class="text-sm font-semibold text-slate-800"><?php echo esc($patient['patient_age'] ?: '—'); ?>y</span>
                 </div>
-                <div class="w-px h-6 bg-white/10"></div>
+                <div class="w-px h-6 bg-gray-200"></div>
                 <div class="flex flex-col items-center">
                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Blood</span>
-                    <span class="text-sm font-black text-brand-400"><?php echo esc($patient['blood_group'] ?: 'N/A'); ?></span>
+                    <span class="text-sm font-semibold text-teal-600"><?php echo esc($patient['blood_group'] ?: 'N/A'); ?></span>
                 </div>
-                <div class="w-px h-6 bg-white/10"></div>
+                <div class="w-px h-6 bg-gray-200"></div>
                 <div class="flex flex-col items-center">
                     <span class="text-[10px] font-black text-slate-500 uppercase tracking-tighter">Status</span>
-                    <span class="text-sm font-black text-white"><?php echo esc($patient['marital_status'] ? substr($patient['marital_status'], 0, 1) : '—'); ?></span>
+                    <span class="text-sm font-semibold text-slate-800"><?php echo esc($patient['marital_status'] ? substr($patient['marital_status'], 0, 1) : '—'); ?></span>
                 </div>
             </div>
         </div>
@@ -221,23 +221,23 @@ endif; ?>
         <div class="px-4 space-y-4 mb-8">
             <!-- Obstetric Pulse (Female only) -->
             <?php if ($patient['gender'] === 'Female' && ($patient['gravida'] || $patient['para'])): ?>
-            <div class="bg-gradient-to-br from-slate-900/50 to-slate-900 border border-white/5 rounded-3xl p-4 shadow-inner">
+            <div class="bg-rose-50 border border-rose-100 rounded-2xl p-4">
                 <div class="flex items-center justify-between mb-4">
-                    <span class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Obstetrics</span>
+                    <span class="text-[10px] font-semibold text-rose-500 uppercase tracking-widest">Obstetrics</span>
                     <i class="fa-solid fa-heart-pulse text-rose-500/50 text-[10px]"></i>
                 </div>
                 <div class="grid grid-cols-3 gap-1">
                     <div class="text-center">
-                        <div class="text-lg font-black text-white"><?php echo $patient['gravida'] ?? 0; ?></div>
-                        <div class="text-[9px] text-slate-600 font-bold uppercase">G</div>
+                        <div class="text-lg font-semibold text-rose-700"><?php echo $patient['gravida'] ?? 0; ?></div>
+                        <div class="text-[9px] text-rose-400 font-semibold uppercase">G</div>
                     </div>
                     <div class="text-center">
-                        <div class="text-lg font-black text-white"><?php echo $patient['para'] ?? 0; ?></div>
-                        <div class="text-[9px] text-slate-600 font-bold uppercase">P</div>
+                        <div class="text-lg font-semibold text-rose-700"><?php echo $patient['para'] ?? 0; ?></div>
+                        <div class="text-[9px] text-rose-400 font-semibold uppercase">P</div>
                     </div>
-                    <div class="text-center border-l border-white/5">
-                        <div class="text-lg font-black text-white"><?php echo $patient['abortions'] ?? 0; ?></div>
-                        <div class="text-[9px] text-slate-600 font-bold uppercase">A</div>
+                    <div class="text-center border-l border-rose-200">
+                        <div class="text-lg font-semibold text-rose-700"><?php echo $patient['abortions'] ?? 0; ?></div>
+                        <div class="text-[9px] text-rose-400 font-semibold uppercase">A</div>
                     </div>
                 </div>
             </div>
@@ -251,11 +251,11 @@ endif; ?>
                     <span>Partner Dossier</span>
                     <i class="fa-solid fa-link text-[10px] opacity-20"></i>
                 </div>
-                <h4 class="text-brand-50 text-sm font-black"><?php echo esc($patient['spouse_name']); ?></h4>
+                <h4 class="text-teal-800 text-sm font-semibold"><?php echo esc($patient['spouse_name']); ?></h4>
                 <div class="flex items-center gap-2 mt-2">
-                    <span class="text-[10px] font-bold text-slate-500"><?php echo esc($patient['spouse_age'] ?: '—'); ?> years</span>
-                    <span class="w-1 h-1 rounded-full bg-slate-700"></span>
-                    <span class="text-[10px] font-bold text-slate-500"><?php echo esc($patient['spouse_phone'] ?: 'No Phone'); ?></span>
+                    <span class="text-[10px] font-medium text-teal-600"><?php echo esc($patient['spouse_age'] ?: '—'); ?> years</span>
+                    <span class="w-1 h-1 rounded-full bg-teal-300"></span>
+                    <span class="text-[10px] font-medium text-teal-600"><?php echo esc($patient['spouse_phone'] ?: 'No Phone'); ?></span>
                 </div>
             </div>
             <?php
@@ -263,13 +263,13 @@ endif; ?>
 
             <!-- Contact/Referral Chips -->
             <div class="grid grid-cols-2 gap-2">
-                <a href="tel:<?php echo esc($patient['phone']); ?>" class="flex flex-col items-center justify-center p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-brand-500/20 hover:border-brand-500/30 transition-all">
+                <a href="tel:<?php echo esc($patient['phone']); ?>" class="flex flex-col items-center justify-center p-3 bg-teal-50 rounded-xl border border-teal-100 hover:bg-teal-100 hover:border-teal-200 transition-all">
                     <i class="fa-solid fa-phone text-brand-400 text-xs mb-1.5"></i>
-                    <span class="text-[9px] font-black text-white uppercase">Call</span>
+                    <span class="text-[9px] font-semibold text-teal-700 uppercase">Call</span>
                 </a>
-                <a href="patients_edit.php?id=<?php echo $patient_id; ?>" class="flex flex-col items-center justify-center p-3 bg-white/5 rounded-2xl border border-white/5 hover:bg-slate-800 transition-all text-slate-400 hover:text-white">
+                <a href="patients_edit.php?id=<?php echo $patient_id; ?>" class="flex flex-col items-center justify-center p-3 bg-gray-50 rounded-xl border border-gray-100 hover:bg-gray-100 hover:border-gray-200 transition-all text-slate-500 hover:text-slate-700">
                     <i class="fa-solid fa-user-pen text-xs mb-1.5 transition-transform group-hover:scale-110"></i>
-                    <span class="text-[9px] font-black uppercase">Edit</span>
+                    <span class="text-[9px] font-semibold text-slate-500 uppercase">Edit</span>
                 </a>
             </div>
         </div>
@@ -277,24 +277,24 @@ endif; ?>
         <!-- Record Categories (Tabs) -->
         <div class="flex-1 px-3 space-y-1">
             <div class="px-4 mb-4 flex items-center justify-between">
-                <span class="text-[9px] font-black text-slate-600 uppercase tracking-widest">Medical Log</span>
-                <span class="text-[9px] font-black text-brand-500/80 uppercase tracking-widest">Clinical Data</span>
+                <span class="text-[9px] font-semibold text-slate-400 uppercase tracking-widest">Medical Log</span>
+                <span class="text-[9px] font-semibold text-teal-500 uppercase tracking-widest">Clinical Data</span>
             </div>
             
             <?php foreach ($tabs as $t):
     $tc = $tab_colors[$t['color_class']]; ?>
             <button @click="tab = '<?php echo $t['id']; ?>'"
                     class="w-full text-left px-4 py-3 rounded-2xl flex items-center gap-3 transition-all group overflow-hidden relative"
-                    :class="tab === '<?php echo $t['id']; ?>' ? 'bg-brand-500/10' : 'hover:bg-white/5'">
+                    :class="tab === '<?php echo $t['id']; ?>' ? 'bg-teal-50' : 'hover:bg-gray-50'">
                 <!-- Glow Indicator -->
                 <div x-show="tab === '<?php echo $t['id']; ?>'" x-cloak
                      class="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-6 bg-brand-500 rounded-r-full shadow-[0_0_15px_rgba(20,184,166,0.6)]"></div>
                 
                 <i class="fa-solid <?php echo $t['icon']; ?> text-sm w-5 text-center transition-all duration-300"
-                   :class="tab === '<?php echo $t['id']; ?>' ? 'text-brand-400 scale-110' : 'text-slate-600 group-hover:text-slate-400'"></i>
+                   :class="tab === '<?php echo $t['id']; ?>' ? 'text-teal-600 scale-110' : 'text-slate-400 group-hover:text-slate-600'"></i>
                 
                 <span class="flex-1 text-[13px] font-black tracking-tight transition-colors"
-                      :class="tab === '<?php echo $t['id']; ?>' ? 'text-white' : 'text-slate-500 group-hover:text-slate-300'"><?php echo $t['label']; ?></span>
+                      :class="tab === '<?php echo $t['id']; ?>' ? 'text-teal-700' : 'text-slate-500 group-hover:text-slate-700'"><?php echo $t['label']; ?></span>
                 
                 <span class="text-[10px] font-black px-2 py-0.5 rounded-lg border transition-all"
                       :class="tab === '<?php echo $t['id']; ?>' ? 'bg-brand-500/20 border-brand-500/30 text-brand-300' : 'bg-gray-100 border-gray-200 text-slate-500 group-hover:text-slate-600'"><?php echo $t['count']; ?></span>
@@ -305,7 +305,7 @@ endforeach; ?>
 
         <!-- Global Action -->
         <div class="p-6">
-            <a href="patients.php" class="flex items-center justify-center gap-2 py-3 rounded-2xl border border-white/5 text-slate-500 hover:text-teal-700 hover:bg-teal-50 transition-all text-[11px] font-semibold uppercase tracking-widest group">
+            <a href="patients.php" class="flex items-center justify-center gap-2 py-3 rounded-xl border border-gray-100 text-slate-400 hover:text-teal-700 hover:bg-teal-50 transition-all text-[11px] font-medium uppercase tracking-widest group">
                 <i class="fa-solid fa-arrow-left text-[9px] group-hover:-translate-x-1 transition-transform"></i> Exit Dossier
             </a>
         </div>
@@ -446,7 +446,7 @@ else: ?>
                                     </span>
                                     <div class="flex items-center gap-1.5 text-xs font-bold text-gray-400">
                                         <i class="fa-regular fa-clock text-brand-400"></i>
-                                        <?php echo($h['recorded_at'] && $h['recorded_at'] !== '0000-00-00 00:00:00') ? date('j M Y · H:i', strtotime($h['recorded_at'])) : '—'; ?>
+                                        <?php echo(!empty($h['recorded_at']) && $h['recorded_at'] !== '0000-00-00 00:00:00') ? date('j M Y', strtotime($h['recorded_at'])) : (!empty($h['created_at']) ? date('j M Y', strtotime($h['created_at'])) : '—'); ?>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -951,7 +951,7 @@ endif; ?>
          @keydown.escape.window="showHistoryModal = false"
          class="fixed inset-0 z-[100] flex items-center justify-center p-4 md:p-10"
          style="display:none;">
-        <div class="absolute inset-0 bg-white/90 backdrop-blur-md" @click="showHistoryModal = false"></div>
+        <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm" @click="showHistoryModal = false"></div>
         <div class="relative bg-white rounded-[3rem] shadow-2xl w-full max-w-2xl max-h-full overflow-hidden z-10 flex flex-col"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="translate-y-12 scale-95 opacity-0"
@@ -961,7 +961,7 @@ endif; ?>
             <div class="px-10 py-8 border-b border-gray-100 flex items-center justify-between bg-white relative">
                 <div class="absolute top-0 inset-x-0 h-1 bg-gradient-to-r from-brand-500 via-brand-600 to-brand-400"></div>
                 <div>
-                    <h3 class="text-2xl font-black text-slate-950" x-text="editHistory ? 'Edit Clinical Narrative' : 'New Visit Consultation'"></h3>
+                    <h3 class="text-2xl font-black text-slate-950" x-text="editHistory ? 'Edit Visit Record' : 'New Clinical Visit'"></h3>
                     <p class="text-[10px] font-black text-brand-500 uppercase tracking-widest mt-1"><?php echo esc($patient['first_name'] . ' ' . $patient['last_name']); ?> · ID: <?php echo esc($patient['mr_number']); ?></p>
                 </div>
                 <button @click="showHistoryModal = false" class="w-12 h-12 rounded-2xl bg-gray-50 text-slate-400 hover:bg-rose-50 hover:text-rose-500 transition-all flex items-center justify-center active:scale-95 group">
@@ -975,7 +975,7 @@ endif; ?>
                 
                 <!-- Clinical Attribution -->
                 <div>
-                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Record Sovereignty</label>
+                    <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Record For</label>
                     <div class="grid grid-cols-2 gap-4">
                         <label class="relative cursor-pointer group">
                             <input type="radio" name="record_for" value="Patient" class="peer sr-only" :checked="!editHistory || editHistory.record_for === 'Patient'">
@@ -1006,7 +1006,7 @@ endif; ?>
                 <div class="space-y-6">
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-align-left text-brand-500"></i> Presenting Complaints & Notes
+                            <i class="fa-solid fa-align-left text-brand-500"></i> Presenting Complaints & Clinical Notes
                         </label>
                         <textarea name="clinical_notes" rows="4" :value="editHistory ? editHistory.clinical_notes : ''"
                                   class="w-full px-6 py-5 bg-slate-50 border-none rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-brand-500/10 text-sm font-medium transition-all"
@@ -1015,7 +1015,7 @@ endif; ?>
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-dna text-violet-500"></i> Diagnostic Impression
+                            <i class="fa-solid fa-dna text-violet-500"></i> Diagnosis
                         </label>
                         <textarea name="diagnosis" rows="2" :value="editHistory ? editHistory.diagnosis : ''"
                                   class="w-full px-6 py-5 bg-violet-50/30 border-none rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-violet-500/10 text-sm font-black text-violet-950 transition-all placeholder:font-medium placeholder:text-violet-300"
@@ -1025,7 +1025,7 @@ endif; ?>
                     <div class="grid grid-cols-2 gap-6">
                         <div class="col-span-2 md:col-span-1">
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-pills text-rose-500"></i> Med Outline
+                                <i class="fa-solid fa-pills text-rose-500"></i> Medications / Treatment
                             </label>
                             <textarea name="medication" rows="3" :value="editHistory ? editHistory.medication : ''"
                                       class="w-full px-6 py-5 bg-rose-50/20 border-none rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-rose-500/10 text-sm font-bold text-rose-950 transition-all placeholder:font-medium"
@@ -1033,7 +1033,7 @@ endif; ?>
                         </div>
                         <div class="col-span-2 md:col-span-1">
                             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                                <i class="fa-solid fa-calendar-check text-brand-500"></i> Follow-up Axis
+                                <i class="fa-solid fa-calendar-check text-brand-500"></i> Next Visit / Follow-up Date
                             </label>
                             <div class="relative">
                                 <input type="date" name="next_visit" :value="editHistory ? editHistory.next_visit : ''"
@@ -1044,7 +1044,7 @@ endif; ?>
 
                     <div>
                         <label class="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3 flex items-center gap-2">
-                            <i class="fa-solid fa-lightbulb text-amber-500"></i> Strategic Advice
+                            <i class="fa-solid fa-lightbulb text-amber-500"></i> Advice & Instructions
                         </label>
                         <textarea name="advice" rows="3" :value="editHistory ? editHistory.advice : ''"
                                   class="w-full px-6 py-5 bg-amber-50/20 border-none rounded-[1.5rem] focus:bg-white focus:ring-4 focus:ring-amber-500/10 text-sm font-medium transition-all"
@@ -1059,7 +1059,7 @@ endif; ?>
                     <button type="submit" :name="editHistory ? 'edit_history' : 'add_history'" value="1"
                             class="flex-[2] py-4.5 rounded-2xl font-black text-white bg-teal-600 hover:bg-teal-700 shadow-md shadow-teal-100 transition-all text-xs uppercase tracking-widest flex items-center justify-center gap-3 active:scale-95 group">
                         <i class="fa-solid" :class="editHistory ? 'fa-floppy-disk' : 'fa-plus-circle'"></i>
-                        <span x-text="editHistory ? 'Synchronize Record' : 'Commit to Timeline'"></span>
+                        <span x-text="editHistory ? 'Update Visit Record' : 'Save Visit Record'"></span>
                     </button>
                 </div>
             </form>
