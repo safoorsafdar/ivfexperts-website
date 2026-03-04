@@ -22,11 +22,11 @@ if (!$patient)
 
 // Handling POST Submission
 if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) {
-    $record_for = $_POST['record_for'] ?? 'Patient';
-    $clinical_notes = $_POST['clinical_notes'] ?? '';
-    $diagnosis = $_POST['diagnosis'] ?? '';
+    $record_for = in_array($_POST['record_for'] ?? '', ['Patient', 'Spouse']) ? $_POST['record_for'] : 'Patient';
+    $clinical_notes = trim($_POST['clinical_notes'] ?? '');
+    $diagnosis = trim($_POST['diagnosis'] ?? '');
     $icd10_codes = $_POST['icd10_data'] ?? '[]';
-    $general_advice = $_POST['general_advice'] ?? '';
+    $general_advice = trim($_POST['general_advice'] ?? '');
     $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
     $medications_json = $_POST['medications_data'] ?? '[]';
     $lab_tests_json = $_POST['lab_tests_data'] ?? '[]';
@@ -35,57 +35,122 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
     // Rebuild diagnosis text from ICD-10 selections if present
     $icd_arr = json_decode($icd10_codes, true);
     if (is_array($icd_arr) && count($icd_arr) > 0 && empty(trim($diagnosis))) {
-        $diagnosis = implode("\n", array_map(fn($d) => $d['description'] . ' (' . $d['icd10_code'] . ')', $icd_arr));
+        $diagnosis = implode("\n", array_map(fn($d) => ($d['description'] ?? '') . ' (' . ($d['icd10_code'] ?? '') . ')', $icd_arr));
     }
 
+    // ── Auto-ensure columns exist ───────────────────────────────────────────
+    $colChecks = [
+        ['prescriptions', 'record_for', "ALTER TABLE prescriptions ADD COLUMN record_for ENUM('Patient','Spouse') DEFAULT 'Patient'"],
+        ['prescriptions', 'icd10_codes', "ALTER TABLE prescriptions ADD COLUMN icd10_codes JSON"],
+        ['prescriptions', 'general_advice', "ALTER TABLE prescriptions ADD COLUMN general_advice TEXT"],
+        ['prescriptions', 'next_visit', "ALTER TABLE prescriptions ADD COLUMN next_visit DATE"],
+        ['prescriptions', 'qrcode_hash', "ALTER TABLE prescriptions ADD COLUMN qrcode_hash VARCHAR(64)"],
+    ];
+    foreach ($colChecks as [$tbl, $col, $sql]) {
+        $r = $conn->query("SHOW COLUMNS FROM `$tbl` LIKE '$col'");
+        if ($r && $r->num_rows === 0)
+            $conn->query($sql);
+    }
+
+    // ── Auto-create prescription_items if missing ──────────────────────────
+    $conn->query("CREATE TABLE IF NOT EXISTS prescription_items (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        prescription_id INT NOT NULL,
+        medicine_name VARCHAR(255) NOT NULL,
+        dosage VARCHAR(100) DEFAULT '',
+        frequency VARCHAR(100) DEFAULT '',
+        duration VARCHAR(100) DEFAULT '',
+        instructions TEXT,
+        INDEX (prescription_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    // ── Auto-create advised_lab_tests if missing ───────────────────────────
+    $conn->query("CREATE TABLE IF NOT EXISTS advised_lab_tests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        prescription_id INT,
+        patient_id INT NOT NULL,
+        test_id INT NOT NULL,
+        record_for ENUM('Patient','Spouse') DEFAULT 'Patient',
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        INDEX (prescription_id),
+        INDEX (patient_id)
+    ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+    $save_error = '';
     try {
-        // Try with icd10_codes column first; fall back gracefully if column doesn't exist yet
-        $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
-        if ($stmt) {
-            $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
+        // ── Insert prescription ────────────────────────────────────────────
+        $stmt = $conn->prepare(
+            "INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash)
+             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+        );
+        if (!$stmt) {
+            throw new Exception("Prescription prepare failed: " . $conn->error);
         }
-        else {
-            // Column not yet added — insert without it
-            $stmt = $conn->prepare("INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, general_advice, next_visit, qrcode_hash) VALUES (?, ?, ?, ?, ?, ?, ?)");
-            $stmt->bind_param("issssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $general_advice, $next_visit, $qrcode_hash);
+        $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
+        if (!$stmt->execute()) {
+            throw new Exception("Prescription insert failed: " . $stmt->error);
         }
+        $rx_id = $stmt->insert_id;
 
-        if ($stmt->execute()) {
-            $rx_id = $stmt->insert_id;
-
-            // Save Medications
-            $meds = json_decode($medications_json, true);
-            if (is_array($meds)) {
-                $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?, ?, ?, ?, ?, ?)");
+        // ── Save Medications ───────────────────────────────────────────────
+        $meds = json_decode($medications_json, true);
+        if (is_array($meds) && count($meds) > 0) {
+            $m_stmt = $conn->prepare(
+                "INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions)
+                 VALUES (?, ?, ?, ?, ?, ?)"
+            );
+            if ($m_stmt) {
                 foreach ($meds as $m) {
                     if (empty($m['medicine_name']))
                         continue;
-                    $m_stmt->bind_param("isssss", $rx_id, $m['medicine_name'], $m['dosage'], $m['frequency'], $m['duration'], $m['instructions']);
+                    $name = $m['medicine_name'] ?? '';
+                    $dose = $m['dosage'] ?? '';
+                    $freq = $m['frequency'] ?? '';
+                    $dur = $m['duration'] ?? '';
+                    $instr = $m['instructions'] ?? '';
+                    $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                     $m_stmt->execute();
                 }
             }
+            else {
+                error_log("[prescriptions_add] medication stmt failed: " . $conn->error);
+            }
+        }
 
-            // Save Lab Advising
-            $labs = json_decode($lab_tests_json, true);
-            if (is_array($labs)) {
-                $l_stmt = $conn->prepare("INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for) VALUES (?, ?, ?, ?)");
+        // ── Save Advised Lab Tests ─────────────────────────────────────────
+        $labs = json_decode($lab_tests_json, true);
+        if (is_array($labs) && count($labs) > 0) {
+            $l_stmt = $conn->prepare(
+                "INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for)
+                 VALUES (?, ?, ?, ?)"
+            );
+            if ($l_stmt) {
                 foreach ($labs as $l) {
                     if (empty($l['id']))
                         continue;
-                    $l_stmt->bind_param("iiis", $rx_id, $patient_id, $l['id'], $l['for']);
+                    $tid = intval($l['id']);
+                    $lab_for = in_array($l['for'] ?? '', ['Patient', 'Spouse']) ? $l['for'] : 'Patient';
+                    $l_stmt->bind_param("iiis", $rx_id, $patient_id, $tid, $lab_for);
                     $l_stmt->execute();
                 }
             }
-
-            flash('success', 'Prescription saved and legalized successfully.');
-            header("Location: patients_view.php?id=$patient_id&tab=rx&msg=rx_saved");
-            exit;
+            else {
+                error_log("[prescriptions_add] lab stmt failed: " . $conn->error);
+            }
         }
+
+        header("Location: patients_view.php?id=$patient_id&tab=rx&msg=rx_saved");
+        exit;
+
     }
     catch (Exception $e) {
-        $save_error = "Could not save prescription: " . $e->getMessage();
+        $save_error = $e->getMessage();
+        error_log("[prescriptions_add] " . $save_error);
     }
 }
+
+
+
 
 include __DIR__ . '/includes/header.php';
 ?>
