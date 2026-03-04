@@ -47,7 +47,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("[patients_view INSERT history] " . $conn->error);
             }
             else {
-                $stmt->bind_param('isssssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
+                $stmt->bind_param('issssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
+
             }
         }
         else {
