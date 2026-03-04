@@ -128,15 +128,19 @@ try {
     $pid = intval($patient_id);
     $histories = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY COALESCE(created_at, id) DESC")->fetch_all(MYSQLI_ASSOC);
     $semen_reports = $conn->query("SELECT * FROM semen_analyses WHERE patient_id = $pid ORDER BY collection_time DESC")->fetch_all(MYSQLI_ASSOC);
-    $prescriptions_raw = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
-    // Enrich each prescription with medication items + lab count
+    $prescriptions_raw = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC");
+    $prescriptions_raw = $prescriptions_raw ? $prescriptions_raw->fetch_all(MYSQLI_ASSOC) : [];
+    // Enrich each prescription with medication items + lab count (safe — tables may not exist yet)
     $prescriptions = [];
     foreach ($prescriptions_raw as $prx) {
         $rid = intval($prx['id']);
-        $prx['_items'] = $conn->query("SELECT medicine_name, dosage, frequency, duration FROM prescription_items WHERE prescription_id = $rid ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
-        $prx['_lab_count'] = (int)($conn->query("SELECT COUNT(*) AS c FROM advised_lab_tests WHERE prescription_id = $rid")->fetch_assoc()['c'] ?? 0);
+        $item_res = $conn->query("SELECT medicine_name, dosage, frequency, duration FROM prescription_items WHERE prescription_id = $rid ORDER BY id ASC");
+        $prx['_items'] = $item_res ? $item_res->fetch_all(MYSQLI_ASSOC) : [];
+        $lab_res = $conn->query("SELECT COUNT(*) AS c FROM advised_lab_tests WHERE prescription_id = $rid");
+        $prx['_lab_count'] = ($lab_res && $row = $lab_res->fetch_assoc()) ? (int)($row['c'] ?? 0) : 0;
         $prescriptions[] = $prx;
     }
+
 
     $ultrasounds = $conn->query("SELECT * FROM patient_ultrasounds WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
     $lab_results = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = $pid ORDER BY plt.test_date DESC")->fetch_all(MYSQLI_ASSOC);
