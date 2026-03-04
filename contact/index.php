@@ -103,6 +103,13 @@ include("../includes/header.php");
                         </div>
                         <p class="font-bold">Thank you! Your inquiry has been securely sent. We will respond within 24 hours.</p>
                     </div>
+                    <script>
+                    window.dataLayer = window.dataLayer || [];
+                    window.dataLayer.push({
+                        'event': 'contact_form_submit',
+                        'form_location': 'contact_page'
+                    });
+                    </script>
                 <?php
 elseif (isset($_GET['error'])): ?>
                     <div class="bg-rose-50 border border-rose-200 text-rose-800 px-6 py-5 rounded-2xl mb-10 flex items-center gap-4">
