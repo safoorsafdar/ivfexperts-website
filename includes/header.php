@@ -53,33 +53,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </noscript>
-<!-- Physician + Organization Schema -->
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "MedicalBusiness",
-      "@id": "https://ivfexperts.pk/#organization",
-      "name": "IVF Experts",
-      "url": "https://ivfexperts.pk",
-      "telephone": "+923111101483",
-      "medicalSpecialty": "Reproductive Medicine"
-    },
-    {
-      "@type": "Physician",
-      "@id": "https://ivfexperts.pk/#physician",
-      "name": "Dr. Adnan Jabbar",
-      "jobTitle": "Fertility Specialist & Clinical Embryologist",
-      "medicalSpecialty": "Reproductive Medicine",
-      "worksFor": {
-        "@id": "https://ivfexperts.pk/#organization"
-      },
-      "areaServed": "Pakistan"
-    }
-  ]
-}
-</script>
+<!-- Organization + Physician schema is in footer.php (complete version) -->
 <!-- Dynamic Page Schema -->
 <?php if(isset($schemaType) && ($schemaType == 'MedicalCondition' || $schemaType == 'MedicalProcedure')): ?>
 <script type="application/ld+json">
