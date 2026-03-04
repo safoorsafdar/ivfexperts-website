@@ -80,6 +80,57 @@
 
         </div>
 
+        <!-- NEWSLETTER SUBSCRIBE -->
+        <div class="border-t border-slate-800/60 mt-16 pt-12 mb-4">
+          <div class="max-w-lg mx-auto text-center">
+            <p class="text-white font-semibold text-lg mb-1">Fertility insights from Dr. Adnan Jabbar</p>
+            <p class="text-slate-400 text-sm mb-6">Monthly evidence-based newsletter. No spam, unsubscribe anytime.</p>
+            <form id="newsletter-form" class="flex gap-3 max-w-sm mx-auto">
+              <input type="email" name="email" placeholder="Your email address" required
+                     class="flex-1 bg-slate-800 border border-slate-700 text-white placeholder-slate-500 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500">
+              <button type="submit"
+                      class="bg-teal-700 hover:bg-teal-600 text-white font-semibold px-5 py-3 rounded-xl text-sm transition-colors flex-shrink-0">
+                Subscribe
+              </button>
+            </form>
+            <p id="newsletter-msg" class="text-sm mt-3 hidden"></p>
+          </div>
+        </div>
+
+        <script>
+        (function() {
+          var form = document.getElementById('newsletter-form');
+          var msg = document.getElementById('newsletter-msg');
+          if (!form) return;
+          form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            var email = form.querySelector('input[name="email"]').value;
+            var data = new FormData();
+            data.append('email', email);
+            data.append('source', 'footer');
+            fetch('/subscribe.php', { method: 'POST', body: data })
+              .then(function(r) { return r.json(); })
+              .then(function(res) {
+                msg.textContent = res.message;
+                msg.className = 'text-sm mt-3 ' + (res.success ? 'text-teal-400' : 'text-red-400');
+                if (res.success) {
+                  form.reset();
+                  // GTM dataLayer push
+                  window.dataLayer = window.dataLayer || [];
+                  window.dataLayer.push({
+                    'event': 'newsletter_signup',
+                    'signup_source': 'footer'
+                  });
+                }
+              })
+              .catch(function() {
+                msg.textContent = 'Something went wrong. Please try again.';
+                msg.className = 'text-sm mt-3 text-red-400';
+              });
+          });
+        })();
+        </script>
+
         <!-- BOTTOM BAR -->
         <div class="border-t border-slate-800/60 mt-20 pt-8 flex flex-col md:flex-row justify-between items-center gap-6">
             
