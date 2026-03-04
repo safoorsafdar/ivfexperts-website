@@ -142,7 +142,7 @@ include __DIR__ . '/includes/header.php';
 endif; ?>
 
     <form method="POST" enctype="multipart/form-data" class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-8">
-        <div class="px-6 py-4 border-b border-gray-100 bg-indigo-900 text-white flex justify-between items-center">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 border-b border-gray-100 text-slate-800 flex justify-between items-center">
             <h3 class="font-bold flex items-center gap-2">
                 <i class="fa-regular fa-hospital text-indigo-300"></i> Clinic Information
             </h3>

@@ -106,7 +106,7 @@ include __DIR__ . '/includes/header.php';
     </div>
 
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div class="px-6 py-4 border-b border-gray-100 bg-emerald-900 text-white flex justify-between items-center">
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 border-b border-gray-100 text-slate-800 flex justify-between items-center">
             <h3 class="font-bold"><i class="fa-solid fa-file-invoice-dollar text-emerald-300 mr-2"></i> <?php echo $edit_id ? 'Edit' : 'Generate'; ?> Patient Receipt</h3>
         </div>
         

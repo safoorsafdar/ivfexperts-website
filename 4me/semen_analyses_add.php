@@ -153,9 +153,9 @@ include __DIR__ . '/includes/header.php';
 
 <div class="max-w-5xl mx-auto" x-data="semenEngine()">
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
-        <div class="px-6 py-4 border-b border-gray-100 bg-sky-900 text-white flex justify-between items-center">
-            <h3 class="font-bold"><i class="fa-solid fa-microscope text-sky-300 mr-2"></i> Advanced Semen Analysis Form</h3>
-            <span class="text-xs bg-sky-800 px-2 py-1 rounded text-sky-200 uppercase font-bold tracking-wider">WHO 6th Edition Ready</span>
+        <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 border-b border-gray-100 text-slate-800 flex justify-between items-center">
+            <h3 class="font-bold"><i class="fa-solid fa-microscope text-teal-600 mr-2"></i> Advanced Semen Analysis Form</h3>
+            <span class="text-xs bg-sky-800 px-2 py-1 rounded text-slate-500 uppercase font-bold tracking-wider">WHO 6th Edition Ready</span>
         </div>
         
         <div class="p-6 md:p-8">
@@ -226,7 +226,7 @@ endforeach; ?>
                 <!-- File Selection (Only in File Mode) -->
                 <div x-show="reportType === 'file'" x-cloak class="mb-8 p-8 bg-sky-50 rounded-2xl border-2 border-dashed border-sky-200 text-center">
                     <div class="mb-4">
-                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-sky-300"></i>
+                        <i class="fa-solid fa-cloud-arrow-up text-4xl text-teal-600"></i>
                     </div>
                     <label class="block text-lg font-bold text-sky-900 mb-2">Select Report File (PDF/Image)</label>
                     <p class="text-sm text-sky-600 mb-6 font-medium">Please upload the complete report obtained from an external laboratory.</p>
