@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-rose-600 hover:bg-rose-500 shadow-[0_8px_25px_rgba(225,29,72,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20need%20help%20with%20PCOS%20and%20fertility." class="btn-primary bg-rose-600 hover:bg-rose-500 shadow-[0_8px_25px_rgba(225,29,72,0.3)] border-none text-white px-8 py-4">
                     Consult on PCOS
                 </a>
             </div>
@@ -148,6 +148,8 @@ include("../includes/header.php");
     </div>
 </section>
 
+<?php $ctaContext = 'about PCOS and fertility treatment'; include('../includes/cta-inline.php'); ?>
+
 <!-- SEO SECTION: BEST PCOS CLINIC IN LAHORE -->
 <section class="py-20 bg-rose-900 text-white relative overflow-hidden">
     <div class="absolute inset-0 bg-gradient-to-br from-rose-950 via-rose-900 to-rose-800 -z-20"></div>
@@ -207,86 +209,57 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "PCOS Treatment and Fertility Care in Lahore",
-    "description": "Expert PCOS management and fertility treatments in Lahore, Pakistan by Dr. Adnan Jabbar. Specialized in ovulation induction, IUI, and IVF for Polycystic Ovary Syndrome.",
-    "url": "https://ivfexperts.pk/female-infertility/pcos.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalCondition",
-      "name": "Polycystic Ovary Syndrome",
-      "alternateName": "PCOS",
-      "associatedPathophysiology": "Female Infertility",
-      "possibleTreatment": [
-        {
-          "@type": "MedicalTherapy",
-          "name": "Ovulation Induction (Letrozole)"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "Metformin/Myo-inositol Therapy"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "In Vitro Fertilization (IVF)"
-        }
-      ]
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "PCOS Treatment and Fertility Care in Lahore",
+  "description": "Expert PCOS management and fertility treatments in Lahore, Pakistan by Dr. Adnan Jabbar. Specialized in ovulation induction, IUI, and IVF for Polycystic Ovary Syndrome.",
+  "url": "https://ivfexperts.pk/female-infertility/pcos.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "Can I get pregnant with PCOS naturally?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. Many women with PCOS occasionally ovulate and can conceive naturally. With minor lifestyle adjustments and simple oral induction like Letrozole, the chances of natural conception skyrocket."
+  "about": {
+    "@type": "MedicalCondition",
+    "name": "Polycystic Ovary Syndrome",
+    "alternateName": "PCOS",
+    "associatedPathophysiology": "Female Infertility",
+    "possibleTreatment": [
+      {
+        "@type": "MedicalTherapy",
+        "name": "Ovulation Induction (Letrozole)"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "Metformin/Myo-inositol Therapy"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "In Vitro Fertilization (IVF)"
       }
-    },{
-      "@type": "Question",
-      "name": "Do I need IVF for PCOS?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Usually, no. IVF is a last-resort treatment for PCOS. We typically recommend IVF only if 3-6 cycles of targeted ovulation induction have failed, or if there are secondary issues like blocked tubes or male infertility."
-      }
-    },{
-      "@type": "Question",
-      "name": "What is the best medicine for PCOS infertility in Pakistan?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Current global guidelines recommend Letrozole as the first-line oral medication for inducing ovulation in PCOS patients, as it generally results in higher ovulation rates and better endometrial lining than older medications like Clomiphene."
-      }
-    }]
+    ]
   }
-]
+}
 </script>
 
-<!-- CALL TO ACTION -->
-<section class="py-24 bg-white relative border-t border-slate-200">
-    <div class="max-w-4xl mx-auto px-6 text-center fade-in">
-        <h2 class="text-3xl md:text-5xl font-bold text-slate-900 mb-6">Take control of your cycle.</h2>
-        <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-            You do not have to wait years to conceive with PCOS. Clinical ovulation induction is highly effective. Schedule an evaluation to map out your protocol.
-        </p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <a href="https://wa.me/923111101483" class="bg-rose-600 text-white px-10 py-5 rounded-xl font-bold shadow-xl hover:bg-rose-700 hover:scale-105 transition-all text-lg flex items-center gap-3 w-full sm:w-auto justify-center">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.767 5.766 0 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.767-5.766-.001-3.187-2.575-5.77-5.764-5.771z"/></svg>
-                WhatsApp Consultation
-            </a>
-            <a href="/contact/" class="text-rose-600 font-bold hover:underline py-4 w-full sm:w-auto">
-                Or View Clinic Details
-            </a>
-        </div>
-    </div>
-</section>
+<?php
+$faqs = [
+    ['q' => 'Can I get pregnant naturally with PCOS?',
+     'a' => 'Yes, many women with PCOS can conceive naturally or with minimal intervention. With targeted treatment — including weight management, Letrozole ovulation induction, and Metformin for insulin resistance — the majority of PCOS patients achieve pregnancy without needing IVF.'],
+    ['q' => 'What is the first-line fertility treatment for PCOS?',
+     'a' => 'The first-line treatment for ovulation induction in PCOS is Letrozole (an aromatase inhibitor), which is more effective and has a lower multiple pregnancy risk than Clomiphene. Dr. Adnan Jabbar also uses Metformin for insulin-resistant patients.'],
+    ['q' => 'Does PCOS affect IVF success rates?',
+     'a' => 'PCOS does not significantly reduce IVF success rates — in fact, women with PCOS often produce more eggs. The main concern is Ovarian Hyperstimulation Syndrome (OHSS), which Dr. Adnan Jabbar carefully manages through individualised stimulation protocols.'],
+    ['q' => 'How is PCOS diagnosed in Pakistan?',
+     'a' => 'PCOS is diagnosed using the Rotterdam criteria — at least 2 of: irregular periods, polycystic ovaries on ultrasound, and elevated androgens. Blood tests (LH, FSH, testosterone, AMH, insulin) and a pelvic ultrasound are the key investigations.'],
+    ['q' => 'What lifestyle changes help with PCOS fertility?',
+     'a' => 'Even a 5–10% reduction in body weight significantly improves ovulation rates in overweight PCOS patients. A low-glycaemic diet, regular exercise, and reducing processed sugar intake are proven to improve hormonal balance and fertility outcomes.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>

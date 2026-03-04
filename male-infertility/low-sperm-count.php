@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20have%20questions%20about%20low%20sperm%20count." class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
                     Discuss Your Reports
                 </a>
             </div>
@@ -177,6 +177,8 @@ include("../includes/header.php");
     </div>
 </section>
 
+<?php $ctaContext = 'about low sperm count treatment'; include('../includes/cta-inline.php'); ?>
+
 <!-- SEO SECTION: BEST OLIGOSPERMIA CLINIC IN LAHORE -->
 <section class="py-20 bg-indigo-900 text-white relative overflow-hidden">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIvPjwvc3ZnPg==')] opacity-20 mix-blend-overlay -z-10"></div>
@@ -224,67 +226,57 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "Low Sperm Count (Oligospermia) Treatment in Lahore",
-    "description": "Expert treatment for low sperm count (Oligospermia) in Lahore, Pakistan by Dr. Adnan Jabbar. Offering hormonal therapy, varicocele repair, and ICSI.",
-    "url": "https://ivfexperts.pk/male-infertility/low-sperm-count.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalCondition",
-      "name": "Oligospermia",
-      "alternateName": "Low Sperm Count",
-      "associatedPathophysiology": "Male Infertility",
-      "possibleTreatment": [
-        {
-          "@type": "MedicalTherapy",
-          "name": "Endocrine Therapy (Clomiphene/hCG)"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "Varicocelectomy"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "Intracytoplasmic Sperm Injection (ICSI)"
-        }
-      ]
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Low Sperm Count (Oligospermia) Treatment in Lahore",
+  "description": "Expert treatment for low sperm count (Oligospermia) in Lahore, Pakistan by Dr. Adnan Jabbar. Offering hormonal therapy, varicocele repair, and ICSI.",
+  "url": "https://ivfexperts.pk/male-infertility/low-sperm-count.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "Can low sperm count be cured with medicine?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes, depending on the underlying cause. If the low sperm count is due to a hormonal imbalance (such as low testosterone or hypogonadism), medications like Clomiphene citrate or hCG injections can significantly improve sperm production in many men."
+  "about": {
+    "@type": "MedicalCondition",
+    "name": "Oligospermia",
+    "alternateName": "Low Sperm Count",
+    "associatedPathophysiology": "Male Infertility",
+    "possibleTreatment": [
+      {
+        "@type": "MedicalTherapy",
+        "name": "Endocrine Therapy (Clomiphene/hCG)"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "Varicocelectomy"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "Intracytoplasmic Sperm Injection (ICSI)"
       }
-    },{
-      "@type": "Question",
-      "name": "What is considered a critically low sperm count?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "According to the WHO (2021) guidelines, a normal sperm count is 15 million sperm per milliliter or more. Counts below 5 million per milliliter are generally considered Severe Oligospermia, often requiring ICSI for successful conception."
-      }
-    },{
-      "@type": "Question",
-      "name": "Does varicocele surgery increase sperm count?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. A clinical varicocele raises testicular temperature and damages sperm. Microsurgical repair of the varicocele results in notable improvement in both sperm count and motility in roughly 60% to 70% of patients within 3 to 6 months."
-      }
-    }]
+    ]
   }
-]
+}
 </script>
+
+<?php
+$faqs = [
+    ['q' => 'What is considered a low sperm count (oligospermia)?',
+     'a' => 'A sperm count below 15 million sperm per millilitre of semen is classified as oligospermia. Severe oligospermia is below 5 million/mL. The WHO reference value for normal sperm concentration is ≥16 million/mL.'],
+    ['q' => 'What are common causes of low sperm count in Pakistan?',
+     'a' => 'Common causes include varicocele (enlarged scrotal veins), hormonal imbalances, heat exposure, infections, lifestyle factors (smoking, obesity), and idiopathic (unknown) causes. Dr. Adnan Jabbar performs a comprehensive evaluation to identify the specific cause.'],
+    ['q' => 'Can low sperm count be treated?',
+     'a' => 'Yes. Depending on the cause, treatment options include hormonal therapy, varicocele repair, lifestyle modifications, antioxidant supplements, and — for severe cases — IVF with ICSI using the best available sperm.'],
+    ['q' => 'Should I try IUI or IVF for low sperm count?',
+     'a' => 'IUI can be effective for mild oligospermia (5–15 million/mL). For severe oligospermia, IVF with ICSI is the recommended treatment as it requires only a single viable sperm per egg. Dr. Adnan Jabbar will recommend the most appropriate option after semen analysis.'],
+    ['q' => 'How long does it take to improve sperm count?',
+     'a' => 'Sperm take approximately 72–90 days to develop. Lifestyle and medical interventions therefore take at least 3 months to show measurable improvement. Dr. Adnan Jabbar will outline a realistic timeline based on your specific diagnosis.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>

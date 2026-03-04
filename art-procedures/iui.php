@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-teal-600 hover:bg-teal-500 shadow-[0_8px_25px_rgba(20,184,166,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20have%20questions%20about%20IUI%20treatment." class="btn-primary bg-teal-600 hover:bg-teal-500 shadow-[0_8px_25px_rgba(20,184,166,0.3)] border-none text-white px-8 py-4">
                     Book an IUI Consultation
                 </a>
             </div>
@@ -113,6 +113,8 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php $ctaContext = 'about IUI treatment'; include('../includes/cta-inline.php'); ?>
 
 <!-- SEO SECTION: BEST IUI CLINIC IN LAHORE -->
 <section class="py-20 bg-teal-900 text-white relative overflow-hidden">
@@ -196,64 +198,54 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "Intrauterine Insemination (IUI) Treatment in Lahore",
-    "description": "Expert IUI treatment in Lahore by Dr. Adnan Jabbar. Combining precision ovulation timing with advanced laboratory sperm washing for unexplained infertility.",
-    "url": "https://ivfexperts.pk/art-procedures/iui.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalTherapy",
-      "name": "Intrauterine Insemination (IUI)",
-      "alternateName": "Artificial Insemination",
-      "treatmentIndication": [{
-        "@type": "MedicalCondition",
-        "name": "Unexplained Infertility"
-      }, {
-        "@type": "MedicalCondition",
-        "name": "Mild Male Factor Infertility"
-      }],
-      "code": {
-         "@type": "MedicalCode",
-         "codeValue": "58322",
-         "codingSystem": "CPT"
-      }
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Intrauterine Insemination (IUI) Treatment in Lahore",
+  "description": "Expert IUI treatment in Lahore by Dr. Adnan Jabbar. Combining precision ovulation timing with advanced laboratory sperm washing for unexplained infertility.",
+  "url": "https://ivfexperts.pk/art-procedures/iui.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "What is the cost of IUI in Lahore, Pakistan?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The cost of IUI is significantly lower than IVF. The total package generally includes ovulation induction medications, ultrasound monitoring scans, the laboratory sperm wash, and the insemination procedure itself."
-      }
-    },{
-      "@type": "Question",
-      "name": "Is IUI painful?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "No, IUI is entirely painless and does not require anesthesia. The procedure feels very similar to a routine Pap smear and takes only a few minutes to complete in the clinic."
-      }
-    },{
-      "@type": "Question",
-      "name": "How many IUI cycles should I try before IVF?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Clinical guidelines generally recommend 3 to 4 cycles of well-timed IUI. If pregnancy is not achieved after 4 cycles, the statistical probability decreases, and IVF is typically recommended."
-      }
-    }]
+  "about": {
+    "@type": "MedicalTherapy",
+    "name": "Intrauterine Insemination (IUI)",
+    "alternateName": "Artificial Insemination",
+    "treatmentIndication": [{
+      "@type": "MedicalCondition",
+      "name": "Unexplained Infertility"
+    }, {
+      "@type": "MedicalCondition",
+      "name": "Mild Male Factor Infertility"
+    }],
+    "code": {
+       "@type": "MedicalCode",
+       "codeValue": "58322",
+       "codingSystem": "CPT"
+    }
   }
-]
+}
 </script>
+
+<?php
+$faqs = [
+    ['q' => 'Who is a good candidate for IUI?',
+     'a' => 'IUI is most suitable for couples with unexplained infertility, mild male factor (low sperm count or motility), cervical mucus problems, or those using donor sperm. It is typically the first-line treatment before progressing to IVF.'],
+    ['q' => 'What is the success rate of IUI per cycle?',
+     'a' => 'IUI success rates range from 10–20% per cycle depending on the woman\'s age, ovarian reserve, and whether ovarian stimulation is used. Success rates are higher for younger patients and those with unexplained infertility.'],
+    ['q' => 'How many IUI cycles should I try before moving to IVF?',
+     'a' => 'Most specialists recommend 3–4 IUI cycles before considering IVF. However, Dr. Adnan Jabbar individualises this recommendation based on your age, diagnosis, and how you respond to stimulation.'],
+    ['q' => 'Is IUI painful?',
+     'a' => 'IUI is a simple, minimally invasive procedure that takes just a few minutes. Most patients experience mild cramping similar to menstrual cramps. No anaesthesia is required.'],
+    ['q' => 'What is the cost of IUI in Lahore?',
+     'a' => 'IUI is significantly more affordable than IVF. The cost varies depending on whether ovarian stimulation medications are used. Contact us via WhatsApp for current pricing at IVF Experts Lahore.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>

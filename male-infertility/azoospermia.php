@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20have%20questions%20about%20azoospermia%20treatment." class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
                     Consult on Micro-TESE
                 </a>
             </div>
@@ -183,6 +183,8 @@ include("../includes/header.php");
     </div>
 </section>
 
+<?php $ctaContext = 'about azoospermia and sperm retrieval'; include('../includes/cta-inline.php'); ?>
+
 <!-- SEO SECTION: BEST AZOOSPERMIA CLINIC IN LAHORE -->
 <section class="py-20 bg-indigo-900 text-white relative overflow-hidden">
     <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI0MCIgaGVpZ2h0PSI0MCI+PGNpcmNsZSBjeD0iMjAiIGN5PSIyMCIgcj0iMSIgZmlsbD0icmdiYSgyNTUsIDI1NSwgMjU1LCAwLjA1KSIvPjwvc3ZnPg==')] opacity-20 mix-blend-overlay -z-10"></div>
@@ -230,67 +232,57 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "Azoospermia Treatment and Micro-TESE in Lahore",
-    "description": "Expert diagnosis and surgical retrieval treatment (Micro-TESE, PESA, TESA) for Obstructive and Non-Obstructive Azoospermia in Lahore, Pakistan by Dr. Adnan Jabbar.",
-    "url": "https://ivfexperts.pk/male-infertility/azoospermia.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalCondition",
-      "name": "Azoospermia",
-      "alternateName": "No Sperm Count",
-      "associatedPathophysiology": "Male Infertility",
-      "possibleTreatment": [
-        {
-          "@type": "MedicalTherapy",
-          "name": "Micro-TESE (Microdissection Testicular Sperm Extraction)"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "PESA (Percutaneous Epididymal Sperm Aspiration)"
-        },
-        {
-          "@type": "MedicalTherapy",
-          "name": "Intracytoplasmic Sperm Injection (ICSI)"
-        }
-      ]
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Azoospermia Treatment and Micro-TESE in Lahore",
+  "description": "Expert diagnosis and surgical retrieval treatment (Micro-TESE, PESA, TESA) for Obstructive and Non-Obstructive Azoospermia in Lahore, Pakistan by Dr. Adnan Jabbar.",
+  "url": "https://ivfexperts.pk/male-infertility/azoospermia.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "Can a man with zero sperm count have a biological child?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes. A diagnosis of zero sperm in the ejaculate (Azoospermia) does not necessarily mean there is no sperm production in the testicles. Procedures like Micro-TESE or PESA can surgically extract viable sperm to be used in IVF/ICSI."
+  "about": {
+    "@type": "MedicalCondition",
+    "name": "Azoospermia",
+    "alternateName": "No Sperm Count",
+    "associatedPathophysiology": "Male Infertility",
+    "possibleTreatment": [
+      {
+        "@type": "MedicalTherapy",
+        "name": "Micro-TESE (Microdissection Testicular Sperm Extraction)"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "PESA (Percutaneous Epididymal Sperm Aspiration)"
+      },
+      {
+        "@type": "MedicalTherapy",
+        "name": "Intracytoplasmic Sperm Injection (ICSI)"
       }
-    },{
-      "@type": "Question",
-      "name": "What is the success rate of Micro-TESE?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "For Non-Obstructive Azoospermia, Micro-TESE finds viable sperm in approximately 50% to 60% of cases depending on the exact genetic and hormonal diagnosis."
-      }
-    },{
-      "@type": "Question",
-      "name": "Is Azoospermia curable with medication?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Only specific types of Azoospermia related to severe hormonal imbalances (Hypogonadotropic Hypogonadism) can be corrected with long-term hormonal therapy. Most other cases require surgical retrieval."
-      }
-    }]
+    ]
   }
-]
+}
 </script>
+
+<?php
+$faqs = [
+    ['q' => 'What is the difference between obstructive and non-obstructive azoospermia?',
+     'a' => 'Obstructive azoospermia (OA) means sperm is produced but cannot exit due to a blockage in the reproductive tract. Non-obstructive azoospermia (NOA) means the testes produce little or no sperm. Treatment differs significantly — OA typically has higher sperm retrieval success rates.'],
+    ['q' => 'Can men with azoospermia have biological children?',
+     'a' => 'Yes. Many men with azoospermia can have biological children through surgical sperm retrieval (PESA, TESA, or micro-TESE) combined with ICSI. Dr. Adnan Jabbar specialises in these advanced techniques at our Lahore clinic.'],
+    ['q' => 'What is micro-TESE and when is it required?',
+     'a' => 'Microscopic Testicular Sperm Extraction (micro-TESE) is the most advanced surgical sperm retrieval technique, used for non-obstructive azoospermia. Under an operating microscope, Dr. Adnan identifies and retrieves tubules likely to contain sperm with minimal testicular damage.'],
+    ['q' => 'What are the success rates of sperm retrieval in azoospermia?',
+     'a' => 'In obstructive azoospermia, sperm retrieval rates are typically 90–100%. In non-obstructive azoospermia, micro-TESE finds sperm in approximately 40–60% of cases depending on the underlying cause.'],
+    ['q' => 'How is azoospermia diagnosed?',
+     'a' => 'Azoospermia is confirmed by two semen analyses showing zero sperm. Further tests include hormonal profile (FSH, LH, testosterone), scrotal ultrasound, and sometimes a testicular biopsy to determine if sperm production is occurring.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>

@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-sky-600 hover:bg-sky-500 shadow-[0_8px_25px_rgba(2,132,199,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20have%20questions%20about%20ICSI%20treatment." class="btn-primary bg-sky-600 hover:bg-sky-500 shadow-[0_8px_25px_rgba(2,132,199,0.3)] border-none text-white px-8 py-4">
                     Explore ICSI Treatment
                 </a>
             </div>
@@ -99,6 +99,8 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php $ctaContext = 'about ICSI treatment'; include('../includes/cta-inline.php'); ?>
 
 <!-- SEO SECTION: BEST ICSI CLINIC IN LAHORE -->
 <section class="py-20 bg-sky-900 text-white relative overflow-hidden">
@@ -215,82 +217,56 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "Intracytoplasmic Sperm Injection (ICSI) Treatment in Lahore",
-    "description": "Expert ICSI treatment for severe male infertility (oligospermia, azoospermia) in Lahore by Dr. Adnan Jabbar.",
-    "url": "https://ivfexperts.pk/art-procedures/icsi.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalTherapy",
-      "name": "Intracytoplasmic Sperm Injection (ICSI)",
-      "treatmentIndication": [{
-        "@type": "MedicalCondition",
-        "name": "Male Infertility"
-      }, {
-        "@type": "MedicalCondition",
-        "name": "Oligozoospermia"
-      }, {
-        "@type": "MedicalCondition",
-        "name": "Azoospermia"
-      }],
-      "code": {
-         "@type": "MedicalCode",
-         "codeValue": "89253",
-         "codingSystem": "CPT"
-      }
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Intracytoplasmic Sperm Injection (ICSI) Treatment in Lahore",
+  "description": "Expert ICSI treatment for severe male infertility (oligospermia, azoospermia) in Lahore by Dr. Adnan Jabbar.",
+  "url": "https://ivfexperts.pk/art-procedures/icsi.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "Is ICSI better than regular IVF?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "ICSI is specifically required when there is severe male factor infertility (low count, poor motility) or a history of failed fertilization. Regular IVF is used when sperm parameters are healthy."
-      }
-    },{
-      "@type": "Question",
-      "name": "What is the success rate of ICSI in Lahore?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "ICSI successfully fertilizes approximately 70-85% of injected mature eggs. The overall pregnancy success rate is driven by maternal age and embryo quality."
-      }
-    },{
-      "@type": "Question",
-      "name": "Does ICSI cause birth defects?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Children born from ICSI are as healthy as those conceived naturally. We mitigate genetic risks with chromosomal screening (PGT-A) when necessary."
-      }
-    }]
+  "about": {
+    "@type": "MedicalTherapy",
+    "name": "Intracytoplasmic Sperm Injection (ICSI)",
+    "treatmentIndication": [{
+      "@type": "MedicalCondition",
+      "name": "Male Infertility"
+    }, {
+      "@type": "MedicalCondition",
+      "name": "Oligozoospermia"
+    }, {
+      "@type": "MedicalCondition",
+      "name": "Azoospermia"
+    }],
+    "code": {
+       "@type": "MedicalCode",
+       "codeValue": "89253",
+       "codingSystem": "CPT"
+    }
   }
-]
+}
 </script>
 
-<!-- CALL TO ACTION -->
-<section class="py-24 bg-white relative border-t border-slate-200">
-    <div class="max-w-4xl mx-auto px-6 text-center fade-in">
-        <h2 class="text-3xl md:text-5xl font-bold text-slate-900 mb-6">Rewrite the odds of conception.</h2>
-        <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-            A low sperm analysis is not the end of the line. Through ICSI, we bypass massive male-factor hurdles every day. Speak with us regarding advanced micromanipulation.
-        </p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <a href="https://wa.me/923111101483" class="bg-sky-600 text-white px-10 py-5 rounded-xl font-bold shadow-xl hover:bg-sky-700 hover:scale-105 transition-all text-lg flex items-center gap-3 w-full sm:w-auto justify-center">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.767 5.766 0 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.767-5.766-.001-3.187-2.575-5.77-5.764-5.771z"/></svg>
-                Male Fertility Assessment
-            </a>
-        </div>
-    </div>
-</section>
+<?php
+$faqs = [
+    ['q' => 'When is ICSI recommended instead of standard IVF?',
+     'a' => 'ICSI is recommended when there is severe male factor infertility — low sperm count, poor motility, abnormal morphology, or azoospermia with surgically retrieved sperm. It is also used after previous fertilisation failure with standard IVF.'],
+    ['q' => 'What is the fertilisation rate with ICSI?',
+     'a' => 'With ICSI, approximately 70–80% of mature eggs typically fertilise successfully. This is significantly higher than the fertilisation rate achievable with conventional IVF in male factor cases.'],
+    ['q' => 'Is ICSI more expensive than standard IVF?',
+     'a' => 'ICSI costs slightly more than standard IVF due to the micromanipulation technique required. At IVF Experts Lahore, we provide transparent pricing — contact us on WhatsApp for a personalised cost estimate.'],
+    ['q' => 'Does ICSI increase the risk of birth defects?',
+     'a' => 'The risk of birth defects with ICSI is very similar to natural conception and standard IVF. In cases of severe male infertility, genetic counselling may be recommended as certain conditions can be inherited.'],
+    ['q' => 'How long does the ICSI process take from start to finish?',
+     'a' => 'A full ICSI cycle typically takes 4–6 weeks — including ovarian stimulation, egg retrieval, fertilisation, embryo development, and embryo transfer. Dr. Adnan Jabbar will outline your specific timeline after consultation.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>

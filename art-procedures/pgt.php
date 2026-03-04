@@ -34,7 +34,7 @@ include("../includes/header.php");
             </p>
 
             <div class="flex flex-wrap gap-4">
-                <a href="https://wa.me/923111101483" class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
+                <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20have%20questions%20about%20PGT%20and%20genetic%20testing." class="btn-primary bg-indigo-600 hover:bg-indigo-500 shadow-[0_8px_25px_rgba(79,70,229,0.3)] border-none text-white px-8 py-4">
                     Discuss PGT Options
                 </a>
             </div>
@@ -110,6 +110,8 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php $ctaContext = 'about PGT genetic testing'; include('../includes/cta-inline.php'); ?>
 
 <!-- SEO SECTION: BEST PGT CLINIC IN LAHORE -->
 <section class="py-20 bg-indigo-900 text-white relative overflow-hidden">
@@ -200,81 +202,52 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "Preimplantation Genetic Testing (PGT) Treatment in Lahore",
-    "description": "Expert PGT-A and PGT-M testing in Lahore, Pakistan by Dr. Adnan Jabbar. Offering chromosomal screening, gender selection, and Thalassemia prevention.",
-    "url": "https://ivfexperts.pk/art-procedures/pgt.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalTest",
-      "name": "Preimplantation Genetic Testing (PGT)",
-      "alternateName": "Embryo Biopsy and Genetic Screening",
-      "usedToDiagnose": [{
-        "@type": "MedicalCondition",
-        "name": "Aneuploidy"
-      }, {
-        "@type": "MedicalCondition",
-        "name": "Thalassemia"
-      }, {
-        "@type": "MedicalCondition",
-        "name": "Recurrent Miscarriage"
-      }]
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "Preimplantation Genetic Testing (PGT) Treatment in Lahore",
+  "description": "Expert PGT-A and PGT-M testing in Lahore, Pakistan by Dr. Adnan Jabbar. Offering chromosomal screening, gender selection, and Thalassemia prevention.",
+  "url": "https://ivfexperts.pk/art-procedures/pgt.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "Is Gender Selection allowed in Pakistan through PGT?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Yes, Family Balancing (Gender Selection) is perfectly feasible using PGT-A alongside IVF. By screening the embryos for their precise chromosomal makeup before transfer, parents can select the gender of the embryo securely and with 99.9% accuracy, avoiding multiple pregnancies."
-      }
-    },{
-      "@type": "Question",
-      "name": "Does PGT damage the embryo?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "When performed by a highly experienced clinical embryologist, the risks to the embryo are extremely low (less than 1%). We perform a Trophectoderm Biopsy on Day 5, carefully extracting only 3-5 cells from the future placenta and leaving the inner fetal mass completely untouched."
-      }
-    },{
-      "@type": "Question",
-      "name": "Who should get PGT testing?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "PGT is highly recommended for women over 35, couples with a history of recurrent miscarriages, those who have experienced multiple failed IVF cycles, or families carrying known distinct genetic diseases like Thalassemia Major."
-      }
+  "about": {
+    "@type": "MedicalTest",
+    "name": "Preimplantation Genetic Testing (PGT)",
+    "alternateName": "Embryo Biopsy and Genetic Screening",
+    "usedToDiagnose": [{
+      "@type": "MedicalCondition",
+      "name": "Aneuploidy"
+    }, {
+      "@type": "MedicalCondition",
+      "name": "Thalassemia"
+    }, {
+      "@type": "MedicalCondition",
+      "name": "Recurrent Miscarriage"
     }]
   }
-]
+}
 </script>
 
-<!-- CALL TO ACTION -->
-<section class="py-24 bg-white relative border-t border-slate-200">
-    <div class="max-w-4xl mx-auto px-6 text-center fade-in">
-        <h2 class="text-3xl md:text-5xl font-bold text-slate-900 mb-6">Investigate Embryo Genetics</h2>
-        <p class="text-lg text-slate-600 mb-10 max-w-2xl mx-auto">
-            If you have suffered from recurrent pregnancy loss, or carry a known genetic mutation, PGT offers the most powerful diagnostic control in modern medicine.
-        </p>
-        <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
-            <a href="https://wa.me/923111101483" class="bg-indigo-600 text-white px-10 py-5 rounded-xl font-bold shadow-xl hover:bg-indigo-700 hover:scale-105 transition-all text-lg flex items-center gap-3 w-full sm:w-auto justify-center">
-                <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.767 5.766 0 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.767-5.766-.001-3.187-2.575-5.77-5.764-5.771z"/></svg>
-                Inquire About PGT
-            </a>
-            <a href="/contact/" class="text-indigo-600 font-bold hover:underline py-4 w-full sm:w-auto">
-                Or View Clinic Details
-            </a>
-        </div>
-    </div>
-</section>
+<?php
+$faqs = [
+    ['q' => 'What is preimplantation genetic testing (PGT)?',
+     'a' => 'PGT is a procedure performed on embryos created through IVF before they are transferred to the uterus. It screens for chromosomal abnormalities (PGT-A), specific genetic disorders (PGT-M), or structural rearrangements (PGT-SR) to select the healthiest embryos for transfer.'],
+    ['q' => 'Is gender selection (PGT) legal in Pakistan?',
+     'a' => 'The legal and ethical framework around gender selection varies. Dr. Adnan Jabbar can advise you on the current medical and ethical guidelines in Pakistan and help you make an informed decision based on your family\'s specific circumstances.'],
+    ['q' => 'Does PGT improve IVF success rates?',
+     'a' => 'PGT-A (for chromosomal screening) can improve implantation rates and reduce miscarriage risk by selecting chromosomally normal embryos. It is particularly beneficial for women over 35 and those with recurrent pregnancy loss.'],
+    ['q' => 'Does PGT harm the embryo?',
+     'a' => 'Modern PGT is performed at the blastocyst stage (day 5–6) using trophectoderm biopsy, which removes only a few cells from the outer shell of the embryo. When performed by an experienced embryologist, it does not harm embryo viability.'],
+    ['q' => 'How long does it take to get PGT results?',
+     'a' => 'PGT results typically take 5–10 working days after the embryo biopsy. During this time, embryos are frozen. A frozen embryo transfer is then planned once results are available.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
 
 <?php include("../includes/footer.php"); ?>
