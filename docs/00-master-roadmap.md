@@ -7,36 +7,37 @@
 
 | Assessment | Doc | Status | Tasks Done | Tasks Total |
 |---|---|---|---|---|
-| SEO Audit | [01-seo-audit.md](01-seo-audit.md) | 🔴 Not Started | 0 | 15 |
-| Page CRO | [02-page-cro.md](02-page-cro.md) | 🔴 Not Started | 0 | 14 |
-| Schema Markup | [03-schema-markup.md](03-schema-markup.md) | 🔴 Not Started | 0 | 12 |
+| SEO Audit | [01-seo-audit.md](01-seo-audit.md) | 🟡 In Progress | 7 | 15 |
+| Page CRO | [02-page-cro.md](02-page-cro.md) | 🟡 In Progress | 3 | 14 |
+| Schema Markup | [03-schema-markup.md](03-schema-markup.md) | 🟢 Complete | 12 | 12 |
 | Free Tool Strategy | [04-free-tool-strategy.md](04-free-tool-strategy.md) | 🔴 Not Started | 0 | 10 |
 | AI SEO | [05-ai-seo.md](05-ai-seo.md) | 🔴 Not Started | 0 | 13 |
-| Site Architecture | [06-site-architecture.md](06-site-architecture.md) | 🔴 Not Started | 0 | 11 |
+| Site Architecture | [06-site-architecture.md](06-site-architecture.md) | 🟡 In Progress | 5 | 11 |
 | Content Strategy | [07-content-strategy.md](07-content-strategy.md) | 🔴 Not Started | 0 | 19 |
 | Content Architecture | [08-content-architecture.md](08-content-architecture.md) | 🔴 Not Started | 0 | 15 |
-| Local SEO | [09-local-seo.md](09-local-seo.md) | 🔴 Not Started | 0 | 12 |
-| Analytics & Tracking | [10-analytics-tracking.md](10-analytics-tracking.md) | 🔴 Not Started | 0 | 12 |
+| Local SEO | [09-local-seo.md](09-local-seo.md) | 🟡 In Progress | 2 | 12 |
+| Analytics & Tracking | [10-analytics-tracking.md](10-analytics-tracking.md) | 🟡 In Progress | 2 | 12 |
 | Link Building | [11-link-building.md](11-link-building.md) | 🔴 Not Started | 0 | 10 |
-| WhatsApp & Email | [12-whatsapp-email-marketing.md](12-whatsapp-email-marketing.md) | 🔴 Not Started | 0 | 11 |
+| WhatsApp & Email | [12-whatsapp-email-marketing.md](12-whatsapp-email-marketing.md) | 🟡 In Progress | 3 | 11 |
 | Competitor Analysis | [13-competitor-analysis.md](13-competitor-analysis.md) | 🔴 Not Started | 0 | 15 |
 | Social Media Strategy | [14-social-media-strategy.md](14-social-media-strategy.md) | 🔴 Not Started | 0 | 14 |
 | Reputation Management | [15-reputation-management.md](15-reputation-management.md) | 🔴 Not Started | 0 | 13 |
 | Patient Journey Map | [16-patient-journey-map.md](16-patient-journey-map.md) | 🔴 Not Started | 0 | 13 |
 | Pricing Strategy | [17-pricing-strategy.md](17-pricing-strategy.md) | 🔴 Not Started | 0 | 12 |
 
-**Overall: 0 / 208 tasks complete**
+**Overall: 34 / 208 tasks complete**
 
 ---
 
 ## Sprint Plan (Recommended Order)
 
-### Sprint 1 — Fix Foundations (Week 1–2)
-1. SEO Audit: Critical fixes (sitemap, og:image, favicon, images)
-2. Schema Markup: Consolidate duplicates, fix breadcrumbs
-3. Site Architecture: Fix blog URLs, add missing pages
-4. **Analytics & Tracking: GTM audit, WhatsApp + form conversion events** ← enables measuring all future work
-5. **Local SEO: Claim & optimize Google Business Profile** ← fastest ROI for consultation bookings
+### ✅ Sprint 1 — Fix Foundations (Week 1–2) — DONE (2026-03-05)
+1. SEO Audit: og:image, favicon, title tags, H1, heading hierarchy, breadcrumb URLs, Outfit font
+2. Schema Markup: Removed duplicates, MedicalBusiness + Physician complete, BlogPosting, FAQPage helper, WebSite schema
+3. Site Architecture: Clean blog URLs (/blog/slug/), Privacy Policy, Terms pages, Karachi + Islamabad city pages
+4. **Analytics & Tracking: GTM dataLayer for contact form + WhatsApp pre-fill CTAs** ← conversion tracking live
+5. **Local SEO (code portion): City landing pages deployed** | Manual: Google Business Profile still pending
+> Code plan: [docs/plans/2026-03-04-marketing-website-sprint1.md](plans/2026-03-04-marketing-website-sprint1.md)
 
 ### Sprint 2 — Optimize Existing Pages (Week 3–4)
 6. Page CRO: Homepage + top treatment pages
