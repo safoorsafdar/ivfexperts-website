@@ -1,6 +1,7 @@
 <?php
 /**
  * prescriptions_edit.php — Edit an existing prescription
+ * All-in-one clean rewrite fixing: empty rows, ICD save, autocomplete, frequency select, View button.
  */
 $pageTitle = "Edit Prescription";
 require_once __DIR__ . '/includes/auth.php';
@@ -29,9 +30,9 @@ $stmt2->bind_param("i", $patient_id);
 $stmt2->execute();
 $patient = $stmt2->get_result()->fetch_assoc();
 
-// Fetch medication items — filter out empty rows
-$items_raw_res = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id AND medicine_name != '' ORDER BY id ASC");
-$items = $items_raw_res ? $items_raw_res->fetch_all(MYSQLI_ASSOC) : [];
+// Fetch medication items — strictly filter empty rows
+$items_res = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id AND TRIM(COALESCE(medicine_name,'')) != '' ORDER BY id ASC");
+$items = $items_res ? $items_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // Fetch advised lab tests
 $advised_labs = [];
@@ -45,7 +46,9 @@ try {
             $advised_labs = $ls->get_result()->fetch_all(MYSQLI_ASSOC);
         }
     }
-} catch (Exception $e) {}
+}
+catch (Exception $e) {
+}
 
 // Parse existing ICD-10 codes
 $existing_icd = [];
@@ -69,29 +72,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
     $record_for = in_array($_POST['record_for'] ?? '', ['Patient', 'Spouse']) ? $_POST['record_for'] : 'Patient';
     $icd10_codes = $_POST['icd10_data'] ?? '[]';
 
+    // Validate ICD JSON
+    if (json_decode($icd10_codes) === null)
+        $icd10_codes = '[]';
+
     $upd = $conn->prepare(
         "UPDATE prescriptions SET diagnosis=?, clinical_notes=?, general_advice=?, next_visit=?, record_for=?, icd10_codes=? WHERE id=?"
     );
     if ($upd) {
         $upd->bind_param("ssssssi", $diagnosis, $clinical_notes, $general_advice, $next_visit, $record_for, $icd10_codes, $rx_id);
         if ($upd->execute()) {
-            // Replace medication items — read from PHP array inputs (meds[0][medicine_name] etc.)
+            // Replace medication items
             $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
             $meds_post = $_POST['meds'] ?? [];
             if (is_array($meds_post) && count($meds_post) > 0) {
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
                 $auto_med = $conn->prepare(
-                    "INSERT IGNORE INTO medications (name, default_dosage, default_frequency, default_duration, default_instructions)
-                     VALUES (?, ?, ?, ?, ?)"
+                    "INSERT IGNORE INTO medications (name, default_dosage, default_frequency, default_duration, default_instructions) VALUES (?, ?, ?, ?, ?)"
                 );
                 if ($m_stmt) {
                     foreach ($meds_post as $m) {
-                        $name  = trim($m['medicine_name'] ?? '');
-                        if (empty($name)) continue;
-                        $dose  = $m['dosage'] ?? '';
-                        $freq  = $m['frequency'] ?? '';
-                        $dur   = $m['duration'] ?? '';
-                        $instr = $m['instructions'] ?? '';
+                        $name = trim($m['medicine_name'] ?? '');
+                        if (empty($name))
+                            continue;
+                        $dose = trim($m['dosage'] ?? '');
+                        $freq = trim($m['frequency'] ?? '');
+                        $dur = trim($m['duration'] ?? '');
+                        $instr = trim($m['instructions'] ?? '');
                         $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                         $m_stmt->execute();
                         if ($auto_med) {
@@ -102,7 +109,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
                 }
             }
 
-            // Replace advised lab tests — read from PHP array inputs (labs[0][id], labs[0][for])
+            // Replace advised lab tests
             $conn->query("DELETE FROM advised_lab_tests WHERE prescription_id = $rx_id");
             $labs_post = $_POST['labs'] ?? [];
             if (is_array($labs_post) && !empty($labs_post)) {
@@ -110,7 +117,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
                 if ($l_stmt) {
                     foreach ($labs_post as $l) {
                         $tid = intval($l['id'] ?? 0);
-                        if ($tid <= 0) continue;
+                        if ($tid <= 0)
+                            continue;
                         $lab_for = in_array($l['for'] ?? '', ['Patient', 'Spouse']) ? $l['for'] : 'Patient';
                         $l_stmt->bind_param("iiis", $rx_id, $patient_id, $tid, $lab_for);
                         $l_stmt->execute();
@@ -131,6 +139,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
 }
 
 include __DIR__ . '/includes/header.php';
+
+// Prepare medication data as JSON for JS initialization
+$items_for_js = array_values(array_map(fn($i) => [
+'medicine_name' => $i['medicine_name'],
+'dosage' => $i['dosage'] ?? '',
+'frequency' => $i['frequency'] ?? '',
+'duration' => $i['duration'] ?? '',
+'instructions' => $i['instructions'] ?? '',
+], $items));
+
+// Prepare lab data as JSON for JS initialization
+$labs_for_js = array_values(array_map(fn($l) => [
+'id' => (int)$l['id'],
+'test_name' => $l['test_name'],
+'for' => $l['for'] ?? 'Patient',
+], $advised_labs));
 ?>
 
 <style>
@@ -144,32 +168,92 @@ include __DIR__ . '/includes/header.php';
 </style>
 
 <script>
-// Vanilla JS medication rows — no Alpine dependency
-var _medCount = <?php echo count($items); ?>;
-var _ic = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full';
-var _editFreqOpts = '<option value="">— Select —</option><option value="1-0-1">Twice daily (BDS / 1-0-1)</option><option value="1-1-1">Three times daily (TDS / 1-1-1)</option><option value="1-0-0">Morning only (OD)</option><option value="0-0-1">Night only (OD)</option><option value="0-1-0">Noon only</option><option value="SOS">As needed (SOS)</option><option value="Weekly">Weekly</option>';
+// ─── Shared constants ────────────────────────────────────────────────────────
+const _FREQ_OPTS = [
+    ['', '— Select frequency —'],
+    ['1-0-1', 'Twice daily (BDS / 1-0-1)'],
+    ['1-1-1', 'Three times daily (TDS / 1-1-1)'],
+    ['1-0-0', 'Morning only (OD)'],
+    ['0-0-1', 'Night only (OD)'],
+    ['0-1-0', 'Noon only'],
+    ['SOS',   'As needed (SOS)'],
+    ['Weekly','Weekly'],
+    ['Stat',  'Single dose (Stat)'],
+];
+const _IC = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full';
+
+// Pre-loaded med data from PHP
+var _medsData = <?php echo json_encode($items_for_js); ?>;
+var _medCount = 0;
+
+// ─── Med row rendering ────────────────────────────────────────────────────────
+function _buildFreqOpts(selected) {
+    return _FREQ_OPTS.map(function(o) {
+        var sel = (o[0] === selected) ? ' selected' : '';
+        return '<option value="' + o[0] + '"' + sel + '>' + o[1] + '</option>';
+    }).join('');
+}
+
+function renderMedRow(idx, data) {
+    data = data || {};
+    var name  = data.medicine_name || '';
+    var dose  = data.dosage        || '';
+    var freq  = data.frequency     || '';
+    var dur   = data.duration      || '';
+    var instr = data.instructions  || '';
+    return [
+        '<div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative mb-2">',
+            '<button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100"><i class="fa-solid fa-times"></i></button>',
+            '<div class="col-span-2 md:col-span-3 relative">',
+                '<input type="text" name="meds[' + idx + '][medicine_name]" id="editmed-name-' + idx + '"',
+                ' value="' + _escHtml(name) + '"',
+                ' placeholder="Type medicine name or search..." autocomplete="off"',
+                ' class="' + _IC + '" oninput="editMedSearch(this,' + idx + ')">',
+                '<div id="editmed-drop-' + idx + '" class="absolute z-30 w-full bg-white mt-1 rounded-xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto hidden"></div>',
+            '</div>',
+            '<input type="text"   name="meds[' + idx + '][dosage]"       id="editmed-dosage-' + idx + '" value="' + _escHtml(dose)  + '" placeholder="Dosage (e.g. 500mg)"   class="' + _IC + '">',
+            '<select              name="meds[' + idx + '][frequency]"     id="editmed-freq-'  + idx + '" class="' + _IC + '">' + _buildFreqOpts(freq) + '</select>',
+            '<input type="text"   name="meds[' + idx + '][duration]"      id="editmed-dur-'   + idx + '" value="' + _escHtml(dur)   + '" placeholder="Duration (e.g. 7 days)"  class="' + _IC + '">',
+            '<input type="text"   name="meds[' + idx + '][instructions]"  id="editmed-instr-' + idx + '" value="' + _escHtml(instr) + '" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 ' + _IC + '">',
+        '</div>'
+    ].join('');
+}
+
+function _escHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Render all pre-loaded medications on page load
+function initMedRows() {
+    var container = document.getElementById('med-rows');
+    if (!container) return;
+    var html = '';
+    _medsData.forEach(function(m) {
+        html += renderMedRow(_medCount++, m);
+    });
+    container.innerHTML = html;
+    toggleNoMedsMsg();
+}
 
 function addMedRow() {
-    var i = _medCount++;
-    var html = '<div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative mb-2">' +
-        '<button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100"><i class="fa-solid fa-times"></i></button>' +
-        '<div class="col-span-2 md:col-span-3 relative">' +
-        '<input type="text" name="meds['+i+'][medicine_name]" id="editmed-name-'+i+'" placeholder="Type to search or add new..." autocomplete="off" class="'+_ic+'" oninput="editMedSearch(this,'+i+')">' +
-        '<div id="editmed-drop-'+i+'" class="absolute z-30 w-full bg-white mt-1 rounded-xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto hidden"></div></div>' +
-        '<input type="text" name="meds['+i+'][dosage]" id="editmed-dosage-'+i+'" placeholder="Dosage" class="'+_ic+'">' +
-        '<select name="meds['+i+'][frequency]" id="editmed-freq-'+i+'" class="'+_ic+'">'+_editFreqOpts+'</select>' +
-        '<input type="text" name="meds['+i+'][duration]" id="editmed-dur-'+i+'" placeholder="Duration" class="'+_ic+'">' +
-        '<input type="text" name="meds['+i+'][instructions]" id="editmed-instr-'+i+'" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 '+_ic+'">' +
-        '</div>';
-    document.getElementById('med-rows').insertAdjacentHTML('beforeend', html);
-    document.getElementById('no-meds-msg').style.display = 'none';
+    var container = document.getElementById('med-rows');
+    if (!container) return;
+    container.insertAdjacentHTML('beforeend', renderMedRow(_medCount++, {}));
+    toggleNoMedsMsg();
 }
 
 function removeMedRow(btn) {
     btn.closest('.med-row').remove();
-    if (!document.querySelector('#med-rows .med-row')) document.getElementById('no-meds-msg').style.display = '';
+    toggleNoMedsMsg();
 }
 
+function toggleNoMedsMsg() {
+    var msg = document.getElementById('no-meds-msg');
+    var hasRows = document.querySelector('#med-rows .med-row');
+    if (msg) msg.style.display = hasRows ? 'none' : '';
+}
+
+// ─── Medicine autocomplete ────────────────────────────────────────────────────
 var _editMedTimer = {};
 function editMedSearch(input, idx) {
     clearTimeout(_editMedTimer[idx]);
@@ -179,43 +263,53 @@ function editMedSearch(input, idx) {
         if (!drop) return;
         if (q.length < 2) { drop.classList.add('hidden'); return; }
         try {
-            var res  = await fetch('api_search_medications.php?q=' + encodeURIComponent(q));
+            var res = await fetch('api_search_medications.php?q=' + encodeURIComponent(q));
             var data = await res.json();
             if (data.length === 0) { drop.classList.add('hidden'); return; }
             drop.innerHTML = data.map(function(m) {
-                var label = '<span class="font-bold text-gray-800">' + m.name + '</span>';
-                if (m.formula) label += '<span class="text-xs text-indigo-400 ml-1">(' + m.formula + ')</span>';
+                var label = '<span class="font-bold text-gray-800">' + _escHtml(m.name) + '</span>';
+                if (m.formula) label += '<span class="text-xs text-indigo-400 ml-1">(' + _escHtml(m.formula) + ')</span>';
+                if (m.default_dosage) label += '<span class="text-xs text-gray-400 ml-2">' + _escHtml(m.default_dosage) + '</span>';
                 var safe = encodeURIComponent(JSON.stringify(m));
-                return '<button type="button" class="w-full text-left px-4 py-2 hover:bg-teal-50 border-b border-gray-50 last:border-0 text-sm" onmousedown="editMedSelect(this,decodeURIComponent(\'' + safe + '\'),' + idx + ')">' + label + '</button>';
+                return '<button type="button" class="w-full text-left px-4 py-2 hover:bg-teal-50 border-b border-gray-50 last:border-0 text-sm"' +
+                       ' onmousedown="editMedSelect(decodeURIComponent(\'' + safe + '\'),' + idx + ')">' + label + '</button>';
             }).join('');
             drop.classList.remove('hidden');
         } catch(e) { drop.classList.add('hidden'); }
-    }, 300);
+    }, 280);
 }
 
-function editMedSelect(btn, jsonStr, idx) {
+function editMedSelect(jsonStr, idx) {
     var m = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
     var set = function(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
     set('editmed-name-'  + idx, m.name);
     set('editmed-dosage-'+ idx, m.default_dosage);
     set('editmed-dur-'   + idx, m.default_duration);
     set('editmed-instr-' + idx, m.default_instructions);
+    // Frequency is a select
     var freq = document.getElementById('editmed-freq-' + idx);
     if (freq && m.default_frequency) freq.value = m.default_frequency;
     var drop = document.getElementById('editmed-drop-' + idx);
     if (drop) drop.classList.add('hidden');
 }
 
+// Run init on DOM ready
+document.addEventListener('DOMContentLoaded', initMedRows);
+</script>
+
+<script>
+// ─── Alpine.js data for ICD-10 + Lab Tests ───────────────────────────────────
 function rxEditData() {
     return {
-        icdCodes: <?php echo json_encode($existing_icd); ?>,
-        selectedLabs: <?php echo json_encode(array_map(fn($l) => ['id' => $l['id'], 'test_name' => $l['test_name'], 'for' => $l['for'] ?? 'Patient'], $advised_labs)); ?>,
+        icdCodes:     <?php echo json_encode($existing_icd); ?>,
+        selectedLabs: <?php echo json_encode($labs_for_js); ?>,
         icdQuery: '',
         icdResults: [],
         icdLoading: false,
         icdOpen: false,
         labSearch: '',
         labResults: [],
+
         async searchIcd() {
             if (this.icdQuery.length < 2) { this.icdOpen = false; return; }
             this.icdLoading = true; this.icdOpen = true;
@@ -232,6 +326,7 @@ function rxEditData() {
             this.icdQuery = ''; this.icdOpen = false; this.icdResults = [];
         },
         removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); },
+
         async searchLabs() {
             if (this.labSearch.length < 2) { this.labResults = []; return; }
             try {
@@ -245,12 +340,14 @@ function rxEditData() {
             }
             this.labSearch = ''; this.labResults = [];
         },
-        removeLab(i) { this.selectedLabs.splice(i, 1); },
+        removeLab(i)    { this.selectedLabs.splice(i, 1); },
         toggleLabFor(i) { this.selectedLabs[i].for = this.selectedLabs[i].for === 'Patient' ? 'Spouse' : 'Patient'; },
-        submitForm() {
-            // Meds and labs now use :name bindings — only ICD codes still need JSON
+
+        // Called on form @submit.prevent — populate hidden field then submit
+        handleSubmit(event) {
             var el = document.getElementById('edit_icd10_data');
             if (el) el.value = JSON.stringify(this.icdCodes);
+            event.target.submit(); // native form submit bypassing Alpine intercept
         }
     };
 }
@@ -268,10 +365,16 @@ function rxEditData() {
                 <h1 class="text-white font-semibold text-lg">Edit Prescription #RX-<?php echo str_pad($rx_id, 5, '0', STR_PAD_LEFT); ?></h1>
                 <p class="text-teal-100 text-xs mt-0.5"><?php echo htmlspecialchars(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? '')); ?> · <?php echo htmlspecialchars($patient['mr_number'] ?? ''); ?></p>
             </div>
-            <a href="prescriptions_print.php?id=<?php echo $rx_id; ?>" target="_blank"
-               class="inline-flex items-center gap-2 px-4 py-2 bg-white text-teal-700 rounded-xl text-xs font-semibold hover:bg-teal-50 transition-all">
-                <i class="fa-solid fa-print"></i> Print / PDF
-            </a>
+            <div class="flex items-center gap-2">
+                <a href="prescriptions_print.php?id=<?php echo $rx_id; ?>" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-white/20 text-white rounded-xl text-xs font-semibold hover:bg-white/30 transition-all">
+                    <i class="fa-solid fa-eye"></i> View
+                </a>
+                <a href="prescriptions_print.php?id=<?php echo $rx_id; ?>" target="_blank"
+                   class="inline-flex items-center gap-1.5 px-3 py-2 bg-white text-teal-700 rounded-xl text-xs font-semibold hover:bg-teal-50 transition-all">
+                    <i class="fa-solid fa-print"></i> Print / PDF
+                </a>
+            </div>
         </div>
 
         <?php if ($save_error): ?>
@@ -279,10 +382,11 @@ function rxEditData() {
         <?php
 endif; ?>
 
-        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()" id="rxEditForm">
+        <form method="POST" class="p-6 space-y-5" id="rxEditForm"
+              x-data="rxEditData()"
+              @submit.prevent="handleSubmit($event)">
 
             <!-- Record For -->
-
             <div class="flex items-center gap-3">
                 <span class="text-xs font-medium text-slate-500">Record for:</span>
                 <label class="cursor-pointer">
@@ -301,7 +405,7 @@ endif; ?>
                 </label>
             </div>
 
-            <!-- Presenting Complaint (clinical_notes) -->
+            <!-- Presenting Complaint -->
             <div>
                 <label class="block text-xs font-medium text-slate-500 mb-1.5">Presenting Complaint</label>
                 <textarea name="clinical_notes" rows="3"
@@ -351,10 +455,11 @@ endif; ?>
                         <i class="fa-solid fa-spinner fa-spin text-gray-300 text-xs"></i>
                     </div>
                 </div>
+                <!-- Hidden field populated by handleSubmit() -->
                 <input type="hidden" name="icd10_data" id="edit_icd10_data">
             </div>
 
-            <!-- Medications (PHP-rendered + vanilla JS — no Alpine) -->
+            <!-- Medications (Vanilla JS rendered — autocomplete enabled on all rows) -->
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <label class="text-xs font-medium text-slate-500">Medications</label>
@@ -362,24 +467,8 @@ endif; ?>
                         <i class="fa-solid fa-plus text-[10px]"></i> Add Medicine
                     </button>
                 </div>
-                <div id="med-rows" class="space-y-2">
-                    <?php $ic = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full'; ?>
-                    <?php foreach ($items as $i => $item): ?>
-                    <div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative">
-                        <button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100">
-                            <i class="fa-solid fa-times"></i>
-                        </button>
-                        <div class="col-span-2 md:col-span-3">
-                            <input type="text" name="meds[<?=$i?>][medicine_name]" value="<?=esc($item['medicine_name'])?>" placeholder="Medicine name *" class="<?=$ic?>">
-                        </div>
-                        <input type="text" name="meds[<?=$i?>][dosage]" value="<?=esc($item['dosage']??'')?>" placeholder="Dosage (e.g. 500mg)" class="<?=$ic?>">
-                        <input type="text" name="meds[<?=$i?>][frequency]" value="<?=esc($item['frequency']??'')?>" placeholder="Frequency (e.g. BD)" class="<?=$ic?>">
-                        <input type="text" name="meds[<?=$i?>][duration]" value="<?=esc($item['duration']??'')?>" placeholder="Duration (e.g. 7 days)" class="<?=$ic?>">
-                        <input type="text" name="meds[<?=$i?>][instructions]" value="<?=esc($item['instructions']??'')?>" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 <?=$ic?>">
-                    </div>
-                    <?php endforeach; ?>
-                </div>
-                <div id="no-meds-msg" class="text-center py-6 text-xs text-gray-400"<?= !empty($items) ? ' style="display:none"' : '' ?>>
+                <div id="med-rows" class="space-y-1"></div>
+                <div id="no-meds-msg" class="text-center py-6 text-xs text-gray-400" style="display:none">
                     No medications added. Click "+ Add Medicine" to start.
                 </div>
             </div>
@@ -445,7 +534,7 @@ endif; ?>
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <a href="patients_view.php?id=<?php echo $patient_id; ?>&tab=rx"
                    class="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-500 bg-gray-100 hover:bg-gray-200 transition-all">Cancel</a>
-                <button type="submit" @click="submitForm()"
+                <button type="submit"
                         class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition-all active:scale-95">
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>

@@ -710,17 +710,21 @@ else: ?>
                                     <span class="text-xs font-semibold text-violet-800"><?php echo esc($item['medicine_name']); ?></span>
                                     <?php if (!empty($item['formula'])): ?>
                                     <span class="text-[10px] text-indigo-400 font-medium leading-tight"><?php echo esc($item['formula']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                     <?php if (!empty($item['dosage'])): ?>
                                     <span class="text-[10px] text-violet-400">· <?php echo esc($item['dosage']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['frequency'])): ?>
                                     <span class="text-[10px] text-violet-400"><?php echo esc($item['frequency']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['duration'])): ?>
                                     <span class="text-[10px] text-violet-300">for <?php echo esc($item['duration']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     </div>
                                 </div>
                                 <?php
@@ -746,6 +750,22 @@ else: ?>
                             </span>
                             <?php
         endif; ?>
+
+                            <!-- Action Buttons -->
+                            <div class="ml-auto flex items-center gap-2">
+                                <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-all border border-teal-100">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> View
+                                </a>
+                                <a href="prescriptions_edit.php?id=<?php echo $rx['id']; ?>"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all border border-indigo-100">
+                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i> Edit
+                                </a>
+                                <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all border border-gray-200">
+                                    <i class="fa-solid fa-print text-[9px]"></i> Print
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <?php
@@ -816,22 +836,27 @@ else: ?>
                                     <div class="text-[9px] text-slate-400 font-bold uppercase">Normal</div>
                                 </div>
                             </div>
-                            <?php else: ?>
+                            <?php
+        else: ?>
                             <div class="mb-8 flex flex-col items-center justify-center py-5 bg-sky-50 rounded-2xl border border-sky-100 text-center">
                                 <i class="fa-solid fa-file-waveform text-sky-300 text-2xl mb-2"></i>
                                 <p class="text-xs font-semibold text-sky-600">Parameters in attached report</p>
                             </div>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                             <?php if (!empty($sr['lab_name']) || !empty($sr['lab_report_number'])): ?>
                             <div class="mb-4 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-700">
                                 <?php if (!empty($sr['lab_name'])): ?>
                                     <span class="font-bold"><i class="fa-solid fa-flask mr-1"></i><?php echo esc($sr['lab_name']); ?></span>
-                                <?php endif; ?>
+                                <?php
+            endif; ?>
                                 <?php if (!empty($sr['lab_report_number'])): ?>
                                     <span class="ml-2 text-sky-500">· Ref: <?php echo esc($sr['lab_report_number']); ?></span>
-                                <?php endif; ?>
+                                <?php
+            endif; ?>
                             </div>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                             <div class="flex items-center justify-between pt-6 border-t border-gray-50">
                                 <a href="semen_analyses_add.php?edit=<?php echo $sr['id']; ?>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white transition-all">
                                     <i class="fa-solid fa-pen-to-square text-xs"></i>
@@ -847,7 +872,8 @@ else: ?>
                                         <a href="https://ivfexperts.pk/<?php echo esc($sr['report_file_path']); ?>" target="_blank" class="inline-flex items-center gap-2 bg-sky-100 hover:bg-sky-200 text-sky-700 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all uppercase tracking-widest">
                                             <i class="fa-solid fa-file-arrow-down"></i> View File
                                         </a>
-                                    <?php endif; ?>
+                                    <?php
+        endif; ?>
                                     <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank" class="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-black text-[10px] px-5 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-widest">
                                         <i class="fa-solid fa-print"></i> Full Report
                                     </a>
