@@ -111,34 +111,67 @@
     </svg>
 </a>
 
-<!-- Enhanced Structured Data -->
+<!-- MedicalBusiness Structured Data -->
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
-  "@graph": [
+  "@type": "MedicalBusiness",
+  "name": "IVF Experts",
+  "url": "https://ivfexperts.pk",
+  "telephone": "+923111101483",
+  "email": "info@ivfexperts.pk",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "7/C-1, Gulberg III",
+    "addressLocality": "Lahore",
+    "addressRegion": "Punjab",
+    "postalCode": "54660",
+    "addressCountry": "PK"
+  },
+  "geo": {
+    "@type": "GeoCoordinates",
+    "latitude": 31.5204,
+    "longitude": 74.3587
+  },
+  "openingHoursSpecification": [
     {
-      "@type": "MedicalBusiness",
-      "@id": "https://ivfexperts.pk/#organization",
-      "name": "IVF Experts – Dr. Adnan Jabbar",
-      "url": "https://ivfexperts.pk",
-      "telephone": "+923111101483",
-      "address": {
-        "@type": "PostalAddress",
-        "addressLocality": "Lahore",
-        "addressRegion": "Punjab",
-        "addressCountry": "PK"
-      },
-      "medicalSpecialty": "Reproductive Medicine"
-    },
-    {
-      "@type": "Physician",
-      "@id": "https://ivfexperts.pk/#physician",
-      "name": "Dr. Adnan Jabbar",
-      "jobTitle": "Fertility Specialist & Clinical Embryologist",
-      "medicalSpecialty": "Reproductive Endocrinology and Infertility",
-      "worksFor": { "@id": "https://ivfexperts.pk/#organization" },
-      "url": "https://ivfexperts.pk/about/"
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"],
+      "opens": "09:00",
+      "closes": "18:00"
     }
+  ],
+  "image": "https://ivfexperts.pk/assets/images/art_procedures_lab.png",
+  "priceRange": "PKR",
+  "medicalSpecialty": "Reproductive Medicine",
+  "areaServed": ["Lahore", "Karachi", "Islamabad", "Okara", "Pakistan"],
+  "sameAs": [
+    "https://www.facebook.com/ivfexperts",
+    "https://www.instagram.com/ivfexperts"
+  ]
+}
+</script>
+
+<!-- Physician Structured Data -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Physician",
+  "name": "Dr. Adnan Jabbar",
+  "url": "https://ivfexperts.pk/about/",
+  "jobTitle": "Fertility Specialist & Clinical Embryologist",
+  "worksFor": {
+    "@type": "MedicalBusiness",
+    "name": "IVF Experts",
+    "url": "https://ivfexperts.pk"
+  },
+  "medicalSpecialty": "Reproductive Medicine",
+  "areaServed": "Pakistan",
+  "telephone": "+923111101483",
+  "image": "https://ivfexperts.pk/assets/images/dr-adnan.jpg",
+  "sameAs": [
+    "https://www.facebook.com/ivfexperts",
+    "https://www.instagram.com/ivfexperts"
   ]
 }
 </script>
