@@ -667,7 +667,8 @@ else: ?>
                             <?php if ($has_complaint): ?>
                             <div>
                                 <p class="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-0.5">Presenting Complaint</p>
-                                <p class="text-xs text-slate-600 leading-snug line-clamp-1"><?php echo esc($rx['clinical_notes']); ?></p>
+                                <p class="text-xs text-slate-600 leading-snug line-clamp-1"><?php echo esc(strip_tags($rx['clinical_notes'])); ?></p>
+
                             </div>
                             <?php
             endif; ?>

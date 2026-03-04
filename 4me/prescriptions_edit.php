@@ -1,8 +1,6 @@
 <?php
 /**
- * prescriptions_edit.php
- * Loads existing prescription data and redirects to the add wizard pre-populated.
- * Since prescriptions_add.php is a full wizard, we display a simple edit form here.
+ * prescriptions_edit.php — Edit an existing prescription
  */
 $pageTitle = "Edit Prescription";
 require_once __DIR__ . '/includes/auth.php';
@@ -31,8 +29,21 @@ $stmt2->bind_param("i", $patient_id);
 $stmt2->execute();
 $patient = $stmt2->get_result()->fetch_assoc();
 
-// Fetch medications
-$items = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
+// Fetch medication items — filter out empty rows
+$items_raw_res = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id AND medicine_name != '' ORDER BY id ASC");
+$items = $items_raw_res ? $items_raw_res->fetch_all(MYSQLI_ASSOC) : [];
+
+// Parse existing ICD-10 codes
+$existing_icd = [];
+if (!empty($rx['icd10_codes'])) {
+    $decoded = json_decode($rx['icd10_codes'], true);
+    if (is_array($decoded))
+        $existing_icd = $decoded;
+}
+
+// Strip HTML tags for textarea display (clinical notes may be stored as HTML from rich editor)
+$clinical_notes_plain = strip_tags($rx['clinical_notes'] ?? '');
+$diagnosis_plain = strip_tags($rx['diagnosis'] ?? '');
 
 // Handle update
 $save_error = '';
@@ -42,30 +53,50 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
     $general_advice = trim($_POST['general_advice'] ?? '');
     $next_visit = !empty($_POST['next_visit']) ? $_POST['next_visit'] : null;
     $record_for = in_array($_POST['record_for'] ?? '', ['Patient', 'Spouse']) ? $_POST['record_for'] : 'Patient';
+    $icd10_codes = $_POST['icd10_data'] ?? '[]';
 
     $upd = $conn->prepare(
-        "UPDATE prescriptions SET diagnosis=?, clinical_notes=?, general_advice=?, next_visit=?, record_for=? WHERE id=?"
+        "UPDATE prescriptions SET diagnosis=?, clinical_notes=?, general_advice=?, next_visit=?, record_for=?, icd10_codes=? WHERE id=?"
     );
     if ($upd) {
-        $upd->bind_param("sssssi", $diagnosis, $clinical_notes, $general_advice, $next_visit, $record_for, $rx_id);
+        $upd->bind_param("ssssssi", $diagnosis, $clinical_notes, $general_advice, $next_visit, $record_for, $icd10_codes, $rx_id);
         if ($upd->execute()) {
             // Replace medication items
             $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
             $medications_json = $_POST['medications_data'] ?? '[]';
             $meds = json_decode($medications_json, true);
             if (is_array($meds)) {
+                // Auto-ensure table exists
+                $conn->query("CREATE TABLE IF NOT EXISTS prescription_items (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    prescription_id INT NOT NULL,
+                    medicine_name VARCHAR(255) NOT NULL,
+                    dosage VARCHAR(100) DEFAULT '',
+                    frequency VARCHAR(100) DEFAULT '',
+                    duration VARCHAR(100) DEFAULT '',
+                    instructions TEXT,
+                    INDEX (prescription_id)
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
+                $auto_med = $conn->prepare("INSERT IGNORE INTO medications (name) VALUES (?)");
+
                 if ($m_stmt) {
                     foreach ($meds as $m) {
                         if (empty($m['medicine_name']))
                             continue;
-                        $name = $m['medicine_name'] ?? '';
+                        $name = $m['medicine_name'];
                         $dose = $m['dosage'] ?? '';
                         $freq = $m['frequency'] ?? '';
                         $dur = $m['duration'] ?? '';
                         $instr = $m['instructions'] ?? '';
                         $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                         $m_stmt->execute();
+                        // Auto-add to medicine library
+                        if ($auto_med) {
+                            $auto_med->bind_param("s", $name);
+                            $auto_med->execute();
+                        }
                     }
                 }
             }
@@ -83,16 +114,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
 
 include __DIR__ . '/includes/header.php';
 ?>
-<div class="max-w-3xl mx-auto px-4 py-8">
-    <nav class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-6">
+
+<style>
+.icd-chip { display:inline-flex; align-items:center; gap:6px; padding:4px 10px; background:#f5f3ff; border:1px solid #ddd6fe; border-radius:8px; font-size:11px; color:#6d28d9; font-weight:600; }
+.icd-chip button { background:none; border:none; cursor:pointer; color:#a78bfa; font-size:12px; line-height:1; padding:0; }
+.icd-chip button:hover { color:#7c3aed; }
+#icd-dropdown { position:absolute; z-index:50; left:0; right:0; margin-top:4px; background:white; border:1px solid #e5e7eb; border-radius:12px; box-shadow:0 10px 40px rgba(0,0,0,.08); max-height:240px; overflow-y:auto; }
+.icd-option { padding:10px 14px; cursor:pointer; font-size:13px; color:#374151; border-bottom:1px solid #f9fafb; }
+.icd-option:hover { background:#f5f3ff; color:#6d28d9; }
+.icd-option .code { font-weight:700; color:#7c3aed; font-family:monospace; margin-right:8px; }
+</style>
+
+<div class="max-w-2xl mx-auto px-4 py-8">
+    <nav class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-5">
         <a href="patients_view.php?id=<?php echo $patient_id; ?>&tab=rx" class="hover:text-teal-600">← Back to Prescriptions</a>
     </nav>
 
     <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+        <!-- Header -->
         <div class="bg-gradient-to-r from-teal-500 to-teal-600 px-6 py-4 flex items-center justify-between">
             <div>
                 <h1 class="text-white font-semibold text-lg">Edit Prescription #RX-<?php echo str_pad($rx_id, 5, '0', STR_PAD_LEFT); ?></h1>
-                <p class="text-teal-100 text-xs mt-0.5"><?php echo htmlspecialchars($patient['first_name'] . ' ' . $patient['last_name']); ?> · <?php echo htmlspecialchars($patient['mr_number'] ?? ''); ?></p>
+                <p class="text-teal-100 text-xs mt-0.5"><?php echo htmlspecialchars(($patient['first_name'] ?? '') . ' ' . ($patient['last_name'] ?? '')); ?> · <?php echo htmlspecialchars($patient['mr_number'] ?? ''); ?></p>
             </div>
             <a href="prescriptions_print.php?id=<?php echo $rx_id; ?>" target="_blank"
                class="inline-flex items-center gap-2 px-4 py-2 bg-white text-teal-700 rounded-xl text-xs font-semibold hover:bg-teal-50 transition-all">
@@ -105,17 +148,40 @@ include __DIR__ . '/includes/header.php';
         <?php
 endif; ?>
 
-        <form method="POST" class="p-6 space-y-5" x-data="{
-            medsRaw: <?php echo htmlspecialchars(json_encode(array_map(fn($i) => [
+        <form method="POST" class="p-6 space-y-5" 
+              x-data="{
+                medsRaw: <?php echo json_encode(array_map(fn($i) => [
 'medicine_name' => $i['medicine_name'],
 'dosage' => $i['dosage'] ?? '',
 'frequency' => $i['frequency'] ?? '',
 'duration' => $i['duration'] ?? '',
 'instructions' => $i['instructions'] ?? '',
-], $items))); ?>,
-            addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
-            removeMed(i) { this.medsRaw.splice(i,1); }
-        }">
+], $items)); ?>,
+                addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
+                removeMed(i) { this.medsRaw.splice(i,1); },
+                icdCodes: <?php echo json_encode($existing_icd); ?>,
+                icdQuery: '',
+                icdResults: [],
+                icdLoading: false,
+                icdOpen: false,
+                async searchIcd() {
+                    if (this.icdQuery.length < 2) { this.icdOpen = false; return; }
+                    this.icdLoading = true; this.icdOpen = true;
+                    try {
+                        const r = await fetch('api_search_icd10.php?q=' + encodeURIComponent(this.icdQuery));
+                        this.icdResults = await r.json();
+                    } catch(e) { this.icdResults = []; }
+                    this.icdLoading = false;
+                },
+                addIcd(item) {
+                    if (!this.icdCodes.find(c => c.icd10_code === item.icd10_code)) {
+                        this.icdCodes.push(item);
+                    }
+                    this.icdQuery = ''; this.icdOpen = false; this.icdResults = [];
+                },
+                removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); }
+              }">
+
             <!-- Record For -->
             <div class="flex items-center gap-3">
                 <span class="text-xs font-medium text-slate-500">Record for:</span>
@@ -135,16 +201,57 @@ endif; ?>
                 </label>
             </div>
 
-            <!-- Diagnosis -->
+            <!-- Presenting Complaint (clinical_notes) -->
             <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1.5">Diagnosis / ICD Notes</label>
-                <textarea name="diagnosis" rows="3" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($rx['diagnosis'] ?? ''); ?></textarea>
+                <label class="block text-xs font-medium text-slate-500 mb-1.5">Presenting Complaint</label>
+                <textarea name="clinical_notes" rows="3"
+                          class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($clinical_notes_plain); ?></textarea>
             </div>
 
-            <!-- Clinical Notes -->
+            <!-- Diagnosis -->
             <div>
-                <label class="block text-xs font-medium text-slate-500 mb-1.5">Clinical Notes</label>
-                <textarea name="clinical_notes" rows="3" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($rx['clinical_notes'] ?? ''); ?></textarea>
+                <label class="block text-xs font-medium text-slate-500 mb-1.5">Diagnosis</label>
+                <textarea name="diagnosis" rows="2"
+                          class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($diagnosis_plain); ?></textarea>
+            </div>
+
+            <!-- ICD-10 Codes -->
+            <div>
+                <label class="block text-xs font-medium text-slate-500 mb-2">ICD-10 Diagnosis Codes</label>
+                <!-- Selected chips -->
+                <div class="flex flex-wrap gap-2 mb-2" x-show="icdCodes.length > 0">
+                    <template x-for="icd in icdCodes" :key="icd.icd10_code">
+                        <span class="icd-chip">
+                            <span class="font-mono font-bold" x-text="icd.icd10_code"></span>
+                            <span x-text="icd.description && icd.description.length > 35 ? icd.description.substring(0,35)+'...' : icd.description"></span>
+                            <button type="button" @click="removeIcd(icd.icd10_code)"><i class="fa-solid fa-xmark"></i></button>
+                        </span>
+                    </template>
+                </div>
+                <!-- Search -->
+                <div class="relative">
+                    <div class="relative">
+                        <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                        <input type="text" x-model="icdQuery" @input.debounce.300ms="searchIcd()"
+                               @focus="icdQuery.length >= 2 && searchIcd()"
+                               @keydown.escape="icdOpen = false"
+                               placeholder="Search ICD-10 codes (e.g. Male infertility)"
+                               class="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-violet-500/20 focus:border-violet-300 outline-none transition-all">
+                    </div>
+                    <!-- Dropdown -->
+                    <div id="icd-dropdown" x-show="icdOpen && icdResults.length > 0" @click.outside="icdOpen = false">
+                        <template x-for="item in icdResults" :key="item.icd10_code">
+                            <div class="icd-option" @click="addIcd(item)">
+                                <span class="code" x-text="item.icd10_code"></span>
+                                <span x-text="item.description"></span>
+                            </div>
+                        </template>
+                    </div>
+                    <div x-show="icdLoading" class="absolute right-3 top-1/2 -translate-y-1/2">
+                        <i class="fa-solid fa-spinner fa-spin text-gray-300 text-xs"></i>
+                    </div>
+                </div>
+                <input type="hidden" name="icd10_data" :value="JSON.stringify(icdCodes)">
             </div>
 
             <!-- Medications -->
@@ -175,6 +282,9 @@ endif; ?>
                                    class="col-span-2 md:col-span-3 px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
                         </div>
                     </template>
+                    <div x-show="medsRaw.length === 0" class="text-center py-6 text-xs text-gray-400">
+                        No medications added. Click "+ Add Medicine" to start.
+                    </div>
                 </div>
                 <input type="hidden" name="medications_data" :value="JSON.stringify(medsRaw)">
             </div>
@@ -183,7 +293,8 @@ endif; ?>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                     <label class="block text-xs font-medium text-slate-500 mb-1.5">General Advice</label>
-                    <textarea name="general_advice" rows="3" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($rx['general_advice'] ?? ''); ?></textarea>
+                    <textarea name="general_advice" rows="3"
+                              class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-teal-500/20 focus:border-teal-300 outline-none transition-all"><?php echo htmlspecialchars($rx['general_advice'] ?? ''); ?></textarea>
                 </div>
                 <div>
                     <label class="block text-xs font-medium text-slate-500 mb-1.5">Next Visit</label>
