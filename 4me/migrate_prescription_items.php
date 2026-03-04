@@ -38,6 +38,48 @@ foreach ($migrations as $colName => $sql) {
     }
 }
 
+// ── Drop FK constraint on medication_id so free-text medicine names are stored without needing a FK match ──
+echo "\n=== Fixing medication_id constraint ===\n";
+
+// Find and drop FK constraints referencing medications table
+$fkRes = $conn->query("
+    SELECT CONSTRAINT_NAME 
+    FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE 
+    WHERE TABLE_SCHEMA = DATABASE() 
+      AND TABLE_NAME = 'prescription_items' 
+      AND COLUMN_NAME = 'medication_id'
+      AND REFERENCED_TABLE_NAME = 'medications'
+");
+if ($fkRes) {
+    while ($fkRow = $fkRes->fetch_assoc()) {
+        $fkName = $fkRow['CONSTRAINT_NAME'];
+        if ($conn->query("ALTER TABLE prescription_items DROP FOREIGN KEY `$fkName`")) {
+            echo "  OK  : Dropped FK constraint `$fkName`.\n";
+        }
+        else {
+            echo "  ERR : Could not drop FK `$fkName`: " . $conn->error . "\n";
+        }
+    }
+}
+else {
+    echo "  INFO: Could not check FK constraints: " . $conn->error . "\n";
+}
+
+// Make medication_id nullable
+$colCheck = $conn->query("SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'prescription_items' AND COLUMN_NAME = 'medication_id'");
+if ($colCheck && ($colRow = $colCheck->fetch_assoc()) && $colRow['IS_NULLABLE'] === 'NO') {
+    if ($conn->query("ALTER TABLE prescription_items MODIFY medication_id INT(11) NULL DEFAULT NULL")) {
+        echo "  OK  : `medication_id` is now nullable.\n";
+    }
+    else {
+        echo "  ERR : Could not modify medication_id: " . $conn->error . "\n";
+    }
+}
+else {
+    echo "  SKIP: `medication_id` is already nullable.\n";
+}
+
+
 // Also ensure the frequency column exists in medications table (may differ on live)
 echo "\n=== Checking medications table ===\n";
 $medCols = [
