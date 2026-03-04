@@ -651,16 +651,50 @@ else: ?>
                             </div>
                         </div>
 
-                        <!-- Diagnosis Summary -->
-                        <?php if (!empty($rx['diagnosis']) || !empty($rx['clinical_notes'])): ?>
-                        <div class="px-6 py-3 bg-indigo-50/40 border-b border-indigo-50">
-                            <p class="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider mb-1">Diagnosis</p>
-                            <p class="text-sm text-slate-700 font-medium leading-snug line-clamp-2">
-                                <?php echo esc(!empty($rx['diagnosis']) ? $rx['diagnosis'] : $rx['clinical_notes']); ?>
-                            </p>
+                        <!-- Complaint + Diagnosis + ICD Codes -->
+                        <?php
+        $icd_arr = [];
+        if (!empty($rx['icd10_codes'])) {
+            $decoded = json_decode($rx['icd10_codes'], true);
+            if (is_array($decoded))
+                $icd_arr = $decoded;
+        }
+        $has_complaint = !empty($rx['clinical_notes']);
+        $has_diagnosis = !empty($rx['diagnosis']);
+        if ($has_complaint || $has_diagnosis || !empty($icd_arr)):
+?>
+                        <div class="px-6 py-3 border-b border-gray-50 space-y-2">
+                            <?php if ($has_complaint): ?>
+                            <div>
+                                <p class="text-[10px] font-bold text-teal-500 uppercase tracking-wider mb-0.5">Presenting Complaint</p>
+                                <p class="text-xs text-slate-600 leading-snug line-clamp-1"><?php echo esc($rx['clinical_notes']); ?></p>
+                            </div>
+                            <?php
+            endif; ?>
+                            <?php if ($has_diagnosis): ?>
+                            <div>
+                                <p class="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-0.5">Diagnosis</p>
+                                <p class="text-xs text-slate-700 font-medium leading-snug line-clamp-2"><?php echo esc($rx['diagnosis']); ?></p>
+                            </div>
+                            <?php
+            endif; ?>
+                            <?php if (!empty($icd_arr)): ?>
+                            <div class="flex flex-wrap gap-1.5 pt-0.5">
+                                <?php foreach ($icd_arr as $icd): ?>
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-50 border border-purple-100 rounded-md text-[10px] font-semibold text-purple-700">
+                                    <span class="font-mono"><?php echo esc($icd['icd10_code'] ?? ''); ?></span>
+                                    <span class="text-purple-400">·</span>
+                                    <span><?php echo esc(substr($icd['description'] ?? '', 0, 40)); ?></span>
+                                </span>
+                                <?php
+                endforeach; ?>
+                            </div>
+                            <?php
+            endif; ?>
                         </div>
                         <?php
         endif; ?>
+
 
                         <!-- Medications -->
                         <?php if (!empty($rx['_items'])): ?>
