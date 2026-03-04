@@ -9,7 +9,7 @@ $uriPaths = trim($_SERVER['REQUEST_URI'], "/");
 // Default SEO Values (Aggressive Pakistan Targeting)
 $pageTitle = "Best IVF Specialist in Lahore & Pakistan | Dr. Adnan Jabbar";
 $metaDescription = "Top-rated IVF Specialist and Clinical Embryologist in Lahore. High success rates for IVF, ICSI, Gender Selection, and Infertility treatments across Pakistan.";
-$ogImage = "https://images.unsplash.com/photo-1530497610245-94d3c16cda28?auto=format&fit=crop&q=80&w=1200"; // Default Lab Image
+$ogImage = "https://ivfexperts.pk/assets/images/art_procedures_lab.png"; // Default OG image
 
 // Structured Data Variables
 $schemaType = "MedicalWebPage";

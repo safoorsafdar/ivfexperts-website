@@ -21,8 +21,8 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   gtag('config', 'G-HQ78PRNQWM');
 </script>
 <meta charset="UTF-8">
-<link rel="icon" type="image/png" href="/assets/images/logo.png" sizes="32x32">
-<link rel="icon" type="image/png" href="/assets/images/logo.png" sizes="192x192">
+<!-- TODO: Generate proper square favicon.ico from realfavicongenerator.net — logo.png is landscape (983x361) -->
+<link rel="icon" type="image/png" href="/assets/images/logo.png">
 <link rel="apple-touch-icon" href="/assets/images/logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= htmlspecialchars($pageTitle) ?></title>
