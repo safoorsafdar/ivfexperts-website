@@ -21,6 +21,9 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   gtag('config', 'G-HQ78PRNQWM');
 </script>
 <meta charset="UTF-8">
+<link rel="icon" type="image/png" href="/assets/images/logo.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/assets/images/logo.png" sizes="192x192">
+<link rel="apple-touch-icon" href="/assets/images/logo.png">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title><?= htmlspecialchars($pageTitle) ?></title>
 <meta name="description" content="<?= htmlspecialchars($metaDescription) ?>">
@@ -31,29 +34,58 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 <meta property="og:title" content="<?= htmlspecialchars($pageTitle) ?>">
 <meta property="og:description" content="<?= htmlspecialchars($metaDescription) ?>">
 <meta property="og:url" content="<?= $currentUrl ?>">
+<meta property="og:image" content="<?= htmlspecialchars($ogImage) ?>">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_PK">
 <meta property="og:site_name" content="<?= $siteName ?>">
 <!-- Twitter -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="<?= htmlspecialchars($pageTitle) ?>">
 <meta name="twitter:description" content="<?= htmlspecialchars($metaDescription) ?>">
+<meta name="twitter:image" content="<?= htmlspecialchars($ogImage) ?>">
 <!-- Preconnect & Preloads -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preload" href="/assets/css/style.css?v=2" as="style" fetchpriority="high">
-<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" as="style">
+<link rel="preload" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;700;800&display=swap" as="style">
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/webfonts/fa-solid-900.woff2" as="font" type="font/woff2" crossorigin>
 <!-- Core Styles -->
 <link rel="stylesheet" href="/assets/css/style.css?v=2">
 <script src="/assets/js/app.js?v=4" defer></script>
 <!-- Deferred Non-Critical Styles -->
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'">
 <noscript>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Outfit:wght@400;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </noscript>
 <!-- Organization + Physician schema is in footer.php (complete version) -->
+<!-- WebSite Schema (homepage only) -->
+<?php if (empty($uriPaths) || $uriPaths == 'index.php'): ?>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://ivfexperts.pk/#website",
+  "url": "https://ivfexperts.pk",
+  "name": "IVF Experts Pakistan",
+  "description": "Pakistan's leading fertility specialist — IVF, ICSI, and advanced reproductive medicine by Dr. Adnan Jabbar",
+  "publisher": {
+    "@id": "https://ivfexperts.pk/#organization"
+  },
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://ivfexperts.pk/blog/?article={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+}
+</script>
+<?php endif; ?>
 <!-- Dynamic Page Schema -->
 <?php if(isset($schemaType) && ($schemaType == 'MedicalCondition' || $schemaType == 'MedicalProcedure')): ?>
 <script type="application/ld+json">

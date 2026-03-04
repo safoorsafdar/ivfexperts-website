@@ -28,6 +28,7 @@ if (empty($uriPaths) || $uriPaths == 'index.php') {
 elseif (strpos($uriPaths, 'about') !== false) {
     $pageTitle = "About Dr. Adnan Jabbar | Top Fertility Consultant in Pakistan";
     $metaDescription = "Meet Dr. Adnan Jabbar, a dual-trained Fertility Consultant and Clinical Embryologist serving Lahore, Karachi, Islamabad, and all of Pakistan with ethical IVF care.";
+    $ogImage = "https://ivfexperts.pk/assets/images/dr-adnan.jpg";
 }
 // Contact
 elseif (strpos($uriPaths, 'contact') !== false) {
@@ -151,6 +152,7 @@ elseif (strpos($uriPaths, 'art-procedures') !== false) {
     if (strpos($uriPaths, 'ivf') !== false) {
         $pageTitle = "Best IVF Center & Treatment Cost in Lahore, Pakistan";
         $metaDescription = "Highest IVF success rates in Lahore. Learn about the In Vitro Fertilization process, affordable costs, and personalized protocols for patients across Pakistan.";
+        $ogImage = "https://ivfexperts.pk/assets/images/hero_ivf_procedure.png";
     }
     elseif (strpos($uriPaths, 'icsi') !== false) {
         $pageTitle = "ICSI Treatment in Pakistan | Advanced Male Infertility Solutions";
