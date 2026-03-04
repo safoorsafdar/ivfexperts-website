@@ -335,4 +335,17 @@ include("../includes/header.php");
     </div>
 </section>
 
+<?php
+$faqs = [
+    ['q' => 'What is the success rate of IVF in Pakistan?', 'a' => 'IVF success rates in Pakistan vary by age and diagnosis. At IVF Experts Lahore, patients under 35 typically achieve 40–55% success rates per cycle. Dr. Adnan Jabbar personalises each protocol to maximise your chances.'],
+    ['q' => 'How many IVF cycles are usually needed?', 'a' => 'Most patients require 1–3 IVF cycles. The number depends on age, embryo quality, and underlying diagnosis. Dr. Adnan Jabbar will advise after reviewing your investigations.'],
+    ['q' => 'Is IVF painful?', 'a' => 'IVF is generally well-tolerated. The egg retrieval is performed under sedation so you will not feel pain during the procedure. Some patients experience mild bloating or discomfort during the stimulation phase.'],
+    ['q' => 'What is the cost of IVF in Lahore?', 'a' => 'IVF costs in Lahore vary depending on the protocol and medications. At IVF Experts, we provide transparent pricing. Contact us via WhatsApp for a personalised cost estimate.'],
+    ['q' => 'Can I do IVF if I am over 40?', 'a' => 'Yes. IVF can be successful for women over 40, often using donor eggs to improve success rates. Dr. Adnan Jabbar will assess your ovarian reserve and recommend the best approach for your situation.'],
+];
+require_once dirname(__DIR__) . '/includes/faq-schema.php';
+?>
+
+<?php include('../includes/cta-consult.php'); ?>
+
 <?php include("../includes/footer.php"); ?>
