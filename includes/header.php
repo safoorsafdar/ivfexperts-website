@@ -79,7 +79,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     "@type": "SearchAction",
     "target": {
       "@type": "EntryPoint",
-      "urlTemplate": "https://ivfexperts.pk/blog/?article={search_term_string}"
+      "urlTemplate": "https://ivfexperts.pk/blog/{search_term_string}/"
     },
     "query-input": "required name=search_term_string"
   }

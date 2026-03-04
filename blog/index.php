@@ -45,6 +45,10 @@ $breadcrumbs = [
     ['name' => 'Blog', 'url' => 'https://ivfexperts.pk/blog/']
 ];
 
+if (!empty($slug) && $article) {
+    $breadcrumbs[] = ['name' => htmlspecialchars($article['title']), 'url' => 'https://ivfexperts.pk/blog/' . htmlspecialchars($slug) . '/'];
+}
+
 include __DIR__ . '/../includes/header.php';
 
 if (!empty($slug) && $article):
@@ -164,7 +168,7 @@ else:
     else: ?>
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         <?php foreach ($posts as $p): ?>
-        <a href="/blog/?article=<?php echo htmlspecialchars($p['slug']); ?>" class="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-teal-200 transition-all duration-300 hover:-translate-y-1">
+        <a href="/blog/<?php echo htmlspecialchars($p['slug']); ?>/" class="group bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl hover:border-teal-200 transition-all duration-300 hover:-translate-y-1">
             <?php if (!empty($p['featured_image'])): ?>
             <div class="h-48 overflow-hidden">
                 <img src="<?php echo htmlspecialchars($p['featured_image']); ?>" alt="<?php echo htmlspecialchars($p['title']); ?>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">

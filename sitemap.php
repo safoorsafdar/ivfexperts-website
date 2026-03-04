@@ -53,7 +53,7 @@ try {
     $res = $conn->query("SELECT slug, updated_at FROM blog_posts WHERE status = 'Published' ORDER BY published_at DESC");
     if ($res) {
         while ($row = $res->fetch_assoc()) {
-            $pages['/blog/?article=' . $row['slug']] = [
+            $pages['/blog/' . $row['slug'] . '/'] = [
                 'freq' => 'monthly',
                 'priority' => '0.75',
                 'lastmod' => $row['updated_at']

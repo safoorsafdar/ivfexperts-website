@@ -112,6 +112,13 @@ RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 # Route sitemap.xml to the dynamic PHP generator
 RewriteRule ^sitemap\.xml$ sitemap.php [L]
 
+# Clean blog article URLs: /blog/slug → blog/index.php?article=slug
+RewriteRule ^blog/([a-z0-9_-]+)/?$ blog/index.php?article=$1 [L,QSA]
+
+# 301 redirect from old ?article= query-param blog URLs to clean URLs
+RewriteCond %{THE_REQUEST} \s/blog/\?article=([a-zA-Z0-9_-]+)[\s&] [NC]
+RewriteRule ^blog/?$ /blog/%1/? [R=301,L]
+
 # Remove .php extension from URLs (if the file exists)
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
