@@ -45,8 +45,43 @@ $breadcrumbs = [
     ['name' => 'Blog', 'url' => 'https://ivfexperts.pk/blog/']
 ];
 
+$articleSchema = '';
 if (!empty($slug) && $article) {
     $breadcrumbs[] = ['name' => htmlspecialchars($article['title']), 'url' => 'https://ivfexperts.pk/blog/' . htmlspecialchars($slug) . '/'];
+
+    // Build BlogPosting JSON-LD schema
+    $schemaDescription = !empty($article['excerpt'])
+        ? $article['excerpt']
+        : substr(strip_tags($article['content']), 0, 160);
+
+    $schemaData = [
+        '@context'        => 'https://schema.org',
+        '@type'           => 'BlogPosting',
+        'headline'        => $article['title'],
+        'description'     => $schemaDescription,
+        'datePublished'   => date('c', strtotime($article['created_at'])),
+        'dateModified'    => date('c', strtotime($article['updated_at'])),
+        'author'          => [
+            '@type' => 'Person',
+            'name'  => 'Dr. Adnan Jabbar',
+            'url'   => 'https://ivfexperts.pk/about/',
+        ],
+        'publisher'       => [
+            '@type' => 'Organization',
+            'name'  => 'IVF Experts',
+            'url'   => 'https://ivfexperts.pk',
+        ],
+        'mainEntityOfPage' => [
+            '@type' => 'WebPage',
+            '@id'   => 'https://ivfexperts.pk/blog/' . $slug . '/',
+        ],
+    ];
+
+    if (!empty($article['featured_image'])) {
+        $schemaData['image'] = $article['featured_image'];
+    }
+
+    $articleSchema = json_encode($schemaData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 }
 
 include __DIR__ . '/../includes/header.php';
@@ -54,6 +89,9 @@ include __DIR__ . '/../includes/header.php';
 if (!empty($slug) && $article):
     // ============== SINGLE ARTICLE VIEW ==============
 ?>
+<?php if (!empty($articleSchema)): ?>
+<script type="application/ld+json"><?php echo $articleSchema; ?></script>
+<?php endif; ?>
 <article class="max-w-4xl mx-auto px-4 sm:px-6 py-12">
     <div class="mb-8">
         <a href="/blog/" class="text-teal-600 hover:text-teal-700 text-sm font-semibold flex items-center gap-1 mb-4">
@@ -128,6 +166,29 @@ if (!empty($slug) && $article):
                 <i class="fa-solid fa-link"></i>
             </button>
         </div>
+    </div>
+
+    <!-- Author Bio -->
+    <div class="mt-12 pt-8 border-t border-slate-200 flex items-start gap-5">
+        <img src="/assets/images/dr-adnan.jpg" alt="Dr. Adnan Jabbar" class="w-16 h-16 rounded-full object-cover flex-shrink-0">
+        <div>
+            <p class="text-sm font-semibold text-slate-500 uppercase tracking-wide mb-1">Written by</p>
+            <p class="text-lg font-bold text-slate-900 font-[Outfit]">Dr. Adnan Jabbar</p>
+            <p class="text-sm text-slate-600 mt-1">Fertility Specialist &amp; Clinical Embryologist with 15+ years of experience in IVF, ICSI, and reproductive medicine at IVF Experts, Lahore.</p>
+            <a href="/about/" class="text-sm text-teal-700 font-semibold hover:underline mt-2 inline-block">Read full profile &rarr;</a>
+        </div>
+    </div>
+
+    <!-- Consultation CTA -->
+    <div class="mt-10 bg-teal-50 border border-teal-200 rounded-2xl p-8 text-center">
+        <p class="text-xl font-bold text-slate-900 font-[Outfit] mb-2">Have questions about your fertility journey?</p>
+        <p class="text-slate-600 mb-6">Dr. Adnan Jabbar offers free initial consultations. Reach out today on WhatsApp.</p>
+        <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20read%20your%20article%20and%20have%20questions%20about%20my%20fertility."
+           target="_blank" rel="noopener noreferrer"
+           class="btn-primary inline-flex items-center gap-2 px-8 py-4">
+            <i class="fab fa-whatsapp text-xl"></i>
+            Chat with Dr. Adnan on WhatsApp
+        </a>
     </div>
 </article>
 
