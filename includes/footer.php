@@ -64,6 +64,7 @@
 
                 <div class="space-y-5">
                     <a href="https://wa.me/923111101483?text=Hi%2C%20I%20have%20a%20question%20about%20IVF%20Experts%20services."
+                       target="_blank" rel="noopener noreferrer"
                        class="flex items-center justify-center gap-3 bg-teal-700/90 hover:bg-teal-600 text-white px-6 py-3.5 rounded-xl font-semibold transition-all duration-300 shadow-[0_0_20px_rgba(15,118,110,0.3)] hover:shadow-[0_0_25px_rgba(15,118,110,0.5)]">
                         <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
                             <path d="M12.031 6.172c-3.181 0-5.767 2.586-5.767 5.766 0 1.298.38 2.27 1.019 3.287l-.582 2.128 2.182-.573c.978.58 1.911.928 3.145.929 3.178 0 5.767-2.587 5.767-5.766-.001-3.187-2.575-5.77-5.764-5.771z"/>
@@ -103,6 +104,7 @@
 
 <!-- FLOATING WHATSAPP BUTTON -->
 <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20would%20like%20to%20book%20a%20fertility%20consultation."
+   target="_blank" rel="noopener noreferrer"
    aria-label="Chat with us on WhatsApp"
    class="hidden md:flex fixed bottom-8 right-8 z-50 items-center justify-center w-16 h-16 bg-emerald-500 text-white rounded-full shadow-[0_8px_30px_rgba(16,185,129,0.3)] hover:scale-110 hover:shadow-[0_8px_35px_rgba(16,185,129,0.5)] transition-all duration-300 group">
     <div class="absolute inset-0 rounded-full border-2 border-emerald-400 opacity-0 group-hover:animate-ping"></div>

@@ -338,6 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
       <i class="fa-solid fa-laptop-medical text-xs"></i> Patient Login
     </a>
     <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20would%20like%20to%20book%20a%20fertility%20consultation."
+       target="_blank" rel="noopener noreferrer"
        class="bg-teal-700 text-white px-3 py-2 rounded-md font-semibold hover:bg-teal-800 transition text-xs shadow-[0_4px_15px_rgba(15,118,110,0.3)] border-none flex items-center gap-2">
       <i class="fa-brands fa-whatsapp text-sm"></i> WhatsApp
     </a>
@@ -474,7 +475,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <i class="fa-solid fa-laptop-medical"></i>
         Patient Login
       </a>
-      <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20would%20like%20to%20book%20a%20fertility%20consultation." style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0f766e;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(15,118,110,0.3);">
+      <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20would%20like%20to%20book%20a%20fertility%20consultation." target="_blank" rel="noopener noreferrer" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0f766e;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(15,118,110,0.3);">
         <i class="fa-brands fa-whatsapp" style="font-size:20px;"></i>
         WhatsApp Consultation
       </a>
