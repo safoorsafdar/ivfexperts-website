@@ -105,7 +105,7 @@ foreach ($pages as $pageUrl => $meta) {
 
     echo "  <url>\n";
     echo "    <loc>" . htmlspecialchars($baseUrl . $pageUrl) . "</loc>\n";
-    echo "    <lastmod>" . $lastmod . "</lastmod>\n";
+    echo "    <lastmod>" . htmlspecialchars($lastmod) . "</lastmod>\n";
     echo "    <changefreq>" . $changefreq . "</changefreq>\n";
     echo "    <priority>" . $priority . "</priority>\n";
     echo "  </url>\n";

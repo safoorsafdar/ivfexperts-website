@@ -74,14 +74,6 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   "description": "Pakistan's leading fertility specialist — IVF, ICSI, and advanced reproductive medicine by Dr. Adnan Jabbar",
   "publisher": {
     "@id": "https://ivfexperts.pk/#organization"
-  },
-  "potentialAction": {
-    "@type": "SearchAction",
-    "target": {
-      "@type": "EntryPoint",
-      "urlTemplate": "https://ivfexperts.pk/blog/{search_term_string}/"
-    },
-    "query-input": "required name=search_term_string"
   }
 }
 </script>
