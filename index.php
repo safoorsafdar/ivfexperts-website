@@ -1,6 +1,6 @@
 <?php
 $pageTitle = "Dr. Adnan Jabbar | Premium IVF & Fertility Specialist in Lahore";
-$metaDescription = "Expert fertility consultant & clinical embryologist in Lahore. Providing individualized, empathetic, and evidence-based IVF, ICSI, and infertility treatments.";
+$metaDescription = "IVF & fertility specialist in Lahore, Pakistan — Dr. Adnan Jabbar. Expert IVF, ICSI, IUI, PCOS & male infertility treatment. Teleconsultations available for Karachi & Islamabad patients.";
 include("includes/header.php");
 ?>
 
@@ -25,7 +25,7 @@ include("includes/header.php");
             <div class="min-h-[220px] md:min-h-[180px] flex flex-col justify-start">
                 <!-- Static SEO H1 — indexed by Google, visible to users -->
                 <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
-                    IVF &amp; Fertility Specialist in Lahore — Dr. Adnan Jabbar
+                    Pakistan's Trusted IVF &amp; Fertility Specialist — Dr. Adnan Jabbar, Lahore
                 </h1>
                 <!-- Visual rotating emotional copy — styled like a heading but is a <p> -->
                 <p class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-[1.15] mb-6">
@@ -328,6 +328,103 @@ include("includes/header.php");
             </div>
         </div>
     </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section-md bg-soft">
+  <div class="max-w-7xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <p class="text-sm font-semibold text-teal-700 uppercase tracking-widest mb-2">Patient Stories</p>
+      <h2 class="text-4xl font-extrabold text-slate-900">Real Families. Real Results.</h2>
+      <p class="text-slate-500 mt-3 text-lg max-w-2xl mx-auto">Every fertility journey is unique — here are a few of the families we've been honoured to help.</p>
+    </div>
+    <div class="grid md:grid-cols-3 gap-8">
+      <div class="card p-8">
+        <div class="flex gap-1 mb-4">
+          <?php for ($i = 0; $i < 5; $i++): ?>
+          <i class="fas fa-star text-amber-400 text-sm"></i>
+          <?php endfor; ?>
+        </div>
+        <p class="text-slate-700 leading-relaxed mb-6">"After two failed IVF cycles elsewhere, Dr. Adnan identified a protocol adjustment that worked on our very first cycle with him. We are now parents to a healthy baby boy. We cannot thank him enough."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm flex-shrink-0">SF</div>
+          <div>
+            <p class="font-semibold text-slate-900 text-sm">Sara F.</p>
+            <p class="text-slate-500 text-xs">Lahore — IVF Patient</p>
+          </div>
+        </div>
+      </div>
+      <div class="card p-8">
+        <div class="flex gap-1 mb-4">
+          <?php for ($i = 0; $i < 5; $i++): ?>
+          <i class="fas fa-star text-amber-400 text-sm"></i>
+          <?php endfor; ?>
+        </div>
+        <p class="text-slate-700 leading-relaxed mb-6">"We were told my husband's azoospermia meant biological children were impossible. Dr. Adnan performed micro-TESE and retrieved sperm for ICSI. Our daughter is now 2 years old. He gave us a miracle."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm flex-shrink-0">AM</div>
+          <div>
+            <p class="font-semibold text-slate-900 text-sm">Ayesha M.</p>
+            <p class="text-slate-500 text-xs">Karachi — ICSI / Micro-TESE Patient</p>
+          </div>
+        </div>
+      </div>
+      <div class="card p-8">
+        <div class="flex gap-1 mb-4">
+          <?php for ($i = 0; $i < 5; $i++): ?>
+          <i class="fas fa-star text-amber-400 text-sm"></i>
+          <?php endfor; ?>
+        </div>
+        <p class="text-slate-700 leading-relaxed mb-6">"I consulted Dr. Adnan via teleconsultation from Islamabad. His diagnosis of my PCOS was more thorough than anything I had received locally. He adjusted my protocol and I conceived naturally within three months."</p>
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-teal-700 font-bold text-sm flex-shrink-0">RK</div>
+          <div>
+            <p class="font-semibold text-slate-900 text-sm">Rabia K.</p>
+            <p class="text-slate-500 text-xs">Islamabad — PCOS Teleconsultation</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section class="section-md bg-white">
+  <div class="max-w-5xl mx-auto px-6">
+    <div class="text-center mb-12">
+      <p class="text-sm font-semibold text-teal-700 uppercase tracking-widest mb-2">The Process</p>
+      <h2 class="text-4xl font-extrabold text-slate-900">What to Expect When You Reach Out</h2>
+      <p class="text-slate-500 mt-3 text-lg max-w-2xl mx-auto">We've streamlined the consultation process to make your first step as easy as sending a WhatsApp message.</p>
+    </div>
+    <div class="grid md:grid-cols-5 gap-4 md:gap-6">
+      <?php
+      $steps = [
+        ['01', 'fas fa-comment-dots', 'Contact Us', 'Send a WhatsApp message or fill out our contact form. No waiting rooms, no complicated booking systems.'],
+        ['02', 'fas fa-stethoscope', 'Initial Consultation', 'Meet Dr. Adnan in person at our Lahore clinic or via teleconsultation from anywhere in Pakistan.'],
+        ['03', 'fas fa-flask', 'Full Diagnostic Workup', 'Comprehensive testing for both partners — hormonal profiles, semen analysis, ultrasound, and more.'],
+        ['04', 'fas fa-clipboard-list', 'Personalized Plan', 'Dr. Adnan designs a treatment plan tailored specifically to your diagnosis, age, and goals.'],
+        ['05', 'fas fa-baby', 'Treatment Begins', 'We walk with you through every cycle, every milestone, with clear communication at every step.'],
+      ];
+      foreach ($steps as [$num, $icon, $title, $desc]): ?>
+      <div class="text-center fade-in">
+        <div class="w-14 h-14 bg-teal-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+          <i class="<?php echo htmlspecialchars($icon); ?> text-white text-xl"></i>
+        </div>
+        <p class="text-xs font-bold text-teal-700 uppercase tracking-widest mb-1"><?php echo htmlspecialchars($num); ?></p>
+        <h3 class="text-base font-bold text-slate-900 mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-500 leading-relaxed"><?php echo htmlspecialchars($desc); ?></p>
+      </div>
+      <?php endforeach; ?>
+    </div>
+    <div class="text-center mt-10">
+      <a href="https://wa.me/923111101483?text=Hi%20Dr.%20Adnan%2C%20I%20would%20like%20to%20start%20my%20fertility%20journey."
+         target="_blank" rel="noopener noreferrer"
+         class="btn-primary inline-flex items-center gap-2 px-8 py-4">
+        <i class="fab fa-whatsapp text-xl"></i>
+        Start Your Journey Today
+      </a>
+    </div>
+  </div>
 </section>
 
 <!-- CALL TO ACTION -->
