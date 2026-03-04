@@ -62,6 +62,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">Polycystic Ovary Syndrome (PCOS)</dfn> is the most common hormonal disorder in women of reproductive age, characterised by elevated androgens, irregular or absent ovulation, and multiple small follicles on the ovaries. It is the leading cause of anovulatory infertility, yet most women with PCOS can achieve pregnancy with appropriate treatment.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">1 in 10</p>
+            <p class="text-xs text-slate-500 mt-1">Women of reproductive age affected by PCOS globally (Endocrine Society, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">70–80%</p>
+            <p class="text-xs text-slate-500 mt-1">Of anovulatory infertility cases attributable to PCOS (ESHRE, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">~70%</p>
+            <p class="text-xs text-slate-500 mt-1">Of PCOS patients who ovulate with Letrozole/Clomiphene (NEJM, 2014)</p>
+        </div>
+    </div>
+</div>
+
 <!-- DEFINING PCOS -->
 <section class="section-lg bg-white border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-6">
@@ -284,5 +305,11 @@ require_once dirname(__DIR__) . '/includes/faq-schema.php';
 ?>
 
 <?php include('../includes/cta-consult.php'); ?>
+
+<?php
+$articleLastUpdated = 'March 2026';
+$authorByline = 'Medically reviewed by';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>

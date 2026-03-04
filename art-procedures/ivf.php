@@ -65,6 +65,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">In Vitro Fertilisation (IVF)</dfn> is a fertility treatment where eggs are retrieved from the ovaries, fertilised with sperm in a laboratory, and the resulting embryo is transferred into the uterus. IVF is indicated when simpler treatments have failed or when structural barriers — such as blocked fallopian tubes or severe male factor — make natural conception impossible.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">32%</p>
+            <p class="text-xs text-slate-500 mt-1">Live birth rate per cycle, women under 35 (HFEA, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">~5M</p>
+            <p class="text-xs text-slate-500 mt-1">Babies born worldwide through IVF since 1978 (ESHRE, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">4–6 wks</p>
+            <p class="text-xs text-slate-500 mt-1">Typical duration of one complete IVF cycle</p>
+        </div>
+    </div>
+</div>
+
 <!-- INDICATIONS AND PATHOLOGY -->
 <section class="section-lg bg-white border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-6">
@@ -343,5 +364,11 @@ require_once dirname(__DIR__) . '/includes/faq-schema.php';
 ?>
 
 <?php include('../includes/cta-consult.php'); ?>
+
+<?php
+$articleLastUpdated = 'March 2026';
+$authorByline = 'Medically reviewed by';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>

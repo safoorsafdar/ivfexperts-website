@@ -60,6 +60,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">Endometriosis</dfn> is a chronic inflammatory condition in which tissue similar to the uterine lining grows outside the uterus — on the ovaries, fallopian tubes, or peritoneum — causing pain, adhesions, and reduced fertility. It affects an estimated 10% of women worldwide and is found in 25–50% of women investigated for infertility.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">10%</p>
+            <p class="text-xs text-slate-500 mt-1">Of women of reproductive age affected worldwide (WHO, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">25–50%</p>
+            <p class="text-xs text-slate-500 mt-1">Of women undergoing infertility investigation have endometriosis (ASRM, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">2–4×</p>
+            <p class="text-xs text-slate-500 mt-1">Improvement in IVF live birth rates after surgical excision of severe endometriosis (ESHRE, 2022)</p>
+        </div>
+    </div>
+</div>
+
 <!-- THE CLINICAL PICTURE -->
 <section class="section-lg bg-soft border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-6">
@@ -285,5 +306,11 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php
+$articleLastUpdated = 'March 2026';
+$authorByline = 'Medically reviewed by';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>

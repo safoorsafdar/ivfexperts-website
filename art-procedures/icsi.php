@@ -62,6 +62,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">Intracytoplasmic Sperm Injection (ICSI)</dfn> is a specialised form of IVF in which a single sperm is injected directly into a mature egg using a microscopic glass needle. It was developed to overcome severe male factor infertility and achieves fertilisation rates of 70–85% per injected egg regardless of sperm quality.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">70–85%</p>
+            <p class="text-xs text-slate-500 mt-1">Fertilisation rate per injected egg (ASRM, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">50%+</p>
+            <p class="text-xs text-slate-500 mt-1">Of all IVF cycles worldwide now use ICSI (ESHRE, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">~40%</p>
+            <p class="text-xs text-slate-500 mt-1">Male factor contribution to couple infertility globally (WHO, 2023)</p>
+        </div>
+    </div>
+</div>
+
 <!-- THE REQUIREMENT FOR ICSI -->
 <section class="section-lg bg-soft border-t border-slate-200">
     <div class="max-w-7xl mx-auto px-6">
@@ -292,5 +313,11 @@ require_once dirname(__DIR__) . '/includes/faq-schema.php';
 ?>
 
 <?php include('../includes/cta-consult.php'); ?>
+
+<?php
+$articleLastUpdated = 'March 2026';
+$authorByline = 'Medically reviewed by';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>
