@@ -24,7 +24,7 @@ include("includes/header.php");
             
             <div class="min-h-[220px] md:min-h-[180px] flex flex-col justify-start">
                 <!-- Static SEO H1 — indexed by Google, visible to users -->
-                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight mb-3">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-slate-900 leading-tight mb-3">
                     IVF &amp; Fertility Specialist in Lahore — Dr. Adnan Jabbar
                 </h1>
                 <!-- Visual rotating emotional copy — styled like a heading but is a <p> -->
@@ -118,9 +118,9 @@ include("includes/header.php");
                     <p class="text-sm font-medium text-slate-500 mt-2">Years of specialized clinical experience</p>
                 </div>
                 <div>
-                    <h3 class="text-2xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-2xl font-bold text-slate-800 flex items-center gap-2 block">
                         Dual Expertise
-                    </h3>
+                    </span>
                     <p class="text-sm font-medium text-slate-500 mt-2">Certified Clinician & Embryologist</p>
                 </div>
             </div>
