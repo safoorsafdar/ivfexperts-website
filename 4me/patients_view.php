@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 error_log("[patients_view INSERT history] " . $conn->error);
             }
             else {
-                $stmt->bind_param('issssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
+                $stmt->bind_param('isssssss', $patient_id, $notes, $diagnosis, $medication, $advice, $next_visit, $record_for);
             }
         }
         else {
@@ -126,10 +126,12 @@ try {
         die("Patient not found.");
 
     $pid = intval($patient_id);
-    $histories = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY COALESCE(created_at, id) DESC")->fetch_all(MYSQLI_ASSOC);
-    $semen_reports = $conn->query("SELECT * FROM semen_analyses WHERE patient_id = $pid ORDER BY collection_time DESC")->fetch_all(MYSQLI_ASSOC);
-    $prescriptions_raw = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC");
-    $prescriptions_raw = $prescriptions_raw ? $prescriptions_raw->fetch_all(MYSQLI_ASSOC) : [];
+    $r = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY COALESCE(created_at, id) DESC");
+    $histories = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
+    $r = $conn->query("SELECT * FROM semen_analyses WHERE patient_id = $pid ORDER BY collection_time DESC");
+    $semen_reports = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
+    $r = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC");
+    $prescriptions_raw = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
     // Enrich each prescription with medication items + lab count (safe — tables may not exist yet)
     $prescriptions = [];
     foreach ($prescriptions_raw as $prx) {
@@ -142,9 +144,13 @@ try {
     }
 
 
-    $ultrasounds = $conn->query("SELECT * FROM patient_ultrasounds WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
-    $lab_results = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = $pid ORDER BY plt.test_date DESC")->fetch_all(MYSQLI_ASSOC);
-    $advised_procedures = $conn->query("SELECT ap.*, (SELECT COALESCE(SUM(r.amount),0) FROM receipts r WHERE r.advised_procedure_id = ap.id AND r.status = 'Paid') AS total_paid FROM advised_procedures ap WHERE ap.patient_id = $pid ORDER BY ap.date_advised DESC")->fetch_all(MYSQLI_ASSOC);
+    $r = $conn->query("SELECT * FROM patient_ultrasounds WHERE patient_id = $pid ORDER BY created_at DESC");
+    $ultrasounds = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
+    $r = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = $pid ORDER BY plt.test_date DESC");
+    $lab_results = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
+    $r = $conn->query("SELECT ap.*, (SELECT COALESCE(SUM(r2.amount),0) FROM receipts r2 WHERE r2.advised_procedure_id = ap.id AND r2.status = 'Paid') AS total_paid FROM advised_procedures ap WHERE ap.patient_id = $pid ORDER BY ap.date_advised DESC");
+    $advised_procedures = $r ? $r->fetch_all(MYSQLI_ASSOC) : [];
+
 }
 catch (Exception $e) {
     $error = "Data fetch error: " . $e->getMessage();
