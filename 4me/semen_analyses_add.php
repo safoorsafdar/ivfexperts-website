@@ -167,7 +167,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="max-w-5xl mx-auto" x-data="semenEngine(<?php echo json_encode($edit_data['report_type'] ?? 'manual'); ?>)">
+<div class="max-w-5xl mx-auto" x-data="semenEngine('<?php echo esc($edit_data['report_type'] ?? 'manual'); ?>')">
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 border-b border-gray-100 text-slate-800 flex justify-between items-center">
             <h3 class="font-bold"><i class="fa-solid fa-microscope text-teal-600 mr-2"></i> Advanced Semen Analysis Form</h3>
