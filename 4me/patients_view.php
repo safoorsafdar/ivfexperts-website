@@ -137,7 +137,7 @@ try {
     $prescriptions = [];
     foreach ($prescriptions_raw as $prx) {
         $rid = intval($prx['id']);
-        $item_res = $conn->query("SELECT medicine_name, dosage, frequency, duration FROM prescription_items WHERE prescription_id = $rid ORDER BY id ASC");
+        $item_res = $conn->query("SELECT pi.medicine_name, pi.dosage, pi.frequency, pi.duration, COALESCE(m.formula,'') AS formula FROM prescription_items pi LEFT JOIN medications m ON m.name = pi.medicine_name WHERE pi.prescription_id = $rid ORDER BY pi.id ASC");
         $prx['_items'] = $item_res ? $item_res->fetch_all(MYSQLI_ASSOC) : [];
         $lab_res = $conn->query("SELECT COUNT(*) AS c FROM advised_lab_tests WHERE prescription_id = $rid");
         $prx['_lab_count'] = ($lab_res && $row = $lab_res->fetch_assoc()) ? (int)($row['c'] ?? 0) : 0;
@@ -706,20 +706,22 @@ else: ?>
                             </p>
                             <div class="flex flex-wrap gap-2">
                                 <?php foreach ($rx['_items'] as $item): ?>
-                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 border border-violet-100 rounded-lg">
+                                <div class="flex flex-col px-3 py-1.5 bg-violet-50 border border-violet-100 rounded-lg min-w-0">
                                     <span class="text-xs font-semibold text-violet-800"><?php echo esc($item['medicine_name']); ?></span>
+                                    <?php if (!empty($item['formula'])): ?>
+                                    <span class="text-[10px] text-indigo-400 font-medium leading-tight"><?php echo esc($item['formula']); ?></span>
+                                    <?php endif; ?>
+                                    <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                     <?php if (!empty($item['dosage'])): ?>
                                     <span class="text-[10px] text-violet-400">· <?php echo esc($item['dosage']); ?></span>
-                                    <?php
-                endif; ?>
+                                    <?php endif; ?>
                                     <?php if (!empty($item['frequency'])): ?>
                                     <span class="text-[10px] text-violet-400"><?php echo esc($item['frequency']); ?></span>
-                                    <?php
-                endif; ?>
+                                    <?php endif; ?>
                                     <?php if (!empty($item['duration'])): ?>
                                     <span class="text-[10px] text-violet-300">for <?php echo esc($item['duration']); ?></span>
-                                    <?php
-                endif; ?>
+                                    <?php endif; ?>
+                                    </div>
                                 </div>
                                 <?php
             endforeach; ?>

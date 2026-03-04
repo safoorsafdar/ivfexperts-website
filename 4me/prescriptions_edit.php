@@ -79,29 +79,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
             $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
             $meds_post = $_POST['meds'] ?? [];
             if (is_array($meds_post) && count($meds_post) > 0) {
-                $conn->query("CREATE TABLE IF NOT EXISTS prescription_items (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    prescription_id INT NOT NULL,
-                    medicine_name VARCHAR(255) NOT NULL,
-                    dosage VARCHAR(100) DEFAULT '',
-                    frequency VARCHAR(100) DEFAULT '',
-                    duration VARCHAR(100) DEFAULT '',
-                    instructions TEXT,
-                    INDEX (prescription_id)
-                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
-                $auto_med = $conn->prepare("INSERT IGNORE INTO medications (name) VALUES (?)");
+                $auto_med = $conn->prepare(
+                    "INSERT IGNORE INTO medications (name, default_dosage, default_frequency, default_duration, default_instructions)
+                     VALUES (?, ?, ?, ?, ?)"
+                );
                 if ($m_stmt) {
                     foreach ($meds_post as $m) {
-                        $name = trim($m['medicine_name'] ?? '');
+                        $name  = trim($m['medicine_name'] ?? '');
                         if (empty($name)) continue;
-                        $dose = $m['dosage'] ?? '';
-                        $freq = $m['frequency'] ?? '';
-                        $dur  = $m['duration'] ?? '';
+                        $dose  = $m['dosage'] ?? '';
+                        $freq  = $m['frequency'] ?? '';
+                        $dur   = $m['duration'] ?? '';
                         $instr = $m['instructions'] ?? '';
                         $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                         $m_stmt->execute();
-                        if ($auto_med) { $auto_med->bind_param("s", $name); $auto_med->execute(); }
+                        if ($auto_med) {
+                            $auto_med->bind_param("sssss", $name, $dose, $freq, $dur, $instr);
+                            $auto_med->execute();
+                        }
                     }
                 }
             }
@@ -151,22 +147,63 @@ include __DIR__ . '/includes/header.php';
 // Vanilla JS medication rows — no Alpine dependency
 var _medCount = <?php echo count($items); ?>;
 var _ic = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full';
+var _editFreqOpts = '<option value="">— Select —</option><option value="1-0-1">Twice daily (BDS / 1-0-1)</option><option value="1-1-1">Three times daily (TDS / 1-1-1)</option><option value="1-0-0">Morning only (OD)</option><option value="0-0-1">Night only (OD)</option><option value="0-1-0">Noon only</option><option value="SOS">As needed (SOS)</option><option value="Weekly">Weekly</option>';
+
 function addMedRow() {
     var i = _medCount++;
     var html = '<div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative mb-2">' +
         '<button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100"><i class="fa-solid fa-times"></i></button>' +
-        '<div class="col-span-2 md:col-span-3"><input type="text" name="meds['+i+'][medicine_name]" placeholder="Medicine name *" class="'+_ic+'"></div>' +
-        '<input type="text" name="meds['+i+'][dosage]" placeholder="Dosage (e.g. 500mg)" class="'+_ic+'">' +
-        '<input type="text" name="meds['+i+'][frequency]" placeholder="Frequency (e.g. BD)" class="'+_ic+'">' +
-        '<input type="text" name="meds['+i+'][duration]" placeholder="Duration (e.g. 7 days)" class="'+_ic+'">' +
-        '<input type="text" name="meds['+i+'][instructions]" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 '+_ic+'">' +
+        '<div class="col-span-2 md:col-span-3 relative">' +
+        '<input type="text" name="meds['+i+'][medicine_name]" id="editmed-name-'+i+'" placeholder="Type to search or add new..." autocomplete="off" class="'+_ic+'" oninput="editMedSearch(this,'+i+')">' +
+        '<div id="editmed-drop-'+i+'" class="absolute z-30 w-full bg-white mt-1 rounded-xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto hidden"></div></div>' +
+        '<input type="text" name="meds['+i+'][dosage]" id="editmed-dosage-'+i+'" placeholder="Dosage" class="'+_ic+'">' +
+        '<select name="meds['+i+'][frequency]" id="editmed-freq-'+i+'" class="'+_ic+'">'+_editFreqOpts+'</select>' +
+        '<input type="text" name="meds['+i+'][duration]" id="editmed-dur-'+i+'" placeholder="Duration" class="'+_ic+'">' +
+        '<input type="text" name="meds['+i+'][instructions]" id="editmed-instr-'+i+'" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 '+_ic+'">' +
         '</div>';
     document.getElementById('med-rows').insertAdjacentHTML('beforeend', html);
     document.getElementById('no-meds-msg').style.display = 'none';
 }
+
 function removeMedRow(btn) {
     btn.closest('.med-row').remove();
     if (!document.querySelector('#med-rows .med-row')) document.getElementById('no-meds-msg').style.display = '';
+}
+
+var _editMedTimer = {};
+function editMedSearch(input, idx) {
+    clearTimeout(_editMedTimer[idx]);
+    _editMedTimer[idx] = setTimeout(async function() {
+        var q = input.value.trim();
+        var drop = document.getElementById('editmed-drop-' + idx);
+        if (!drop) return;
+        if (q.length < 2) { drop.classList.add('hidden'); return; }
+        try {
+            var res  = await fetch('api_search_medications.php?q=' + encodeURIComponent(q));
+            var data = await res.json();
+            if (data.length === 0) { drop.classList.add('hidden'); return; }
+            drop.innerHTML = data.map(function(m) {
+                var label = '<span class="font-bold text-gray-800">' + m.name + '</span>';
+                if (m.formula) label += '<span class="text-xs text-indigo-400 ml-1">(' + m.formula + ')</span>';
+                var safe = encodeURIComponent(JSON.stringify(m));
+                return '<button type="button" class="w-full text-left px-4 py-2 hover:bg-teal-50 border-b border-gray-50 last:border-0 text-sm" onmousedown="editMedSelect(this,decodeURIComponent(\'' + safe + '\'),' + idx + ')">' + label + '</button>';
+            }).join('');
+            drop.classList.remove('hidden');
+        } catch(e) { drop.classList.add('hidden'); }
+    }, 300);
+}
+
+function editMedSelect(btn, jsonStr, idx) {
+    var m = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr;
+    var set = function(id, val) { var el = document.getElementById(id); if (el) el.value = val || ''; };
+    set('editmed-name-'  + idx, m.name);
+    set('editmed-dosage-'+ idx, m.default_dosage);
+    set('editmed-dur-'   + idx, m.default_duration);
+    set('editmed-instr-' + idx, m.default_instructions);
+    var freq = document.getElementById('editmed-freq-' + idx);
+    if (freq && m.default_frequency) freq.value = m.default_frequency;
+    var drop = document.getElementById('editmed-drop-' + idx);
+    if (drop) drop.classList.add('hidden');
 }
 
 function rxEditData() {

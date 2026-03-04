@@ -54,10 +54,15 @@ if (!$rx)
 // Log download and get tracking code
 $tracking_code = log_document_download($conn, 'rx', $id);
 
-// Fetch Items (prescription_items uses medicine_name text, no medications JOIN)
+// Fetch Items — JOIN medications for formula display
 $items = [];
 try {
-    $stmt = $conn->prepare("SELECT * FROM prescription_items WHERE prescription_id = ? ORDER BY id ASC");
+    $stmt = $conn->prepare(
+        "SELECT pi.*, COALESCE(m.formula,'') AS formula, COALESCE(m.med_type,'') AS med_type
+         FROM prescription_items pi
+         LEFT JOIN medications m ON m.name = pi.medicine_name
+         WHERE pi.prescription_id = ? ORDER BY pi.id ASC"
+    );
     if ($stmt) {
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -392,12 +397,13 @@ else: ?>
                         <?php foreach ($items as $idx => $item): ?>
                             <tr class="<?php echo $idx % 2 == 0 ? 'bg-white' : 'bg-gray-50'; ?>">
                                 <td class="p-1.5 border border-gray-200 text-center font-bold text-gray-500"><?php echo $idx + 1; ?>.</td>
-                                <td class="p-1.5 border border-gray-200 font-bold text-gray-900 text-[12px] uppercase">
-                                    <?php echo esc($item['medicine_name']); ?>
-                                    <?php if (!empty($item['med_type'])): ?>
-                                        <span class="text-[9px] font-normal text-gray-500 ml-1 italic capitalize">(<?php echo esc($item['med_type']); ?>)</span>
-                                    <?php
-        endif; ?>
+                                <td class="p-1.5 border border-gray-200">
+                                    <div class="font-bold text-gray-900 text-[12px] uppercase"><?php echo esc($item['medicine_name']); ?></div>
+                                    <?php if (!empty($item['formula'])): ?>
+                                        <div class="text-[9px] text-indigo-500 font-medium mt-0.5"><?php echo esc($item['formula']); ?></div>
+                                    <?php elseif (!empty($item['med_type'])): ?>
+                                        <div class="text-[9px] text-gray-400 italic capitalize"><?php echo esc($item['med_type']); ?></div>
+                                    <?php endif; ?>
                                 </td>
                                 <td class="p-1.5 border border-gray-200 font-medium text-gray-800"><?php echo esc($item['dosage'] ?: '-'); ?></td>
                                 <td class="p-1.5 border border-gray-200 font-bold text-indigo-700"><?php echo esc($item['frequency'] ?: '-'); ?></td>
