@@ -1,6 +1,6 @@
 <?php
 $pageTitle = "Dr. Adnan Jabbar | Fertility Consultant & Clinical Embryologist in Lahore";
-$metaDescription = "Meet Dr. Adnan Jabbar, Pakistan's leading dual-trained Fertility Consultant and Clinical Embryologist. Expert in IVF, ICSI, and complex fertility care in Lahore.";
+$metaDescription = "Meet Dr. Adnan Jabbar — Lahore's leading fertility specialist & clinical embryologist with 15+ years of IVF, ICSI, and reproductive medicine experience at IVF Experts Pakistan.";
 include("../includes/header.php");
 ?>
 

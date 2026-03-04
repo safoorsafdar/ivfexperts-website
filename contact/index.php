@@ -87,6 +87,31 @@ include("../includes/header.php");
                     </li>
                 </ul>
             </div>
+
+            <!-- Address Card -->
+            <div class="bg-white rounded-3xl p-10 shadow-2xl border border-slate-100">
+              <div class="flex items-center gap-4 mb-6">
+                <div class="w-12 h-12 bg-teal-100 text-teal-700 rounded-xl flex items-center justify-center">
+                  <i class="fas fa-map-marker-alt text-xl"></i>
+                </div>
+                <div>
+                  <h3 class="text-xl font-bold text-slate-900">Clinic Address</h3>
+                  <p class="text-sm text-slate-500">Lahore, Pakistan</p>
+                </div>
+              </div>
+              <address class="not-italic text-slate-600 leading-relaxed mb-6 text-sm">
+                7/C-1, Gulberg III<br>
+                Lahore, Punjab 54660<br>
+                Pakistan
+              </address>
+              <a href="https://maps.google.com/?q=IVF+Experts+Lahore+Gulberg+III"
+                 target="_blank" rel="noopener noreferrer"
+                 class="inline-flex items-center gap-2 text-teal-700 font-semibold text-sm hover:underline">
+                <i class="fas fa-external-link-alt"></i>
+                Open in Google Maps
+              </a>
+              <p class="text-slate-500 text-xs mt-4">Teleconsultations available for patients in Karachi, Islamabad, and internationally.</p>
+            </div>
         </div>
 
         <!-- Inquiry Form Column -->
