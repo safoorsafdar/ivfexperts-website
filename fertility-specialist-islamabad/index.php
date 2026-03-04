@@ -61,10 +61,10 @@ include("../includes/header.php");
     <div class="grid md:grid-cols-2 gap-6">
       <?php
       $services = [
-        ['IVF (In Vitro Fertilisation)', 'Complete IVF cycle consultation, protocol planning, and results review via teleconsult.', '/art-procedures/ivf/'],
-        ['ICSI', 'Intracytoplasmic Sperm Injection for male factor infertility — full assessment and planning.', '/art-procedures/icsi/'],
-        ['IUI', 'Intrauterine Insemination — a simpler, lower-cost first-line fertility treatment.', '/art-procedures/iui/'],
-        ['PGT / Gender Selection', 'Preimplantation Genetic Testing for chromosomal screening and family balancing.', '/art-procedures/pgt/'],
+        ['IVF (In Vitro Fertilisation)', 'Complete IVF cycle consultation, protocol planning, and results review via teleconsult.', '/art-procedures/ivf'],
+        ['ICSI', 'Intracytoplasmic Sperm Injection for male factor infertility — full assessment and planning.', '/art-procedures/icsi'],
+        ['IUI', 'Intrauterine Insemination — a simpler, lower-cost first-line fertility treatment.', '/art-procedures/iui'],
+        ['PGT / Gender Selection', 'Preimplantation Genetic Testing for chromosomal screening and family balancing.', '/art-procedures/pgt'],
         ['Female Infertility', 'Assessment and treatment of PCOS, endometriosis, blocked tubes, and other conditions.', '/female-infertility/'],
         ['Male Infertility', 'Azoospermia, low sperm count, and other male factor conditions — fully assessable via teleconsult.', '/male-infertility/'],
       ];
