@@ -503,7 +503,7 @@ endif; ?>
                         <div class="traceability">DOC-<?php echo $tracking_code; ?></div>
                         <?php
 endif; ?>
-                        <div class="traceability" id="page-num-footer" style="margin-top:2px;">Page 1</div>
+                        <div class="traceability page-num-ref" style="margin-top:2px;">Page 1</div>
                     </div>
                 </div>
             </td></tr>
@@ -807,7 +807,134 @@ window.addEventListener('DOMContentLoaded', function() {
 endif; ?>
 
 // ── Update page numbers on load ───────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', updatePageNumbers);
+window.addEventListener('DOMContentLoaded', function() {
+    paginateContent();
+    updatePageNumbers();
+});
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE 4 — JS Content Paginator
+// Splits rx-body-content sections into separate .rx-page divs when they
+// overflow a single A4 page height, so each page gets its own letterhead.
+// ══════════════════════════════════════════════════════════════════════════════
+function paginateContent() {
+    // A4 page in mm: 297mm tall. Subtract margins (top + bottom).
+    var marginTopMM    = parseMM(RX_CONFIG.margins.top);
+    var marginBottomMM = parseMM(RX_CONFIG.margins.bottom);
+    var pageHeightMM   = 297 - marginTopMM - marginBottomMM;
+
+    // Convert mm to pixels on this screen (1mm ≈ 3.7795px at 96dpi)
+    // We use getBoundingClientRect on the actual rx-page to get a real pixel measurement.
+    var firstPage = document.getElementById('rx-page-1');
+    if (!firstPage) return;
+
+    // Measure the actual available body height. We use the table's tbody td.
+    var bodyCell = document.getElementById('rx-body-content');
+    if (!bodyCell) return;
+
+    // Get DPR-aware px height of one page's content area
+    var pageRect     = firstPage.getBoundingClientRect();
+    var pageWidthPx  = pageRect.width;
+    // Calculate usable content height in pixels (A4 area minus margins)
+    var mmToPx       = pageWidthPx / (210 - parseMM(RX_CONFIG.margins.left) - parseMM(RX_CONFIG.margins.right));
+    var maxBodyPx    = pageHeightMM * mmToPx;
+
+    // Measure header + footer heights to subtract from usable area
+    var header = firstPage.querySelector('thead');
+    var footer = firstPage.querySelector('tfoot');
+    var headerH = header ? header.getBoundingClientRect().height : 0;
+    var footerH = footer ? footer.getBoundingClientRect().height : 0;
+    var usableBodyPx = maxBodyPx - headerH - footerH - 32; // 32px padding buffer
+
+    // Get all top-level sections inside the body cell
+    var sections = Array.from(bodyCell.children);
+    if (sections.length === 0) return;
+
+    // Measure each section's height
+    var sectionHeights = sections.map(function(s) {
+        return s.getBoundingClientRect().height;
+    });
+
+    // Check if total fits in one page
+    var totalH = sectionHeights.reduce(function(a, b) { return a + b; }, 0);
+    if (totalH <= usableBodyPx) return; // All fits — nothing to do
+
+    // Build page groups: assign sections to pages
+    var pages   = [[]];
+    var running = 0;
+    sections.forEach(function(section, i) {
+        var h = sectionHeights[i];
+        // If a single section is taller than the page, don't break it — just let it overflow
+        if (running + h > usableBodyPx && running > 0) {
+            pages.push([]);
+            running = 0;
+        }
+        pages[pages.length - 1].push(section);
+        running += h;
+    });
+
+    if (pages.length <= 1) return; // Still only one page needed
+
+    // Page 1 already exists — keep its sections as-is (pages[0])
+    // We need to remove sections assigned to pages 2+ from the body cell
+    // and create new .rx-page divs for them.
+
+    // Clone the page template (header + footer) to use for each new page
+    var templateTable = firstPage.querySelector('.rx-layout-table');
+    var templateThead = templateTable.querySelector('thead').cloneNode(true);
+    var templateTfoot = templateTable.querySelector('tfoot').cloneNode(true);
+
+    // Remove sections from firstPage body that belong to pages 2+
+    var sectionsToKeep = pages[0];
+    var sectionsToMove = sections.filter(function(s) { return !sectionsToKeep.includes(s); });
+    sectionsToMove.forEach(function(s) { s.remove(); });
+
+    // Build overflow pages
+    var allPagesDiv = document.getElementById('all-pages');
+    var pageCounter = 1;
+
+    for (var pi = 1; pi < pages.length; pi++) {
+        pageCounter++;
+        var newPage = document.createElement('div');
+        newPage.className = 'rx-page';
+        newPage.id = 'rx-page-' + pageCounter;
+
+        var newTable = document.createElement('table');
+        newTable.className = 'rx-layout-table';
+
+        // Add cloned header and footer
+        newTable.appendChild(templateThead.cloneNode(true));
+        newTable.appendChild(templateTfoot.cloneNode(true));
+
+        // Add body with this page's sections
+        var tbody = document.createElement('tbody');
+        var tr    = document.createElement('tr');
+        var td    = document.createElement('td');
+        td.className = 'rx-body-cell';
+        pages[pi].forEach(function(s) { td.appendChild(s); });
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+
+        // Insert tbody BEFORE tfoot (correct table order: thead > tbody > tfoot)
+        var tfoot = newTable.querySelector('tfoot');
+        newTable.insertBefore(tbody, tfoot);
+
+        newPage.appendChild(newTable);
+        allPagesDiv.appendChild(newPage);
+    }
+
+    // If patient portal — letterheads are injected statically by PHP, re-inject for new pages
+    if (!RX_CONFIG.isAdmin && RX_CONFIG.hasLetterhead) {
+        var newPages = allPagesDiv.querySelectorAll('.rx-page:not(#rx-page-1)');
+        newPages.forEach(function(page) {
+            var img = document.createElement('img');
+            img.className = 'letterhead-bg';
+            img.src = RX_CONFIG.letterheadUrl;
+            img.alt = 'Letterhead';
+            page.insertBefore(img, page.firstChild);
+        });
+    }
+}
 </script>
 </body>
 </html>
