@@ -13,6 +13,13 @@
         background-color: #ffffff;
         color: #1f2937;
         line-height: 1.6;
+        padding-bottom: 56px; /* space for sticky mobile CTA bar */
+    }
+
+    @media (min-width: 768px) {
+        body {
+            padding-bottom: 0;
+        }
     }
 
     h1,

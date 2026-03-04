@@ -8139,6 +8139,12 @@
     background-color: #ffffff;
     color: #1f2937;
     line-height: 1.6;
+    padding-bottom: 56px;
+  }
+  @media (min-width: 768px) {
+    body {
+      padding-bottom: 0;
+    }
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
