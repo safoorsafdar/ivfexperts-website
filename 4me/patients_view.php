@@ -617,17 +617,18 @@ else: ?>
                                 <div class="min-w-0">
                                     <div class="flex items-center gap-2 flex-wrap">
                                         <span class="text-xs font-mono font-semibold text-slate-400">RX-<?php echo str_pad($rx['id'], 5, '0', STR_PAD_LEFT); ?></span>
-                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full <?php echo ($rx['record_for'] ?? '') === 'Spouse' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-teal-50 text-teal-700 border border-teal-100'; ?>">
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full <?php echo($rx['record_for'] ?? '') === 'Spouse' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-teal-50 text-teal-700 border border-teal-100'; ?>">
                                             <?php echo esc($rx['record_for'] ?? 'Patient'); ?>
                                         </span>
                                         <?php if (!empty($rx['next_visit']) && $rx['next_visit'] !== '0000-00-00'): ?>
                                         <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
                                             <i class="fa-regular fa-calendar-clock mr-1"></i>Follow-up: <?php echo date('d M Y', strtotime($rx['next_visit'])); ?>
                                         </span>
-                                        <?php endif; ?>
+                                        <?php
+        endif; ?>
                                     </div>
                                     <p class="text-[11px] text-slate-400 mt-0.5">
-                                        <?php echo ($rx['created_at'] && $rx['created_at'] !== '0000-00-00 00:00:00') ? date('j M Y, g:ia', strtotime($rx['created_at'])) : '—'; ?>
+                                        <?php echo($rx['created_at'] && $rx['created_at'] !== '0000-00-00 00:00:00') ? date('j M Y, g:ia', strtotime($rx['created_at'])) : '—'; ?>
                                     </p>
                                 </div>
                             </div>
@@ -658,7 +659,8 @@ else: ?>
                                 <?php echo esc(!empty($rx['diagnosis']) ? $rx['diagnosis'] : $rx['clinical_notes']); ?>
                             </p>
                         </div>
-                        <?php endif; ?>
+                        <?php
+        endif; ?>
 
                         <!-- Medications -->
                         <?php if (!empty($rx['_items'])): ?>
@@ -673,18 +675,23 @@ else: ?>
                                     <span class="text-xs font-semibold text-violet-800"><?php echo esc($item['medicine_name']); ?></span>
                                     <?php if (!empty($item['dosage'])): ?>
                                     <span class="text-[10px] text-violet-400">· <?php echo esc($item['dosage']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['frequency'])): ?>
                                     <span class="text-[10px] text-violet-400"><?php echo esc($item['frequency']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['duration'])): ?>
                                     <span class="text-[10px] text-violet-300">for <?php echo esc($item['duration']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                 </div>
-                                <?php endforeach; ?>
+                                <?php
+            endforeach; ?>
                             </div>
                         </div>
-                        <?php endif; ?>
+                        <?php
+        endif; ?>
 
                         <!-- Footer: Labs + Advice -->
                         <div class="px-6 py-3 flex items-center gap-4 flex-wrap">
@@ -693,21 +700,26 @@ else: ?>
                                 <i class="fa-solid fa-vials text-amber-500 text-[10px]"></i>
                                 <?php echo $rx['_lab_count']; ?> Lab Test<?php echo $rx['_lab_count'] !== 1 ? 's' : ''; ?> Advised
                             </span>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                             <?php if (!empty($rx['general_advice'])): ?>
                             <span class="inline-flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 border border-sky-100 px-3 py-1 rounded-lg font-semibold">
                                 <i class="fa-solid fa-lightbulb text-sky-400 text-[10px]"></i>
                                 Advice Included
                             </span>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                         </div>
                     </div>
-                    <?php endforeach; ?>
+                    <?php
+    endforeach; ?>
                 </div>
-
-
+                <?php
+endif; ?>
+            </div>
 
             <!-- ─── TAB: Semen Analysis ─── -->
+
             <div x-show="tab === 'semen'" x-cloak class="tab-panel">
                 <?php if (empty($semen_reports)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
