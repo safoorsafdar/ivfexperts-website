@@ -23,10 +23,15 @@ include("includes/header.php");
             </div>
             
             <div class="min-h-[220px] md:min-h-[180px] flex flex-col justify-start">
-                <h1 class="text-4xl md:text-5xl lg:text-6xl font-extrabold text-slate-900 leading-[1.15] mb-6">
-                    <span id="hero-title" class="transition-opacity duration-700 block">Parenthood Begins with</span>
-                    <span id="hero-highlight" class="text-teal-700 transition-opacity duration-700 block mt-2">Clarity & Strategy.</span>
+                <!-- Static SEO H1 — indexed by Google, visible to users -->
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 leading-tight mb-3">
+                    IVF &amp; Fertility Specialist in Lahore — Dr. Adnan Jabbar
                 </h1>
+                <!-- Visual rotating emotional copy — styled like a heading but is a <p> -->
+                <p class="text-3xl md:text-4xl lg:text-5xl font-extrabold text-slate-900 leading-[1.15] mb-6">
+                    <span id="hero-title" class="transition-opacity duration-700 block">Parenthood Begins with</span>
+                    <span id="hero-highlight" class="text-teal-700 transition-opacity duration-700 block mt-2">Clarity &amp; Strategy.</span>
+                </p>
                 
                 <p id="hero-desc" class="text-lg md:text-xl text-slate-600 mb-8 max-w-2xl leading-relaxed transition-opacity duration-700">
                     We believe that every fertility journey is deeply personal. By integrating compassionate clinical care with elite embryology expertise, we design treatments that honor your unique path to parenthood.
@@ -109,7 +114,7 @@ include("includes/header.php");
             <!-- Trust Indicators -->
             <div class="mt-12 pt-10 border-t border-slate-200/60 grid grid-cols-2 gap-8">
                 <div>
-                    <h2 class="text-3xl font-extrabold text-teal-700 counter" data-target="10">0</h2>
+                    <span class="text-3xl font-extrabold text-teal-700 counter block" data-target="10">0</span>
                     <p class="text-sm font-medium text-slate-500 mt-2">Years of specialized clinical experience</p>
                 </div>
                 <div>
