@@ -38,18 +38,22 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
         $diagnosis = implode("\n", array_map(fn($d) => ($d['description'] ?? '') . ' (' . ($d['icd10_code'] ?? '') . ')', $icd_arr));
     }
 
-    // ── Auto-ensure columns exist ───────────────────────────────────────────
+    // ── Auto-ensure columns exist ─────────────────────────────────────────────
+    // Use LONGTEXT not JSON — JSON type not available on MySQL 5.x shared hosting
     $colChecks = [
         ['prescriptions', 'record_for', "ALTER TABLE prescriptions ADD COLUMN record_for ENUM('Patient','Spouse') DEFAULT 'Patient'"],
-        ['prescriptions', 'icd10_codes', "ALTER TABLE prescriptions ADD COLUMN icd10_codes JSON"],
+        ['prescriptions', 'icd10_codes', "ALTER TABLE prescriptions ADD COLUMN icd10_codes LONGTEXT"],
         ['prescriptions', 'general_advice', "ALTER TABLE prescriptions ADD COLUMN general_advice TEXT"],
         ['prescriptions', 'next_visit', "ALTER TABLE prescriptions ADD COLUMN next_visit DATE"],
         ['prescriptions', 'qrcode_hash', "ALTER TABLE prescriptions ADD COLUMN qrcode_hash VARCHAR(64)"],
+        ['prescriptions', 'clinical_notes', "ALTER TABLE prescriptions ADD COLUMN clinical_notes TEXT"],
+        ['prescriptions', 'diagnosis', "ALTER TABLE prescriptions ADD COLUMN diagnosis TEXT"],
     ];
     foreach ($colChecks as [$tbl, $col, $sql]) {
         $r = $conn->query("SHOW COLUMNS FROM `$tbl` LIKE '$col'");
-        if ($r && $r->num_rows === 0)
+        if ($r && $r->num_rows === 0) {
             $conn->query($sql);
+        }
     }
 
     // ── Auto-create prescription_items if missing ──────────────────────────
@@ -78,15 +82,57 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
 
     $save_error = '';
     try {
-        // ── Insert prescription ────────────────────────────────────────────
-        $stmt = $conn->prepare(
-            "INSERT INTO prescriptions (patient_id, record_for, clinical_notes, diagnosis, icd10_codes, general_advice, next_visit, qrcode_hash)
-             VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
-        );
-        if (!$stmt) {
-            throw new Exception("Prescription prepare failed: " . $conn->error);
+        // ── Check which optional columns actually exist now ────────────────
+        $has_icd = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'icd10_codes'")->num_rows > 0;
+        $has_rf = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'record_for'")->num_rows > 0;
+        $has_ga = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'general_advice'")->num_rows > 0;
+        $has_nv = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'next_visit'")->num_rows > 0;
+        $has_qr = $conn->query("SHOW COLUMNS FROM prescriptions LIKE 'qrcode_hash'")->num_rows > 0;
+
+        // ── Build INSERT dynamically based on what exists ─────────────────
+        $cols = ['patient_id', 'clinical_notes', 'diagnosis'];
+        $vals = ['?', '?', '?'];
+        $types = 'iss';
+        $params = [&$patient_id, &$clinical_notes, &$diagnosis];
+
+        if ($has_rf) {
+            $cols[] = 'record_for';
+            $vals[] = '?';
+            $types .= 's';
+            $params[] = & $record_for;
         }
-        $stmt->bind_param("isssssss", $patient_id, $record_for, $clinical_notes, $diagnosis, $icd10_codes, $general_advice, $next_visit, $qrcode_hash);
+        if ($has_icd) {
+            $cols[] = 'icd10_codes';
+            $vals[] = '?';
+            $types .= 's';
+            $params[] = & $icd10_codes;
+        }
+        if ($has_ga) {
+            $cols[] = 'general_advice';
+            $vals[] = '?';
+            $types .= 's';
+            $params[] = & $general_advice;
+        }
+        if ($has_nv) {
+            $cols[] = 'next_visit';
+            $vals[] = '?';
+            $types .= 's';
+            $params[] = & $next_visit;
+        }
+        if ($has_qr) {
+            $cols[] = 'qrcode_hash';
+            $vals[] = '?';
+            $types .= 's';
+            $params[] = & $qrcode_hash;
+        }
+
+        $sql = "INSERT INTO prescriptions (" . implode(', ', $cols) . ") VALUES (" . implode(', ', $vals) . ")";
+        $stmt = $conn->prepare($sql);
+        if (!$stmt) {
+            throw new Exception("Prescription prepare failed: " . $conn->error . " | SQL: $sql");
+        }
+        array_unshift($params, $types);
+        call_user_func_array([$stmt, 'bind_param'], $params);
         if (!$stmt->execute()) {
             throw new Exception("Prescription insert failed: " . $stmt->error);
         }
