@@ -33,17 +33,16 @@ $sqls = [
 
 foreach ($sqls as $sql) {
     echo "Executing: " . substr($sql, 0, 100) . "... ";
-    try {
-        if ($conn->query($sql)) {
-            echo "<span style='color:green;'>SUCCESS</span><br>";
-        }
+    if ($conn->query($sql)) {
+        echo "<span style='color:green;'>SUCCESS</span><br>";
     }
-    catch (Exception $e) {
-        if (strpos($e->getMessage(), 'Duplicate column name') !== false) {
-            echo "<span style='color:orange;'>ALREADY EXISTS</span><br>";
+    else {
+        $err = $conn->error;
+        if (strpos($err, 'Duplicate column name') !== false) {
+            echo "<span style='color:orange;'>ALREADY EXISTS (skipped)</span><br>";
         }
         else {
-            echo "<span style='color:red;'>FAILED: " . $e->getMessage() . "</span><br>";
+            echo "<span style='color:red;'>FAILED: " . $err . "</span><br>";
         }
     }
 }
