@@ -230,6 +230,29 @@ include("../includes/header.php");
 }
 </script>
 
+<!-- RELATED SERVICES -->
+<section class="section-md bg-soft">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Related Treatments &amp; Services</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <?php
+      $relatedServices = [
+        ['IVF', 'If IUI is unsuccessful after 3 cycles, IVF is the natural next step.', '/art-procedures/ivf'],
+        ['ICSI', 'For male factor infertility, ICSI within an IVF cycle gives better results.', '/art-procedures/icsi'],
+        ['PCOS Treatment', 'PCOS patients often respond well to IUI with ovulation induction.', '/female-infertility/pcos'],
+        ['Unexplained Infertility', 'IUI is a first-line treatment for unexplained infertility in younger couples.', '/female-infertility/unexplained-infertility'],
+        ['Male Infertility', 'Mild male factor infertility can often be treated with IUI.', '/male-infertility/'],
+      ];
+      foreach ($relatedServices as [$title, $desc, $url]): ?>
+      <a href="<?php echo htmlspecialchars($url); ?>" class="card p-6 hover:border-teal-300 transition-colors group">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-600"><?php echo htmlspecialchars($desc); ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
 <?php
 $faqs = [
     ['q' => 'Who is a good candidate for IUI?',

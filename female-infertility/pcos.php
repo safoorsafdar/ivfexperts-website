@@ -244,6 +244,29 @@ include("../includes/header.php");
 }
 </script>
 
+<!-- RELATED SERVICES -->
+<section class="section-md bg-soft">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Related Treatments &amp; Services</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <?php
+      $relatedServices = [
+        ['IVF for PCOS', 'When ovulation induction is insufficient, IVF with tailored protocols is effective.', '/art-procedures/ivf'],
+        ['IUI', 'IUI combined with Letrozole is a common first-line treatment for PCOS infertility.', '/art-procedures/iui'],
+        ['Endometriosis', 'PCOS and endometriosis can coexist — learn about endometriosis treatment.', '/female-infertility/endometriosis'],
+        ['Unexplained Infertility', 'PCOS is sometimes a component of broader unexplained infertility.', '/female-infertility/unexplained-infertility'],
+        ['Recurrent Pregnancy Loss', 'PCOS patients are at higher risk — specialized management is available.', '/female-infertility/recurrent-pregnancy-loss'],
+      ];
+      foreach ($relatedServices as [$title, $desc, $url]): ?>
+      <a href="<?php echo htmlspecialchars($url); ?>" class="card p-6 hover:border-teal-300 transition-colors group">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-600"><?php echo htmlspecialchars($desc); ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
 <?php
 $faqs = [
     ['q' => 'Can I get pregnant naturally with PCOS?',

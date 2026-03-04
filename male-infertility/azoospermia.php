@@ -267,6 +267,30 @@ include("../includes/header.php");
 }
 </script>
 
+<!-- RELATED SERVICES -->
+<section class="section-md bg-soft">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Related Treatments &amp; Services</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <?php
+      $relatedServices = [
+        ['ICSI', 'Retrieved sperm from TESE/PESA are immediately used in ICSI for maximum success.', '/art-procedures/icsi'],
+        ['IVF', 'Full IVF cycle required alongside sperm retrieval for azoospermia treatment.', '/art-procedures/ivf'],
+        ['Surgical Sperm Retrieval', 'PESA, TESA, and micro-TESE techniques explained in detail.', '/art-procedures/surgical-sperm-retrieval'],
+        ['Low Sperm Count', 'Severe oligospermia and azoospermia exist on the same diagnostic spectrum.', '/male-infertility/low-sperm-count'],
+        ['Male Infertility Overview', 'Comprehensive guide to all male factor fertility conditions.', '/male-infertility/'],
+        ['DNA Fragmentation', 'High DNA fragmentation is often associated with severe male factor infertility.', '/male-infertility/dna-fragmentation'],
+      ];
+      foreach ($relatedServices as [$title, $desc, $url]): ?>
+      <a href="<?php echo htmlspecialchars($url); ?>" class="card p-6 hover:border-teal-300 transition-colors group">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-600"><?php echo htmlspecialchars($desc); ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
 <?php
 $faqs = [
     ['q' => 'What is the difference between obstructive and non-obstructive azoospermia?',

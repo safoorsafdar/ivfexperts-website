@@ -307,6 +307,30 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- RELATED SERVICES -->
+<section class="section-md bg-soft">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Related Treatments &amp; Services</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <?php
+      $relatedServices = [
+        ['ICSI', 'Intracytoplasmic Sperm Injection — ideal when male factor infertility is present.', '/art-procedures/icsi'],
+        ['IUI', 'Intrauterine Insemination — a simpler first-line option for mild infertility.', '/art-procedures/iui'],
+        ['PGT — Genetic Testing', 'Screen embryos for chromosomal conditions before transfer.', '/art-procedures/pgt'],
+        ['PCOS Treatment', 'Specialized ovulation induction for polycystic ovary syndrome.', '/female-infertility/pcos'],
+        ['Male Infertility', 'Comprehensive assessment and treatment for all male factor conditions.', '/male-infertility/'],
+        ['Fertility Preservation', 'Egg and sperm freezing for medical or elective reasons.', '/art-procedures/fertility-preservation'],
+      ];
+      foreach ($relatedServices as [$title, $desc, $url]): ?>
+      <a href="<?php echo htmlspecialchars($url); ?>" class="card p-6 hover:border-teal-300 transition-colors group">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-600"><?php echo htmlspecialchars($desc); ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
 <?php
 $faqs = [
     ['q' => 'What is the success rate of IVF in Pakistan?', 'a' => 'IVF success rates in Pakistan vary by age and diagnosis. At IVF Experts Lahore, patients under 35 typically achieve 40–55% success rates per cycle. Dr. Adnan Jabbar personalises each protocol to maximise your chances.'],

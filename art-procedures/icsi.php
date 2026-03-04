@@ -251,6 +251,30 @@ include("../includes/header.php");
 }
 </script>
 
+<!-- RELATED SERVICES -->
+<section class="section-md bg-soft">
+  <div class="max-w-5xl mx-auto px-6">
+    <h2 class="text-2xl font-extrabold text-slate-900 mb-8">Related Treatments &amp; Services</h2>
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <?php
+      $relatedServices = [
+        ['IVF', 'In Vitro Fertilisation — the broader treatment cycle that ICSI is part of.', '/art-procedures/ivf'],
+        ['Azoospermia', 'No sperm in ejaculate? Surgical retrieval for ICSI is available.', '/male-infertility/azoospermia'],
+        ['Low Sperm Count', 'ICSI is the gold standard treatment for severe oligospermia.', '/male-infertility/low-sperm-count'],
+        ['Surgical Sperm Retrieval', 'PESA, TESA, and micro-TESE for sperm retrieval before ICSI.', '/art-procedures/surgical-sperm-retrieval'],
+        ['PGT — Genetic Testing', 'Add genetic screening to your ICSI cycle.', '/art-procedures/pgt'],
+        ['Male Infertility', 'Comprehensive evaluation of all male fertility factors.', '/male-infertility/'],
+      ];
+      foreach ($relatedServices as [$title, $desc, $url]): ?>
+      <a href="<?php echo htmlspecialchars($url); ?>" class="card p-6 hover:border-teal-300 transition-colors group">
+        <h3 class="text-base font-bold text-slate-900 group-hover:text-teal-700 transition-colors mb-2"><?php echo htmlspecialchars($title); ?></h3>
+        <p class="text-sm text-slate-600"><?php echo htmlspecialchars($desc); ?></p>
+      </a>
+      <?php endforeach; ?>
+    </div>
+  </div>
+</section>
+
 <?php
 $faqs = [
     ['q' => 'When is ICSI recommended instead of standard IVF?',
