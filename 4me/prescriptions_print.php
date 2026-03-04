@@ -20,12 +20,21 @@ if ($id <= 0)
 // Fetch Prescription Data
 $rx = null;
 try {
+    // Note: prescriptions table does NOT have hospital_id — use patient's referring hospital
     $stmt = $conn->prepare("
-        SELECT rx.*, p.first_name, p.last_name, p.mr_number, p.gender, p.phone, p.cnic, 
-               h.name as hospital_name, h.margin_top, h.margin_bottom, h.margin_left, h.margin_right, h.digital_signature_path, h.letterhead_image_path 
-        FROM prescriptions rx 
-        JOIN patients p ON rx.patient_id = p.id 
-        JOIN hospitals h ON rx.hospital_id = h.id 
+        SELECT rx.*,
+               p.first_name, p.last_name, p.mr_number, p.gender, p.phone, p.cnic,
+               p.patient_age, p.blood_group,
+               COALESCE(h.name, 'IVF Experts Clinic') AS hospital_name,
+               COALESCE(h.margin_top, 20) AS margin_top,
+               COALESCE(h.margin_bottom, 20) AS margin_bottom,
+               COALESCE(h.margin_left, 20) AS margin_left,
+               COALESCE(h.margin_right, 20) AS margin_right,
+               h.digital_signature_path,
+               h.letterhead_image_path
+        FROM prescriptions rx
+        JOIN patients p ON rx.patient_id = p.id
+        LEFT JOIN hospitals h ON p.referring_hospital_id = h.id
         WHERE rx.id = ?
     ");
     if ($stmt) {
@@ -35,19 +44,20 @@ try {
     }
 }
 catch (Exception $e) {
-    die("DB Error");
+    die("DB Error: " . $e->getMessage());
 }
 
 if (!$rx)
-    die("Prescription not found.");
+    die("Prescription not found. ID=$id");
+
 
 // Log download and get tracking code
 $tracking_code = log_document_download($conn, 'rx', $id);
 
-// Fetch Items
+// Fetch Items (prescription_items uses medicine_name text, no medications JOIN)
 $items = [];
 try {
-    $stmt = $conn->prepare("SELECT pi.*, m.name, m.med_type FROM prescription_items pi JOIN medications m ON pi.medication_id = m.id WHERE pi.prescription_id = ?");
+    $stmt = $conn->prepare("SELECT * FROM prescription_items WHERE prescription_id = ? ORDER BY id ASC");
     if ($stmt) {
         $stmt->bind_param("i", $id);
         $stmt->execute();
@@ -59,16 +69,32 @@ try {
 catch (Exception $e) {
 }
 
-// Fetch Diagnoses
+// Fetch Diagnoses — try prescription_diagnoses table first, fall back to icd10_codes JSON
 $diagnoses = [];
 try {
-    $stmt = $conn->prepare("SELECT * FROM prescription_diagnoses WHERE prescription_id = ? ORDER BY type ASC");
-    if ($stmt) {
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc())
-            $diagnoses[] = $row;
+    $chk = $conn->query("SHOW TABLES LIKE 'prescription_diagnoses'");
+    if ($chk && $chk->num_rows > 0) {
+        $stmt = $conn->prepare("SELECT * FROM prescription_diagnoses WHERE prescription_id = ? ORDER BY type ASC");
+        if ($stmt) {
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc())
+                $diagnoses[] = $row;
+        }
+    }
+    // Fallback: parse icd10_codes JSON column
+    if (empty($diagnoses) && !empty($rx['icd10_codes'])) {
+        $icd_arr = json_decode($rx['icd10_codes'], true);
+        if (is_array($icd_arr)) {
+            foreach ($icd_arr as $icd) {
+                $diagnoses[] = [
+                    'type' => 'ICD',
+                    'code' => $icd['icd10_code'] ?? '',
+                    'description' => $icd['description'] ?? ''
+                ];
+            }
+        }
     }
 }
 catch (Exception $e) {
@@ -77,17 +103,28 @@ catch (Exception $e) {
 // Fetch Advised Lab Tests
 $lab_tests = [];
 try {
-    $stmt = $conn->prepare("SELECT * FROM prescription_lab_tests WHERE prescription_id = ? ORDER BY id ASC");
-    if ($stmt) {
-        $stmt->bind_param("i", $id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        while ($row = $res->fetch_assoc())
-            $lab_tests[] = $row;
+    // Try advised_lab_tests (new schema) with test name from directory
+    $chk = $conn->query("SHOW TABLES LIKE 'advised_lab_tests'");
+    if ($chk && $chk->num_rows > 0) {
+        $stmt = $conn->prepare(
+            "SELECT alt.*, ltd.test_name, ltd.category
+             FROM advised_lab_tests alt
+             LEFT JOIN lab_tests_directory ltd ON alt.test_id = ltd.id
+             WHERE alt.prescription_id = ? ORDER BY alt.id ASC"
+        );
+        if ($stmt) {
+            $stmt->bind_param("i", $id);
+            $stmt->execute();
+            $res = $stmt->get_result();
+            while ($row = $res->fetch_assoc())
+                $lab_tests[] = $row;
+        }
     }
 }
 catch (Exception $e) {
 }
+
+
 
 $patient_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Patient');
 $spouse_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Spouse');

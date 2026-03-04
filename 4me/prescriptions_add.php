@@ -146,6 +146,16 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
                  VALUES (?, ?, ?, ?, ?, ?)"
             );
             if ($m_stmt) {
+                // ── Auto-ensure medications table exists ──────────────────
+                $conn->query("CREATE TABLE IF NOT EXISTS medications (
+                    id INT AUTO_INCREMENT PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
+                    med_type VARCHAR(100) DEFAULT 'General',
+                    UNIQUE KEY idx_name (name(191))
+                ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
+
+                $auto_med = $conn->prepare("INSERT IGNORE INTO medications (name) VALUES (?)");
+
                 foreach ($meds as $m) {
                     if (empty($m['medicine_name']))
                         continue;
@@ -156,6 +166,11 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
                     $instr = $m['instructions'] ?? '';
                     $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                     $m_stmt->execute();
+                    // Auto-add to medications library if not already there
+                    if ($auto_med) {
+                        $auto_med->bind_param("s", $name);
+                        $auto_med->execute();
+                    }
                 }
             }
             else {

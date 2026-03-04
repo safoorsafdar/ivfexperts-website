@@ -128,7 +128,16 @@ try {
     $pid = intval($patient_id);
     $histories = $conn->query("SELECT * FROM patient_history WHERE patient_id = $pid ORDER BY COALESCE(created_at, id) DESC")->fetch_all(MYSQLI_ASSOC);
     $semen_reports = $conn->query("SELECT * FROM semen_analyses WHERE patient_id = $pid ORDER BY collection_time DESC")->fetch_all(MYSQLI_ASSOC);
-    $prescriptions = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+    $prescriptions_raw = $conn->query("SELECT * FROM prescriptions WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
+    // Enrich each prescription with medication items + lab count
+    $prescriptions = [];
+    foreach ($prescriptions_raw as $prx) {
+        $rid = intval($prx['id']);
+        $prx['_items'] = $conn->query("SELECT medicine_name, dosage, frequency, duration FROM prescription_items WHERE prescription_id = $rid ORDER BY id ASC")->fetch_all(MYSQLI_ASSOC);
+        $prx['_lab_count'] = (int)($conn->query("SELECT COUNT(*) AS c FROM advised_lab_tests WHERE prescription_id = $rid")->fetch_assoc()['c'] ?? 0);
+        $prescriptions[] = $prx;
+    }
+
     $ultrasounds = $conn->query("SELECT * FROM patient_ultrasounds WHERE patient_id = $pid ORDER BY created_at DESC")->fetch_all(MYSQLI_ASSOC);
     $lab_results = $conn->query("SELECT plt.*, ltd.test_name, ltd.unit, ltd.reference_range_male, ltd.reference_range_female FROM patient_lab_results plt JOIN lab_tests_directory ltd ON plt.test_id = ltd.id WHERE plt.patient_id = $pid ORDER BY plt.test_date DESC")->fetch_all(MYSQLI_ASSOC);
     $advised_procedures = $conn->query("SELECT ap.*, (SELECT COALESCE(SUM(r.amount),0) FROM receipts r WHERE r.advised_procedure_id = ap.id AND r.status = 'Paid') AS total_paid FROM advised_procedures ap WHERE ap.patient_id = $pid ORDER BY ap.date_advised DESC")->fetch_all(MYSQLI_ASSOC);
@@ -585,69 +594,107 @@ endif; ?>
                 </div>
                 <?php
 else: ?>
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div class="grid grid-cols-1 gap-5">
                     <?php foreach ($prescriptions as $rx): ?>
-                    <div class="bg-white rounded-[2rem] border border-gray-100 hover:border-brand-200 hover:shadow-2xl transition-all duration-500 overflow-hidden group">
-                        <div class="flex items-start gap-5 p-6 md:p-8">
-                            <div class="w-16 h-16 bg-brand-50 text-brand-600 rounded-2xl flex items-center justify-center text-2xl shrink-0 group-hover:bg-brand-600 group-hover:text-white transition-all duration-500">
-                                <i class="fa-solid fa-file-medical"></i>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2 mb-2">
-                                    <span class="text-[10px] font-black text-slate-400 font-mono tracking-tighter">ID: RX-<?php echo str_pad($rx['id'], 5, '0', STR_PAD_LEFT); ?></span>
-                                    <span class="text-[9px] font-black px-2.5 py-1 rounded-lg uppercase tracking-widest <?php echo($rx['record_for'] ?? '') === 'Spouse' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-brand-100 text-brand-700 border border-brand-200'; ?>">
-                                        <?php echo esc($rx['record_for'] ?? 'Patient'); ?>
-                                    </span>
+                    <div class="bg-white rounded-2xl border border-gray-100 hover:border-teal-200 hover:shadow-lg transition-all duration-300 overflow-hidden">
+                        <!-- Card Header -->
+                        <div class="px-6 py-4 flex items-start justify-between gap-4 border-b border-gray-50">
+                            <div class="flex items-center gap-3 min-w-0">
+                                <div class="w-10 h-10 bg-violet-50 text-violet-600 rounded-xl flex items-center justify-center text-sm shrink-0">
+                                    <i class="fa-solid fa-file-prescription"></i>
                                 </div>
-                                <h4 class="text-lg font-black text-gray-900 leading-tight">
-                                    <?php echo !empty($rx['diagnosis']) ? esc(substr(strip_tags($rx['diagnosis']), 0, 80)) : 'Infertility Treatment Plan'; ?>
-                                </h4>
-                                <div class="mt-3 flex items-center gap-4">
-                                    <div class="flex items-center gap-1.5 text-xs font-bold text-gray-400">
-                                        <i class="fa-regular fa-calendar text-brand-400"></i>
-                                        <?php echo($rx['created_at'] && $rx['created_at'] !== '0000-00-00 00:00:00') ? date('j M Y', strtotime($rx['created_at'])) : '—'; ?>
+                                <div class="min-w-0">
+                                    <div class="flex items-center gap-2 flex-wrap">
+                                        <span class="text-xs font-mono font-semibold text-slate-400">RX-<?php echo str_pad($rx['id'], 5, '0', STR_PAD_LEFT); ?></span>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full <?php echo ($rx['record_for'] ?? '') === 'Spouse' ? 'bg-rose-50 text-rose-600 border border-rose-100' : 'bg-teal-50 text-teal-700 border border-teal-100'; ?>">
+                                            <?php echo esc($rx['record_for'] ?? 'Patient'); ?>
+                                        </span>
+                                        <?php if (!empty($rx['next_visit']) && $rx['next_visit'] !== '0000-00-00'): ?>
+                                        <span class="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-100">
+                                            <i class="fa-regular fa-calendar-clock mr-1"></i>Follow-up: <?php echo date('d M Y', strtotime($rx['next_visit'])); ?>
+                                        </span>
+                                        <?php endif; ?>
                                     </div>
-                                    <?php if (!empty($rx['next_visit'])): ?>
-                                    <div class="flex items-center gap-1.5 text-xs font-bold text-slate-900 bg-slate-100 px-2 py-0.5 rounded-lg">
-                                        <i class="fa-solid fa-calendar-check text-brand-500"></i>
-                                        <?php echo date('j M', strtotime($rx['next_visit'])); ?>
-                                    </div>
-                                    <?php
-        endif; ?>
+                                    <p class="text-[11px] text-slate-400 mt-0.5">
+                                        <?php echo ($rx['created_at'] && $rx['created_at'] !== '0000-00-00 00:00:00') ? date('j M Y, g:ia', strtotime($rx['created_at'])) : '—'; ?>
+                                    </p>
                                 </div>
                             </div>
-                        </div>
-                        <div class="border-t border-gray-50 px-6 py-4 flex items-center justify-between bg-gray-50/30">
-                            <div class="flex items-center gap-2">
-                                <?php if (!empty($rx['scanned_report_path'])): ?>
-                                <a href="../<?php echo esc($rx['scanned_report_path']); ?>" target="_blank"
-                                   class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-400 hover:bg-brand-500 hover:text-white transition-all shadow-sm" title="Reference Link">
-                                    <i class="fa-solid fa-link text-xs"></i>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <a href="prescriptions_edit.php?id=<?php echo $rx['id']; ?>"
+                                   class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-400 hover:bg-teal-50 hover:text-teal-600 transition-all text-xs" title="Edit Prescription">
+                                    <i class="fa-solid fa-pen"></i>
                                 </a>
-                                <?php
-        endif; ?>
-                            </div>
-                            <div class="flex items-center gap-3">
-                                <form method="POST" class="inline" onsubmit="return confirm('Purge this record?')">
+                                <form method="POST" class="inline" onsubmit="return confirm('Delete this prescription?')">
                                     <input type="hidden" name="record_id" value="<?php echo $rx['id']; ?>">
                                     <button type="submit" name="delete_rx" value="1"
-                                            class="w-10 h-10 flex items-center justify-center rounded-xl bg-white border border-gray-100 text-gray-300 hover:text-rose-500 hover:bg-rose-50 transition-all text-xs" title="Delete">
+                                            class="w-8 h-8 flex items-center justify-center rounded-lg bg-gray-50 text-gray-300 hover:text-rose-500 hover:bg-rose-50 transition-all text-xs" title="Delete">
                                         <i class="fa-solid fa-trash-can"></i>
                                     </button>
                                 </form>
                                 <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank"
-                                   class="inline-flex items-center gap-2 px-6 py-2.5 bg-slate-900 text-white rounded-xl text-[10px] font-black hover:bg-black transition-all shadow-lg active:scale-95 uppercase tracking-widest">
-                                    <i class="fa-solid fa-print"></i> Generate PDF
+                                   class="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-800 text-white rounded-xl text-[11px] font-semibold hover:bg-slate-900 transition-all shadow-sm active:scale-95">
+                                    <i class="fa-solid fa-print text-[10px]"></i> Print / PDF
                                 </a>
                             </div>
                         </div>
+
+                        <!-- Diagnosis Summary -->
+                        <?php if (!empty($rx['diagnosis']) || !empty($rx['clinical_notes'])): ?>
+                        <div class="px-6 py-3 bg-indigo-50/40 border-b border-indigo-50">
+                            <p class="text-[11px] font-semibold text-indigo-500 uppercase tracking-wider mb-1">Diagnosis</p>
+                            <p class="text-sm text-slate-700 font-medium leading-snug line-clamp-2">
+                                <?php echo esc(!empty($rx['diagnosis']) ? $rx['diagnosis'] : $rx['clinical_notes']); ?>
+                            </p>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Medications -->
+                        <?php if (!empty($rx['_items'])): ?>
+                        <div class="px-6 py-3 border-b border-gray-50">
+                            <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">
+                                <i class="fa-solid fa-pills text-violet-400 mr-1"></i>
+                                <?php echo count($rx['_items']); ?> Medication<?php echo count($rx['_items']) !== 1 ? 's' : ''; ?>
+                            </p>
+                            <div class="flex flex-wrap gap-2">
+                                <?php foreach ($rx['_items'] as $item): ?>
+                                <div class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-violet-50 border border-violet-100 rounded-lg">
+                                    <span class="text-xs font-semibold text-violet-800"><?php echo esc($item['medicine_name']); ?></span>
+                                    <?php if (!empty($item['dosage'])): ?>
+                                    <span class="text-[10px] text-violet-400">· <?php echo esc($item['dosage']); ?></span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['frequency'])): ?>
+                                    <span class="text-[10px] text-violet-400"><?php echo esc($item['frequency']); ?></span>
+                                    <?php endif; ?>
+                                    <?php if (!empty($item['duration'])): ?>
+                                    <span class="text-[10px] text-violet-300">for <?php echo esc($item['duration']); ?></span>
+                                    <?php endif; ?>
+                                </div>
+                                <?php endforeach; ?>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
+                        <!-- Footer: Labs + Advice -->
+                        <div class="px-6 py-3 flex items-center gap-4 flex-wrap">
+                            <?php if ($rx['_lab_count'] > 0): ?>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-amber-700 bg-amber-50 border border-amber-100 px-3 py-1 rounded-lg font-semibold">
+                                <i class="fa-solid fa-vials text-amber-500 text-[10px]"></i>
+                                <?php echo $rx['_lab_count']; ?> Lab Test<?php echo $rx['_lab_count'] !== 1 ? 's' : ''; ?> Advised
+                            </span>
+                            <?php endif; ?>
+                            <?php if (!empty($rx['general_advice'])): ?>
+                            <span class="inline-flex items-center gap-1.5 text-xs text-sky-700 bg-sky-50 border border-sky-100 px-3 py-1 rounded-lg font-semibold">
+                                <i class="fa-solid fa-lightbulb text-sky-400 text-[10px]"></i>
+                                Advice Included
+                            </span>
+                            <?php endif; ?>
+                        </div>
                     </div>
-                    <?php
-    endforeach; ?>
+                    <?php endforeach; ?>
                 </div>
-                <?php
-endif; ?>
-            </div>
+
+
 
             <!-- ─── TAB: Semen Analysis ─── -->
             <div x-show="tab === 'semen'" x-cloak class="tab-panel">
