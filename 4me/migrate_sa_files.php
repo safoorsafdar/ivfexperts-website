@@ -9,11 +9,26 @@ echo "<h1>IVF Experts - Semen Analysis File Upload Migration</h1>";
 echo "<pre>";
 
 $sqls = [
+    // Phase 1: File upload support
     "ALTER TABLE semen_analyses
         ADD COLUMN report_type ENUM('manual', 'file') DEFAULT 'manual' AFTER qrcode_hash,
         ADD COLUMN report_file_path VARCHAR(255) NULL AFTER report_type",
     "ALTER TABLE semen_analyses ADD COLUMN lab_name VARCHAR(255) NULL AFTER report_file_path",
     "ALTER TABLE semen_analyses ADD COLUMN lab_report_number VARCHAR(100) NULL AFTER lab_name",
+
+    // Phase 2: WHO 6th Edition macroscopic/microscopic parameters
+    "ALTER TABLE semen_analyses ADD COLUMN im_motility DECIMAL(5,2) DEFAULT 0",
+    "ALTER TABLE semen_analyses ADD COLUMN abnormal_morphology DECIMAL(5,2) DEFAULT 0",
+    "ALTER TABLE semen_analyses ADD COLUMN appearance VARCHAR(50) DEFAULT 'Normal'",
+    "ALTER TABLE semen_analyses ADD COLUMN liquefaction VARCHAR(50) DEFAULT 'Complete'",
+    "ALTER TABLE semen_analyses ADD COLUMN viscosity VARCHAR(50) DEFAULT 'Normal'",
+    "ALTER TABLE semen_analyses ADD COLUMN vitality DECIMAL(5,2) NULL",
+    "ALTER TABLE semen_analyses ADD COLUMN round_cells VARCHAR(100) NULL",
+    "ALTER TABLE semen_analyses ADD COLUMN debris VARCHAR(100) NULL",
+    "ALTER TABLE semen_analyses ADD COLUMN wbc VARCHAR(100) NULL",
+    "ALTER TABLE semen_analyses ADD COLUMN agglutination VARCHAR(100) NULL",
+    "ALTER TABLE semen_analyses ADD COLUMN auto_diagnosis VARCHAR(255) DEFAULT 'Pending'",
+    "ALTER TABLE semen_analyses ADD COLUMN admin_notes TEXT NULL",
 ];
 
 foreach ($sqls as $sql) {

@@ -379,7 +379,7 @@ endif; ?>
                             class="w-full px-6 py-4 bg-gray-50 border-none rounded-[1.5rem] focus:ring-2 focus:ring-teal-500 text-sm font-medium"
                             placeholder="Additional clinical notes or free-text impression (optional — ICD-10 selections above are auto-included)..."
                         ></textarea>
-                        <input type="hidden" name="icd10_data" :value="JSON.stringify(selectedDiagnoses)">
+                        <input type="hidden" name="icd10_data" id="icd10_data">
                     </div>
                 </div>
 
@@ -562,8 +562,8 @@ endif; ?>
                         <i class="fa-solid fa-arrow-left mr-2"></i> PREVIOUS STEP
                     </button>
                     
-                    <input type="hidden" name="medications_data" :value="JSON.stringify(rows)">
-                    <input type="hidden" name="lab_tests_data" :value="JSON.stringify(selectedLabs)">
+                    <input type="hidden" name="medications_data" id="medications_data">
+                    <input type="hidden" name="lab_tests_data" id="lab_tests_data">
                     <input type="hidden" name="save_prescription" value="1">
                     
                     <button type="submit" @click="prepareSubmit" class="flex-1 bg-gradient-to-r from-teal-600 to-indigo-700 hover:from-teal-700 hover:to-indigo-800 text-white px-12 py-6 rounded-[2.5rem] font-black text-lg shadow-2xl shadow-indigo-100 transition-all active:scale-95 flex items-center justify-center gap-4">
@@ -673,6 +673,9 @@ endif; ?>
 
             prepareSubmit() {
                 document.getElementById('clinical_notes').value = quill ? quill.root.innerHTML : '';
+                document.getElementById('medications_data').value = JSON.stringify(this.rows);
+                document.getElementById('lab_tests_data').value = JSON.stringify(this.selectedLabs);
+                document.getElementById('icd10_data').value = JSON.stringify(this.selectedDiagnoses);
             }
         }
     }

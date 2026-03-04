@@ -33,6 +33,20 @@ $patient = $stmt2->get_result()->fetch_assoc();
 $items_raw_res = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id AND medicine_name != '' ORDER BY id ASC");
 $items = $items_raw_res ? $items_raw_res->fetch_all(MYSQLI_ASSOC) : [];
 
+// Fetch advised lab tests
+$advised_labs = [];
+try {
+    $chk = $conn->query("SHOW TABLES LIKE 'advised_lab_tests'");
+    if ($chk && $chk->num_rows > 0) {
+        $ls = $conn->prepare("SELECT alt.test_id as id, alt.record_for as `for`, COALESCE(ltd.test_name, '') as test_name FROM advised_lab_tests alt LEFT JOIN lab_tests_directory ltd ON alt.test_id = ltd.id WHERE alt.prescription_id = ?");
+        if ($ls) {
+            $ls->bind_param("i", $rx_id);
+            $ls->execute();
+            $advised_labs = $ls->get_result()->fetch_all(MYSQLI_ASSOC);
+        }
+    }
+} catch (Exception $e) {}
+
 // Parse existing ICD-10 codes
 $existing_icd = [];
 if (!empty($rx['icd10_codes'])) {
@@ -92,14 +106,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
                         $instr = $m['instructions'] ?? '';
                         $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                         $m_stmt->execute();
-                        // Auto-add to medicine library
-                        if ($auto_med) {
-                            $auto_med->bind_param("s", $name);
-                            $auto_med->execute();
-                        }
+                        if ($auto_med) { $auto_med->bind_param("s", $name); $auto_med->execute(); }
                     }
                 }
             }
+
+            // Replace advised lab tests
+            $conn->query("DELETE FROM advised_lab_tests WHERE prescription_id = $rx_id");
+            $lab_tests_json = $_POST['lab_tests_data'] ?? '[]';
+            $labs = json_decode($lab_tests_json, true);
+            if (is_array($labs) && !empty($labs)) {
+                $l_stmt = $conn->prepare("INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for) VALUES (?, ?, ?, ?)");
+                if ($l_stmt) {
+                    foreach ($labs as $l) {
+                        if (empty($l['id'])) continue;
+                        $tid = intval($l['id']);
+                        $lab_for = in_array($l['for'] ?? '', ['Patient', 'Spouse']) ? $l['for'] : 'Patient';
+                        $l_stmt->bind_param("iiis", $rx_id, $patient_id, $tid, $lab_for);
+                        $l_stmt->execute();
+                    }
+                }
+            }
+
             header("Location: patients_view.php?id=$patient_id&tab=rx&msg=rx_saved");
             exit;
         }
@@ -136,10 +164,13 @@ function rxEditData() {
 'instructions' => $i['instructions'] ?? '',
 ], $items)); ?>,
         icdCodes: <?php echo json_encode($existing_icd); ?>,
+        selectedLabs: <?php echo json_encode(array_map(fn($l) => ['id' => $l['id'], 'test_name' => $l['test_name'], 'for' => $l['for'] ?? 'Patient'], $advised_labs)); ?>,
         icdQuery: '',
         icdResults: [],
         icdLoading: false,
         icdOpen: false,
+        labSearch: '',
+        labResults: [],
         addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
         removeMed(i) { this.medsRaw.splice(i,1); },
         async searchIcd() {
@@ -157,7 +188,27 @@ function rxEditData() {
             }
             this.icdQuery = ''; this.icdOpen = false; this.icdResults = [];
         },
-        removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); }
+        removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); },
+        async searchLabs() {
+            if (this.labSearch.length < 2) { this.labResults = []; return; }
+            try {
+                const r = await fetch('api_search_lab_tests.php?q=' + encodeURIComponent(this.labSearch));
+                this.labResults = await r.json();
+            } catch(e) { this.labResults = []; }
+        },
+        addLab(lab) {
+            if (!this.selectedLabs.find(l => l.id === lab.id)) {
+                this.selectedLabs.push({id: lab.id, test_name: lab.test_name, for: 'Patient'});
+            }
+            this.labSearch = ''; this.labResults = [];
+        },
+        removeLab(i) { this.selectedLabs.splice(i, 1); },
+        toggleLabFor(i) { this.selectedLabs[i].for = this.selectedLabs[i].for === 'Patient' ? 'Spouse' : 'Patient'; },
+        submitForm() {
+            document.getElementById('edit_medications_data').value = JSON.stringify(this.medsRaw);
+            document.getElementById('edit_lab_tests_data').value = JSON.stringify(this.selectedLabs);
+            document.getElementById('edit_icd10_data').value = JSON.stringify(this.icdCodes);
+        }
     };
 }
 </script>
@@ -185,7 +236,7 @@ function rxEditData() {
         <?php
 endif; ?>
 
-        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()">
+        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()" @submit="submitForm()">
 
             <!-- Record For -->
 
@@ -257,7 +308,7 @@ endif; ?>
                         <i class="fa-solid fa-spinner fa-spin text-gray-300 text-xs"></i>
                     </div>
                 </div>
-                <input type="hidden" name="icd10_data" :value="JSON.stringify(icdCodes)">
+                <input type="hidden" name="icd10_data" id="edit_icd10_data">
             </div>
 
             <!-- Medications -->
@@ -292,7 +343,48 @@ endif; ?>
                         No medications added. Click "+ Add Medicine" to start.
                     </div>
                 </div>
-                <input type="hidden" name="medications_data" :value="JSON.stringify(medsRaw)">
+                <input type="hidden" name="medications_data" id="edit_medications_data">
+            </div>
+
+            <!-- Lab Tests -->
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label class="text-xs font-medium text-slate-500">Advised Lab Investigations</label>
+                </div>
+                <div class="relative mb-3">
+                    <i class="fa-solid fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-300 text-xs"></i>
+                    <input type="text" x-model="labSearch" @input.debounce.300ms="searchLabs()"
+                           @click.away="labResults = []"
+                           placeholder="Search lab tests to add (e.g. FSH, Semen)..."
+                           class="w-full pl-8 pr-4 py-2.5 bg-gray-50 border border-gray-100 rounded-xl text-sm focus:bg-white focus:ring-2 focus:ring-amber-400/30 focus:border-amber-300 outline-none transition-all">
+                    <div x-show="labResults.length > 0" class="absolute z-30 left-0 right-0 top-full mt-1 bg-white border border-gray-100 rounded-xl shadow-2xl max-h-48 overflow-y-auto">
+                        <template x-for="lab in labResults" :key="lab.id">
+                            <button type="button" @click="addLab(lab)"
+                                    class="w-full text-left px-4 py-2.5 hover:bg-amber-50 text-sm font-medium text-gray-800 border-b border-gray-50 last:border-0 flex items-center justify-between">
+                                <span x-text="lab.test_name"></span>
+                                <i class="fa-solid fa-plus-circle text-amber-400 text-xs"></i>
+                            </button>
+                        </template>
+                    </div>
+                </div>
+                <div class="space-y-2" x-show="selectedLabs.length > 0">
+                    <template x-for="(l, idx) in selectedLabs" :key="idx">
+                        <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                            <div class="flex items-center gap-2">
+                                <i class="fa-solid fa-vial text-amber-400 text-xs"></i>
+                                <span class="text-sm font-semibold text-gray-800" x-text="l.test_name"></span>
+                                <button type="button" @click="toggleLabFor(idx)"
+                                        :class="l.for === 'Patient' ? 'bg-teal-100 text-teal-700' : 'bg-rose-100 text-rose-700'"
+                                        class="text-[10px] font-bold px-2 py-0.5 rounded-full transition-colors" x-text="l.for"></button>
+                            </div>
+                            <button type="button" @click="removeLab(idx)" class="w-6 h-6 flex items-center justify-center rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 transition-all text-xs">
+                                <i class="fa-solid fa-times"></i>
+                            </button>
+                        </div>
+                    </template>
+                </div>
+                <div x-show="selectedLabs.length === 0" class="text-center py-3 text-xs text-gray-400">No lab tests advised. Search above to add.</div>
+                <input type="hidden" name="lab_tests_data" id="edit_lab_tests_data">
             </div>
 
             <!-- General Advice + Next Visit -->

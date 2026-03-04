@@ -126,8 +126,8 @@ catch (Exception $e) {
 
 
 
-$patient_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Patient');
-$spouse_tests = array_filter($lab_tests, fn($t) => $t['advised_for'] == 'Spouse');
+$patient_tests = array_filter($lab_tests, fn($t) => ($t['record_for'] ?? $t['advised_for'] ?? '') == 'Patient');
+$spouse_tests  = array_filter($lab_tests, fn($t) => ($t['record_for'] ?? $t['advised_for'] ?? '') == 'Spouse');
 
 $icds = array_filter($diagnoses, fn($d) => $d['type'] == 'ICD');
 $cpts = array_filter($diagnoses, fn($d) => $d['type'] == 'CPT' || $d['type'] == 'SNOMED');
@@ -287,6 +287,9 @@ endif; ?>
 
                 <!-- Date Block -->
                 <div class="text-right text-[11px] shrink-0 border-l border-gray-300 pl-6">
+                    <?php if (!empty($tracking_code)): ?>
+                    <div class="font-mono text-[8px] text-slate-400 uppercase tracking-widest mb-1">TRK-<?php echo $tracking_code; ?></div>
+                    <?php endif; ?>
                     <div class="font-bold text-gray-500 uppercase tracking-tight text-[9px] mb-0.5">
                         Printed By: <?php echo isset($_SESSION['admin_id']) ? 'Clinic Staff' : 'Patient Portal'; ?>
                     </div>
@@ -299,10 +302,12 @@ endif; ?>
         <!-- Clinical Assessment -->
         <div class="mb-4 text-[11px] px-2 bg-gray-50 border border-gray-100 p-2 rounded">
             <div class="grid grid-cols-1 gap-1">
-                <?php if (!empty($rx['presenting_complaint'])): ?>
+                <?php
+    $complaint_text = $rx['clinical_notes'] ?? $rx['presenting_complaint'] ?? '';
+    if (!empty($complaint_text)): ?>
                     <div class="flex border-b border-gray-200 pb-1 mb-1">
                         <span class="font-bold text-gray-500 uppercase text-[10px] w-28 shrink-0">History/Complaint:</span>
-                        <span class="font-medium text-gray-800 flex-grow"><?php echo esc($rx['presenting_complaint']); ?></span>
+                        <span class="font-medium text-gray-800 flex-grow"><?php echo nl2br(esc(strip_tags($complaint_text))); ?></span>
                     </div>
                 <?php
 endif; ?>
@@ -490,11 +495,6 @@ endif; ?>
 endif; ?>
                 </div>
             </div>
-            <!-- Traceability Code -->
-            <?php if (!empty($tracking_code)): ?>
-                <div class="traceability-code">TRK-<?php echo $tracking_code; ?></div>
-            <?php
-endif; ?>
         </div>
     </div>
 
