@@ -200,7 +200,7 @@ endif; ?>
                     
                     <?php if (!empty($hospital['logo_path'])): ?>
                         <div class="mb-4 bg-gray-50 border border-gray-200 p-2 rounded inline-block">
-                            <img src="../<?php echo esc($hospital['logo_path']); ?>" alt="Current Logo" class="h-16 object-contain">
+                            <img src="https://ivfexperts.pk/<?php echo esc($hospital['logo_path']); ?>" alt="Current Logo" class="h-16 object-contain">
                         </div>
                     <?php
 endif; ?>
@@ -214,7 +214,7 @@ endif; ?>
                     
                     <?php if (!empty($hospital['digital_signature_path'])): ?>
                         <div class="mb-4 bg-gray-50 border border-gray-200 p-2 rounded inline-block">
-                            <img src="../<?php echo esc($hospital['digital_signature_path']); ?>" alt="Current Signature" class="h-16 object-contain bg-white">
+                            <img src="https://ivfexperts.pk/<?php echo esc($hospital['digital_signature_path']); ?>" alt="Current Signature" class="h-16 object-contain bg-white">
                         </div>
                     <?php
 endif; ?>
@@ -228,8 +228,8 @@ endif; ?>
                     
                     <?php if (!empty($hospital['letterhead_image_path'])): ?>
                         <div class="mb-4 bg-gray-100 border border-gray-300 p-2 rounded inline-block">
-                            <a href="../<?php echo esc($hospital['letterhead_image_path']); ?>" target="_blank" class="text-xs text-indigo-700 font-bold hover:underline mb-2 block"><i class="fa-solid fa-eye"></i> View Current Letterhead Letterhead</a>
-                            <img src="../<?php echo esc($hospital['letterhead_image_path']); ?>" alt="Letterhead Preview" class="h-24 w-auto object-contain bg-white border border-gray-200 shadow-sm">
+                            <a href="https://ivfexperts.pk/<?php echo esc($hospital['letterhead_image_path']); ?>" target="_blank" class="text-xs text-indigo-700 font-bold hover:underline mb-2 block"><i class="fa-solid fa-eye"></i> View Current Letterhead</a>
+                            <img src="https://ivfexperts.pk/<?php echo esc($hospital['letterhead_image_path']); ?>" alt="Letterhead Preview" class="h-24 w-auto object-contain bg-white border border-gray-200 shadow-sm">
                         </div>
                     <?php
 endif; ?>

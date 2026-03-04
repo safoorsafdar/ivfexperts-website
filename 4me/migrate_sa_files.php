@@ -9,9 +9,11 @@ echo "<h1>IVF Experts - Semen Analysis File Upload Migration</h1>";
 echo "<pre>";
 
 $sqls = [
-    "ALTER TABLE semen_analyses 
+    "ALTER TABLE semen_analyses
         ADD COLUMN report_type ENUM('manual', 'file') DEFAULT 'manual' AFTER qrcode_hash,
-        ADD COLUMN report_file_path VARCHAR(255) NULL AFTER report_type"
+        ADD COLUMN report_file_path VARCHAR(255) NULL AFTER report_type",
+    "ALTER TABLE semen_analyses ADD COLUMN lab_name VARCHAR(255) NULL AFTER report_file_path",
+    "ALTER TABLE semen_analyses ADD COLUMN lab_report_number VARCHAR(100) NULL AFTER lab_name",
 ];
 
 foreach ($sqls as $sql) {

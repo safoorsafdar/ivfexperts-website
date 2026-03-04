@@ -78,8 +78,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
     $auto_diag = trim($_POST['auto_diagnosis'] ?? 'Pending');
     $notes = trim($_POST['notes'] ?? '');
     $editing = intval($_POST['edit_id'] ?? 0);
-    $report_type = $_POST['report_type'] ?? 'manual';
-    $file_path = $edit_data['report_file_path'] ?? null;
+    $report_type      = $_POST['report_type'] ?? 'manual';
+    $lab_name         = trim($_POST['lab_name'] ?? '');
+    $lab_report_number = trim($_POST['lab_report_number'] ?? '');
+    $file_path        = $edit_data['report_file_path'] ?? null;
 
     // Handle File Upload — stored inside 4me/uploads/semen_reports/
     if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -115,7 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
             $error = $upload_errors[$_FILES['report_file']['error']] ?? "Unknown upload error.";
         }
     }
-    elseif (!$file_path) {
+    elseif ($report_type === 'file' && !$file_path) {
         $error = "Please select a file to upload.";
     }
 
@@ -130,9 +132,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
 
         if ($editing > 0) {
             // UPDATE mode
-            $stmt = $conn->prepare("UPDATE semen_analyses SET patient_id=?, hospital_id=?, report_type=?, report_file_path=?, collection_time=?, examination_time=?, abstinence_days=?, volume=?, ph=?, concentration=?, pr_motility=?, np_motility=?, im_motility=?, normal_morphology=?, abnormal_morphology=?, appearance=?, liquefaction=?, viscosity=?, vitality=?, round_cells=?, debris=?, wbc=?, agglutination=?, auto_diagnosis=?, admin_notes=? WHERE id=?");
+            $stmt = $conn->prepare("UPDATE semen_analyses SET patient_id=?, hospital_id=?, report_type=?, report_file_path=?, lab_name=?, lab_report_number=?, collection_time=?, examination_time=?, abstinence_days=?, volume=?, ph=?, concentration=?, pr_motility=?, np_motility=?, im_motility=?, normal_morphology=?, abnormal_morphology=?, appearance=?, liquefaction=?, viscosity=?, vitality=?, round_cells=?, debris=?, wbc=?, agglutination=?, auto_diagnosis=?, admin_notes=? WHERE id=?");
             if ($stmt) {
-                $stmt->bind_param("iissssiddddddddsssdssssssi", $patient_id, $hospital_id, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
+                $stmt->bind_param("iisssssiddddddddsssdssssssi", $patient_id, $hospital_id, $report_type, $file_path, $lab_name, $lab_report_number, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes, $editing);
                 if ($stmt->execute()) {
                     flash('success', 'Semen analysis report updated successfully.');
                     header("Location: patients_view.php?id={$patient_id}&tab=semen&msg=saved");
@@ -145,10 +147,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
         }
         else {
             // INSERT mode
-            $stmt = $conn->prepare("INSERT INTO semen_analyses (patient_id, hospital_id, qrcode_hash, report_type, report_file_path, collection_time, examination_time, abstinence_days, volume, ph, concentration, pr_motility, np_motility, im_motility, normal_morphology, abnormal_morphology, appearance, liquefaction, viscosity, vitality, round_cells, debris, wbc, agglutination, auto_diagnosis, admin_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+            $stmt = $conn->prepare("INSERT INTO semen_analyses (patient_id, hospital_id, qrcode_hash, report_type, report_file_path, lab_name, lab_report_number, collection_time, examination_time, abstinence_days, volume, ph, concentration, pr_motility, np_motility, im_motility, normal_morphology, abnormal_morphology, appearance, liquefaction, viscosity, vitality, round_cells, debris, wbc, agglutination, auto_diagnosis, admin_notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
             if ($stmt) {
-                $stmt->bind_param("iisssssiddddddddsssdssssss", $patient_id, $hospital_id, $qrcode_hash, $report_type, $file_path, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
+                $stmt->bind_param("iissssssiddddddddsssdssssss", $patient_id, $hospital_id, $qrcode_hash, $report_type, $file_path, $lab_name, $lab_report_number, $coll_time, $exam_time, $abstinence, $volume, $ph, $conc, $pr, $np, $im, $norm, $abnorm, $appearance, $liquefaction, $viscosity, $vitality, $round_cells, $debris, $wbc, $agglut, $auto_diag, $notes);
                 if ($stmt->execute()) {
                     flash('success', 'Semen analysis report saved successfully.');
                     header("Location: patients_view.php?id={$patient_id}&tab=semen&msg=saved");
@@ -251,12 +253,34 @@ endforeach; ?>
                     
                     <?php if ($edit_data && $edit_data['report_file_path']): ?>
                         <div class="mt-6 pt-6 border-t border-sky-100">
-                             <a href="../<?php echo esc($edit_data['report_file_path']); ?>" target="_blank" class="text-sky-700 text-sm font-bold flex items-center justify-center gap-2 hover:underline">
+                             <a href="https://ivfexperts.pk/<?php echo esc($edit_data['report_file_path']); ?>" target="_blank" class="text-sky-700 text-sm font-bold flex items-center justify-center gap-2 hover:underline">
                                 <i class="fa-solid fa-eye"></i> View Current Uploaded Report
                              </a>
                         </div>
                     <?php
 endif; ?>
+
+                    <!-- Lab Traceability Fields -->
+                    <div class="mt-6 pt-6 border-t border-sky-100 grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <div>
+                            <label class="block text-sm font-semibold text-sky-800 mb-1">
+                                <i class="fa-solid fa-flask mr-1 text-sky-500"></i> External Lab Name *
+                            </label>
+                            <input type="text" name="lab_name"
+                                   value="<?php echo esc($edit_data['lab_name'] ?? ''); ?>"
+                                   placeholder="e.g. Chughtai Lab, Excel Lab, AKUH"
+                                   class="w-full px-3 py-2 border border-sky-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white text-gray-800">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-sky-800 mb-1">
+                                <i class="fa-solid fa-hashtag mr-1 text-sky-500"></i> Lab Report / MR Number
+                            </label>
+                            <input type="text" name="lab_report_number"
+                                   value="<?php echo esc($edit_data['lab_report_number'] ?? ''); ?>"
+                                   placeholder="Reference number on the lab report"
+                                   class="w-full px-3 py-2 border border-sky-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-sky-400 bg-white text-gray-800">
+                        </div>
+                    </div>
                 </div>
 
                 <div x-show="reportType === 'manual'">

@@ -73,7 +73,7 @@ else:
                         </td>
                         <td class="px-6 py-4 text-center">
                             <?php if (!empty($h['logo_path'])): ?>
-                                <img src="../<?php echo esc($h['logo_path']); ?>" alt="Logo" class="h-10 mx-auto object-contain bg-gray-100 p-1 rounded border border-gray-200" title="Custom Logo Active">
+                                <img src="https://ivfexperts.pk/<?php echo esc($h['logo_path']); ?>" alt="Logo" class="h-10 mx-auto object-contain bg-gray-100 p-1 rounded border border-gray-200" title="Custom Logo Active">
                             <?php
         else: ?>
                                 <span class="text-xs text-gray-400 italic">IVF Experts Default</span>
