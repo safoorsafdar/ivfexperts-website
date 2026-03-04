@@ -1,6 +1,6 @@
 <section class="bg-teal-700 py-16 px-6 text-center">
   <div class="max-w-3xl mx-auto">
-    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4" style="font-family: var(--font-heading)">
+    <h2 class="text-3xl md:text-4xl font-extrabold text-white mb-4">
       Ready to Start Your Fertility Journey?
     </h2>
     <p class="text-teal-100 text-lg mb-8 leading-relaxed">

@@ -259,61 +259,33 @@ include("../includes/header.php");
     </div>
 </section>
 
-<!-- FAQ SCHEMA AND MEDICAL CONDITION SCHEMA (JSON-LD) -->
+<!-- MEDICAL CONDITION SCHEMA (JSON-LD) -->
 <script type="application/ld+json">
-[
-  {
-    "@context": "https://schema.org",
-    "@type": "MedicalWebPage",
-    "name": "In Vitro Fertilization (IVF) Treatment in Lahore",
-    "description": "Comprehensive IVF treatment and ICSI services provided by Dr. Adnan Jabbar in Lahore, Pakistan. Specializing in high success rate embryology and blastocyst transfer.",
-    "url": "https://ivfexperts.pk/art-procedures/ivf.php",
-    "author": {
-      "@type": "Physician",
-      "name": "Dr. Adnan Jabbar"
-    },
-    "about": {
-      "@type": "MedicalTherapy",
-      "name": "In Vitro Fertilization (IVF)",
-      "alternateName": "Test Tube Baby",
-      "treatmentIndication": {
-        "@type": "MedicalCondition",
-        "name": "Infertility"
-      },
-      "code": {
-         "@type": "MedicalCode",
-         "codeValue": "Z31.2",
-         "codingSystem": "ICD-10"
-      }
-    }
+{
+  "@context": "https://schema.org",
+  "@type": "MedicalWebPage",
+  "name": "In Vitro Fertilization (IVF) Treatment in Lahore",
+  "description": "Comprehensive IVF treatment and ICSI services provided by Dr. Adnan Jabbar in Lahore, Pakistan. Specializing in high success rate embryology and blastocyst transfer.",
+  "url": "https://ivfexperts.pk/art-procedures/ivf.php",
+  "author": {
+    "@type": "Physician",
+    "name": "Dr. Adnan Jabbar"
   },
-  {
-    "@context": "https://schema.org",
-    "@type": "FAQPage",
-    "mainEntity": [{
-      "@type": "Question",
-      "name": "What is the cost of IVF in Lahore, Pakistan?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The cost of IVF in Pakistan varies depending on the medical history of the couple, the type of stimulation protocol required, and whether advanced procedures like ICSI or PGT are included. Transparent pricing is provided after clinical evaluation."
-      }
-    },{
-      "@type": "Question",
-      "name": "What are the success rates of IVF on the first try?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "Success rates vary by maternal age and egg reserve. Women under 35 at our premium laboratory can experience success rates exceeding 50-60% per embryo transfer using Day 5 Blastocyst culturing."
-      }
-    },{
-      "@type": "Question",
-      "name": "Is IVF painful?",
-      "acceptedAnswer": {
-        "@type": "Answer",
-        "text": "The IVF process is generally well-tolerated. Ovarian stimulation uses small subcutaneous needles, egg retrieval is performed under painless light anesthesia, and embryo transfer is a simple, painless clinic procedure."
-      }
-    }]
+  "about": {
+    "@type": "MedicalTherapy",
+    "name": "In Vitro Fertilization (IVF)",
+    "alternateName": "Test Tube Baby",
+    "treatmentIndication": {
+      "@type": "MedicalCondition",
+      "name": "Infertility"
+    },
+    "code": {
+       "@type": "MedicalCode",
+       "codeValue": "Z31.2",
+       "codingSystem": "ICD-10"
+    }
   }
-]
+}
 </script>
 
 <!-- CALL TO ACTION -->
