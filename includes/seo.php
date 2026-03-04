@@ -7,7 +7,7 @@ $currentUrl = $baseUrl . $_SERVER['REQUEST_URI'];
 $uriPaths = trim($_SERVER['REQUEST_URI'], "/");
 
 // Default SEO Values (Aggressive Pakistan Targeting)
-$pageTitle = "Best IVF Specialist in Lahore & Pakistan | Dr. Adnan Jabbar";
+$pageTitle = "IVF & Fertility Specialist in Lahore, Pakistan | Dr. Adnan Jabbar";
 $metaDescription = "Top-rated IVF Specialist and Clinical Embryologist in Lahore. High success rates for IVF, ICSI, Gender Selection, and Infertility treatments across Pakistan.";
 $ogImage = "https://ivfexperts.pk/assets/images/art_procedures_lab.png"; // Default OG image
 
@@ -21,7 +21,7 @@ $medicalSpecialty = "Reproductive Medicine";
 
 // Homepage
 if (empty($uriPaths) || $uriPaths == 'index.php') {
-    $pageTitle = "Best IVF Specialist in Lahore, Pakistan | Gender Selection & ICSI";
+    $pageTitle = "IVF & Fertility Specialist in Lahore, Pakistan | Dr. Adnan Jabbar";
     $metaDescription = "Looking for the best IVF specialist in Lahore? Dr. Adnan Jabbar offers world-class IVF, ICSI, PGT Gender Selection, and Male Infertility treatments in Pakistan.";
 }
 // About
@@ -88,7 +88,7 @@ elseif (strpos($uriPaths, 'male-infertility') !== false) {
         $metaDescription = "Expert Penile Doppler Ultrasound for erectile dysfunction. Measuring PSV, EDV, and RI per AUA/EAU guidelines with Dr. Adnan Jabbar in Lahore.";
     }
     else {
-        $pageTitle = "Male Infertility Specialist in Pakistan | Azoospermia & Varicocele";
+        $pageTitle = "Male Infertility Specialist in Lahore, Pakistan | Dr. Adnan Jabbar";
         $metaDescription = "Leading male infertility expert in Lahore. Treating low sperm count, zero sperm, erectile dysfunction, and offering elite ICSI solutions across Pakistan.";
     }
 }
@@ -246,10 +246,11 @@ function generateBreadcrumb()
     $path = "";
     foreach ($segments as $segment) {
         $path .= "/" . $segment;
+        $cleanPath = str_replace('.php', '', $path);
         $name = ucwords(str_replace(["-", ".php"], [" ", ""], $segment));
         $breadcrumbs[] = [
             "name" => $name,
-            "url" => "https://ivfexperts.pk" . $path
+            "url"  => "https://ivfexperts.pk" . $cleanPath
         ];
     }
 
