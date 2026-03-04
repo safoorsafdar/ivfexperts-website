@@ -812,6 +812,16 @@ else: ?>
                                     <div class="text-[9px] text-slate-400 font-bold uppercase">Normal</div>
                                 </div>
                             </div>
+                            <?php if (!empty($sr['lab_name']) || !empty($sr['lab_report_number'])): ?>
+                            <div class="mb-4 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-700">
+                                <?php if (!empty($sr['lab_name'])): ?>
+                                    <span class="font-bold"><i class="fa-solid fa-flask mr-1"></i><?php echo esc($sr['lab_name']); ?></span>
+                                <?php endif; ?>
+                                <?php if (!empty($sr['lab_report_number'])): ?>
+                                    <span class="ml-2 text-sky-500">· Ref: <?php echo esc($sr['lab_report_number']); ?></span>
+                                <?php endif; ?>
+                            </div>
+                            <?php endif; ?>
                             <div class="flex items-center justify-between pt-6 border-t border-gray-50">
                                 <a href="semen_analyses_add.php?edit=<?php echo $sr['id']; ?>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white transition-all">
                                     <i class="fa-solid fa-pen-to-square text-xs"></i>
@@ -823,6 +833,11 @@ else: ?>
                                             <i class="fa-solid fa-trash-can text-xs"></i>
                                         </button>
                                     </form>
+                                    <?php if (!empty($sr['report_file_path'])): ?>
+                                        <a href="https://ivfexperts.pk/<?php echo esc($sr['report_file_path']); ?>" target="_blank" class="inline-flex items-center gap-2 bg-sky-100 hover:bg-sky-200 text-sky-700 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all uppercase tracking-widest">
+                                            <i class="fa-solid fa-file-arrow-down"></i> View File
+                                        </a>
+                                    <?php endif; ?>
                                     <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank" class="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-black text-[10px] px-5 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-widest">
                                         <i class="fa-solid fa-print"></i> Full Report
                                     </a>

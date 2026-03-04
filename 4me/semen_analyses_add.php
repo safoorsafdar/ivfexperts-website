@@ -144,6 +144,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
                     $error = "Database Error: " . $stmt->error;
                 }
             }
+            else {
+                $error = "Could not prepare update — DB error: " . $conn->error . ". If this is a new install, please run migrate_sa_files.php first.";
+            }
         }
         else {
             // INSERT mode
@@ -159,6 +162,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
                 else {
                     $error = "Database Error: " . $stmt->error;
                 }
+            }
+            else {
+                $error = "Could not prepare insert — DB error: " . $conn->error . ". If this is a new install, please run migrate_sa_files.php first.";
             }
         }
     }
