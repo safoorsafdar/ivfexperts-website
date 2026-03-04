@@ -412,15 +412,34 @@ endif; ?>
                 img.id = 'temp-letterhead';
                 document.getElementById('document-container').appendChild(img);
 
+                // Add a timeout to prevent hanging if image fails or is slow
+                const printTimeout = setTimeout(() => {
+                    if (!window.printAttempted) {
+                        window.printAttempted = true;
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
+                }, 3000);
+
                 img.onload = () => {
-                    window.print();
-                    document.body.classList.remove('digital-mode');
-                    img.remove();
+                    if (!window.printAttempted) {
+                        clearTimeout(printTimeout);
+                        window.printAttempted = true;
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
                 };
                 img.onerror = () => {
-                    alert("Letterhead Image failed to load. Please ensure it is a valid JPG/PNG.");
-                    document.body.classList.remove('digital-mode');
-                    img.remove();
+                    clearTimeout(printTimeout);
+                    if (!window.printAttempted) {
+                        window.printAttempted = true;
+                        alert("Letterhead Image failed to load. Printing without letterhead.");
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
                 };
             <?php
     else: ?>

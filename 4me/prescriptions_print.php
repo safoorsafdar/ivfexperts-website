@@ -388,14 +388,14 @@ else: ?>
                             <tr class="<?php echo $idx % 2 == 0 ? 'bg-white' : 'bg-gray-50'; ?>">
                                 <td class="p-1.5 border border-gray-200 text-center font-bold text-gray-500"><?php echo $idx + 1; ?>.</td>
                                 <td class="p-1.5 border border-gray-200 font-bold text-gray-900 text-[12px] uppercase">
-                                    <?php echo esc($item['name']); ?>
+                                    <?php echo esc($item['medicine_name']); ?>
                                     <?php if (!empty($item['med_type'])): ?>
                                         <span class="text-[9px] font-normal text-gray-500 ml-1 italic capitalize">(<?php echo esc($item['med_type']); ?>)</span>
                                     <?php
         endif; ?>
                                 </td>
                                 <td class="p-1.5 border border-gray-200 font-medium text-gray-800"><?php echo esc($item['dosage'] ?: '-'); ?></td>
-                                <td class="p-1.5 border border-gray-200 font-bold text-indigo-700"><?php echo esc($item['usage_frequency'] ?: '-'); ?></td>
+                                <td class="p-1.5 border border-gray-200 font-bold text-indigo-700"><?php echo esc($item['frequency'] ?: '-'); ?></td>
                                 <td class="p-1.5 border border-gray-200 font-medium whitespace-nowrap text-gray-800"><?php echo esc($item['duration'] ?: '-'); ?></td>
                                 <td class="p-1.5 border border-gray-200 text-[10px] text-gray-700 font-medium italic"><?php echo esc($item['instructions'] ?: '-'); ?></td>
                             </tr>
@@ -513,15 +513,34 @@ endif; ?>
                 img.id = 'temp-letterhead';
                 document.getElementById('document-container').appendChild(img);
 
+                // Add a timeout to prevent hanging if image fails or is slow
+                const printTimeout = setTimeout(() => {
+                    if (!window.printAttempted) {
+                        window.printAttempted = true;
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
+                }, 3000);
+
                 img.onload = () => {
-                    window.print();
-                    document.body.classList.remove('digital-mode');
-                    img.remove();
+                    if (!window.printAttempted) {
+                        clearTimeout(printTimeout);
+                        window.printAttempted = true;
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
                 };
                 img.onerror = () => {
-                    alert("Letterhead Image failed to load. Please ensure it is a valid JPG/PNG.");
-                    document.body.classList.remove('digital-mode');
-                    img.remove();
+                    clearTimeout(printTimeout);
+                    if (!window.printAttempted) {
+                        window.printAttempted = true;
+                        alert("Letterhead Image failed to load. Printing without letterhead.");
+                        window.print();
+                        document.body.classList.remove('digital-mode');
+                        img.remove();
+                    }
                 };
             <?php
     else: ?>

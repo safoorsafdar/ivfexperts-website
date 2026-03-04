@@ -81,9 +81,9 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
     $report_type = $_POST['report_type'] ?? 'manual';
     $file_path = $edit_data['report_file_path'] ?? null;
 
-    if ($report_type === 'file') {
-        // Handle File Upload — stored inside 4me/uploads/semen_reports/
-        if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] == 0) {
+    // Handle File Upload — stored inside 4me/uploads/semen_reports/
+    if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] !== UPLOAD_ERR_NO_FILE) {
+        if ($_FILES['report_file']['error'] === UPLOAD_ERR_OK) {
             $upload_dir = __DIR__ . '/uploads/semen_reports/';
             if (!is_dir($upload_dir))
                 mkdir($upload_dir, 0755, true);
@@ -99,13 +99,27 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
                     $file_path = '4me/uploads/semen_reports/' . $filename;
                 }
                 else {
-                    $error = "File upload failed. Check folder permissions on the server.";
+                    $error = "File upload failed. Check folder permissions on the server (4me/uploads/semen_reports).";
                 }
             }
         }
-        elseif (!$file_path) {
-            $error = "Please select a file to upload.";
+        else {
+            $upload_errors = [
+                UPLOAD_ERR_INI_SIZE => "The uploaded file exceeds the upload_max_filesize directive in php.ini.",
+                UPLOAD_ERR_FORM_SIZE => "The uploaded file exceeds the MAX_FILE_SIZE directive in the HTML form.",
+                UPLOAD_ERR_PARTIAL => "The uploaded file was only partially uploaded.",
+                UPLOAD_ERR_NO_TMP_DIR => "Missing a temporary folder.",
+                UPLOAD_ERR_CANT_WRITE => "Failed to write file to disk.",
+                UPLOAD_ERR_EXTENSION => "A PHP extension stopped the file upload."
+            ];
+            $error = $upload_errors[$_FILES['report_file']['error']] ?? "Unknown upload error.";
         }
+    }
+    elseif (!$file_path) {
+        $error = "Please select a file to upload.";
+    }
+
+    if ($report_type === 'file') {
         $auto_diag = 'External Report';
     }
 
@@ -151,7 +165,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
 include __DIR__ . '/includes/header.php';
 ?>
 
-<div class="max-w-5xl mx-auto" x-data="semenEngine()">
+<div class="max-w-5xl mx-auto" x-data="semenEngine(<?php echo json_encode($edit_data['report_type'] ?? 'manual'); ?>)">
     <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden mb-6">
         <div class="px-6 py-4 border-b border-gray-100 bg-gray-50 border-b border-gray-100 text-slate-800 flex justify-between items-center">
             <h3 class="font-bold"><i class="fa-solid fa-microscope text-teal-600 mr-2"></i> Advanced Semen Analysis Form</h3>
@@ -451,14 +465,15 @@ endif; ?>
 
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('semenEngine', () => ({
-        volume: <?php echo $edit_data['volume'] ?? 0; ?>,
-        ph: <?php echo $edit_data['ph'] ?? 0; ?>,
-        conc: <?php echo $edit_data['concentration'] ?? 0; ?>,
-        pr: <?php echo $edit_data['pr_motility'] ?? 0; ?>,
-        np: <?php echo $edit_data['np_motility'] ?? 0; ?>,
-        norm: <?php echo $edit_data['normal_morphology'] ?? 0; ?>,
-        vitality: <?php echo $edit_data['vitality'] ?? 0; ?>,
+    Alpine.data('semenEngine', (initialType) => ({
+        reportType: initialType || 'manual',
+        volume: <?php echo floatval($edit_data['volume'] ?? 0); ?>,
+        ph: <?php echo floatval($edit_data['ph'] ?? 0); ?>,
+        conc: <?php echo floatval($edit_data['concentration'] ?? 0); ?>,
+        pr: <?php echo floatval($edit_data['pr_motility'] ?? 0); ?>,
+        np: <?php echo floatval($edit_data['np_motility'] ?? 0); ?>,
+        norm: <?php echo floatval($edit_data['normal_morphology'] ?? 0); ?>,
+        vitality: <?php echo floatval($edit_data['vitality'] ?? 0); ?>,
         
         // Compute Immotility automatically (100 - PR - NP)
         im() {
