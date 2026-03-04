@@ -73,7 +73,7 @@ if (!empty($slug) && $article) {
         ],
         'mainEntityOfPage' => [
             '@type' => 'WebPage',
-            '@id'   => 'https://ivfexperts.pk/blog/' . $slug . '/',
+            '@id'   => 'https://ivfexperts.pk/blog/' . rawurlencode($slug) . '/',
         ],
     ];
 
@@ -81,7 +81,7 @@ if (!empty($slug) && $article) {
         $schemaData['image'] = $article['featured_image'];
     }
 
-    $articleSchema = json_encode($schemaData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $articleSchema = json_encode($schemaData, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG);
 }
 
 include __DIR__ . '/../includes/header.php';
