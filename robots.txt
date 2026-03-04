@@ -6,6 +6,29 @@ User-agent: *
 Allow: /
 Crawl-delay: 2
 
+# =============================================
+# AI CRAWLER EXPLICIT ALLOW
+# Ensures content is indexed by AI search engines
+# =============================================
+
+User-agent: GPTBot
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+User-agent: Applebot-Extended
+Allow: /
+
 # Block admin & system directories
 Disallow: /admin/
 Disallow: /config/
