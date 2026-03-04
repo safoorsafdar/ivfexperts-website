@@ -125,6 +125,43 @@ include __DIR__ . '/includes/header.php';
 .icd-option .code { font-weight:700; color:#7c3aed; font-family:monospace; margin-right:8px; }
 </style>
 
+<script>
+function rxEditData() {
+    return {
+        medsRaw: <?php echo json_encode(array_map(fn($i) => [
+'medicine_name' => $i['medicine_name'],
+'dosage' => $i['dosage'] ?? '',
+'frequency' => $i['frequency'] ?? '',
+'duration' => $i['duration'] ?? '',
+'instructions' => $i['instructions'] ?? '',
+], $items)); ?>,
+        icdCodes: <?php echo json_encode($existing_icd); ?>,
+        icdQuery: '',
+        icdResults: [],
+        icdLoading: false,
+        icdOpen: false,
+        addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
+        removeMed(i) { this.medsRaw.splice(i,1); },
+        async searchIcd() {
+            if (this.icdQuery.length < 2) { this.icdOpen = false; return; }
+            this.icdLoading = true; this.icdOpen = true;
+            try {
+                const r = await fetch('api_search_icd10.php?q=' + encodeURIComponent(this.icdQuery));
+                this.icdResults = await r.json();
+            } catch(e) { this.icdResults = []; }
+            this.icdLoading = false;
+        },
+        addIcd(item) {
+            if (!this.icdCodes.find(c => c.icd10_code === item.icd10_code)) {
+                this.icdCodes.push(item);
+            }
+            this.icdQuery = ''; this.icdOpen = false; this.icdResults = [];
+        },
+        removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); }
+    };
+}
+</script>
+
 <div class="max-w-2xl mx-auto px-4 py-8">
     <nav class="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-widest text-gray-400 mb-5">
         <a href="patients_view.php?id=<?php echo $patient_id; ?>&tab=rx" class="hover:text-teal-600">← Back to Prescriptions</a>
@@ -148,41 +185,10 @@ include __DIR__ . '/includes/header.php';
         <?php
 endif; ?>
 
-        <form method="POST" class="p-6 space-y-5" 
-              x-data="{
-                medsRaw: <?php echo json_encode(array_map(fn($i) => [
-'medicine_name' => $i['medicine_name'],
-'dosage' => $i['dosage'] ?? '',
-'frequency' => $i['frequency'] ?? '',
-'duration' => $i['duration'] ?? '',
-'instructions' => $i['instructions'] ?? '',
-], $items)); ?>,
-                addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
-                removeMed(i) { this.medsRaw.splice(i,1); },
-                icdCodes: <?php echo json_encode($existing_icd); ?>,
-                icdQuery: '',
-                icdResults: [],
-                icdLoading: false,
-                icdOpen: false,
-                async searchIcd() {
-                    if (this.icdQuery.length < 2) { this.icdOpen = false; return; }
-                    this.icdLoading = true; this.icdOpen = true;
-                    try {
-                        const r = await fetch('api_search_icd10.php?q=' + encodeURIComponent(this.icdQuery));
-                        this.icdResults = await r.json();
-                    } catch(e) { this.icdResults = []; }
-                    this.icdLoading = false;
-                },
-                addIcd(item) {
-                    if (!this.icdCodes.find(c => c.icd10_code === item.icd10_code)) {
-                        this.icdCodes.push(item);
-                    }
-                    this.icdQuery = ''; this.icdOpen = false; this.icdResults = [];
-                },
-                removeIcd(code) { this.icdCodes = this.icdCodes.filter(c => c.icd10_code !== code); }
-              }">
+        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()">
 
             <!-- Record For -->
+
             <div class="flex items-center gap-3">
                 <span class="text-xs font-medium text-slate-500">Record for:</span>
                 <label class="cursor-pointer">
