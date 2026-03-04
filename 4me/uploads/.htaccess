@@ -1,0 +1,7 @@
+# Protect uploaded files from direct execution
+<FilesMatch "\.(php|php5|php7|phtml|cgi|pl|py)$">
+    Order Allow,Deny
+    Deny from all
+</FilesMatch>
+
+Options -Indexes
