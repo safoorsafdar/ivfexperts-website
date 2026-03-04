@@ -138,43 +138,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_prescription'])) 
         }
         $rx_id = $stmt->insert_id;
 
-        // ── Save Medications ───────────────────────────────────────────────
-        $meds = json_decode($medications_json, true);
-        if (is_array($meds) && count($meds) > 0) {
+        // ── Save Medications — read from PHP array inputs ─────────────────
+        $meds_post = $_POST['meds'] ?? [];
+        if (is_array($meds_post) && count($meds_post) > 0) {
             $m_stmt = $conn->prepare(
                 "INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions)
                  VALUES (?, ?, ?, ?, ?, ?)"
             );
             if ($m_stmt) {
-                // ── Auto-ensure medications table exists ──────────────────
                 $conn->query("CREATE TABLE IF NOT EXISTS medications (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     name VARCHAR(255) NOT NULL,
                     med_type VARCHAR(100) DEFAULT 'General',
                     UNIQUE KEY idx_name (name(191))
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
                 $auto_med = $conn->prepare("INSERT IGNORE INTO medications (name) VALUES (?)");
-
-                foreach ($meds as $m) {
-                    if (empty($m['medicine_name']))
-                        continue;
-                    $name = $m['medicine_name'] ?? '';
+                foreach ($meds_post as $m) {
+                    $name = trim($m['medicine_name'] ?? '');
+                    if (empty($name)) continue;
                     $dose = $m['dosage'] ?? '';
                     $freq = $m['frequency'] ?? '';
-                    $dur = $m['duration'] ?? '';
+                    $dur  = $m['duration'] ?? '';
                     $instr = $m['instructions'] ?? '';
                     $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                     $m_stmt->execute();
-                    // Auto-add to medications library if not already there
-                    if ($auto_med) {
-                        $auto_med->bind_param("s", $name);
-                        $auto_med->execute();
-                    }
+                    if ($auto_med) { $auto_med->bind_param("s", $name); $auto_med->execute(); }
                 }
-            }
-            else {
-                error_log("[prescriptions_add] medication stmt failed: " . $conn->error);
             }
         }
 
@@ -399,70 +388,55 @@ endif; ?>
                         <h2 class="text-2xl font-black text-gray-800">Step 2: Digital Prescription</h2>
                         <p class="text-gray-400 text-sm mt-1 uppercase font-bold tracking-widest">Medication Administration Plan</p>
                     </div>
-                    <button type="button" @click="addMedRow" class="bg-gray-100 hover:bg-teal-600 hover:text-white px-8 py-4 rounded-2xl font-black text-xs transition-all flex items-center gap-2">
+                    <button type="button" onclick="rxAddMed()" class="bg-gray-100 hover:bg-teal-600 hover:text-white px-8 py-4 rounded-2xl font-black text-xs transition-all flex items-center gap-2">
                         <i class="fa-solid fa-plus-circle"></i> ADD MEDICINE
                     </button>
                 </div>
 
-                <div class="space-y-6">
-                    <template x-for="(row, index) in rows" :key="index">
-                        <div class="group relative bg-gray-50/50 hover:bg-white rounded-[2.5rem] p-8 transition-all border-2 border-transparent hover:border-teal-100 hover:shadow-xl">
-                            <button type="button" @click="removeMedRow(index)" class="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg transition-transform hover:scale-110 opacity-0 group-hover:opacity-100 z-10">
-                                <i class="fa-solid fa-times"></i>
-                            </button>
-
-                            <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
-                                <div class="md:col-span-5 space-y-4 relative">
-                                    <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Medication Name *</label>
-                                    <input type="text" x-model="row.medicine_name"
-                                           @input.debounce.250ms="searchMeds(index, row.medicine_name)"
-                                           @blur.debounce.200ms="clearMedResults(index)"
-                                           placeholder="Type medicine name..."
-                                           class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-gray-800">
-                                    <div x-show="medResults[index] && medResults[index].length > 0"
-                                         class="absolute z-30 top-full left-0 w-full bg-white mt-1 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto">
-                                        <template x-for="med in (medResults[index] || [])">
-                                            <button type="button" @mousedown.prevent="selectMed(index, med.name)"
-                                                    class="w-full text-left px-5 py-3 hover:bg-teal-50 text-sm font-bold text-gray-800 border-b border-gray-50 last:border-0 transition-colors">
-                                                <i class="fa-solid fa-pills text-teal-400 mr-2 text-xs"></i>
-                                                <span x-text="med.name"></span>
-                                            </button>
-                                        </template>
-                                    </div>
-                                </div>
-                                <div class="md:col-span-2 space-y-4">
-                                    <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Dosage</label>
-                                    <input type="text" x-model="row.dosage" placeholder="e.g. 500mg" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
-                                </div>
-                                <div class="md:col-span-3 space-y-4">
-                                    <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Frequency</label>
-                                    <select x-model="row.frequency" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
-                                        <option value="1-0-1">Daily (BDS - 1-0-1)</option>
-                                        <option value="1-1-1">Daily (TDS - 1-1-1)</option>
-                                        <option value="1-0-0">Morning (OD - 1-0-0)</option>
-                                        <option value="0-0-1">Night (OD - 0-0-1)</option>
-                                        <option value="SOS">On Need (SOS)</option>
-                                    </select>
-                                </div>
-                                <div class="md:col-span-2 space-y-4">
-                                    <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Duration</label>
-                                    <input type="text" x-model="row.duration" placeholder="7 Days" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
-                                </div>
-                                <div class="md:col-span-12 space-y-4 bg-teal-50/30 p-4 rounded-2xl">
-                                    <label class="block text-[9px] font-black uppercase text-teal-600 tracking-[0.25em]">Special Instructions</label>
-                                    <input type="text" x-model="row.instructions" placeholder="e.g. Empty stomach, after meals..." class="w-full px-6 py-3 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-500 text-sm font-medium">
-                                </div>
+                <!-- Medication rows: vanilla JS, no Alpine, reliable form submission -->
+                <div id="rx-med-rows" class="space-y-4">
+                    <!-- Row 0 pre-rendered (always start with one row) -->
+                    <div class="rx-med-row group relative bg-gray-50/50 rounded-[2.5rem] p-8 border-2 border-transparent">
+                        <button type="button" onclick="rxRemoveMed(this)" class="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg opacity-0 group-hover:opacity-100">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-8">
+                            <div class="md:col-span-5 space-y-4 relative">
+                                <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Medication Name *</label>
+                                <input type="text" name="meds[0][medicine_name]" id="rxmed-name-0"
+                                       placeholder="Type medicine name..." oninput="rxMedSearch(this,0)"
+                                       class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-bold text-gray-800">
+                                <div id="rxmed-drop-0" class="absolute z-30 w-full bg-white mt-1 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto hidden"></div>
+                            </div>
+                            <div class="md:col-span-2 space-y-4">
+                                <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Dosage</label>
+                                <input type="text" name="meds[0][dosage]" placeholder="e.g. 500mg" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
+                            </div>
+                            <div class="md:col-span-3 space-y-4">
+                                <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Frequency</label>
+                                <select name="meds[0][frequency]" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
+                                    <option value="1-0-1">Daily (BDS - 1-0-1)</option>
+                                    <option value="1-1-1">Daily (TDS - 1-1-1)</option>
+                                    <option value="1-0-0">Morning (OD)</option>
+                                    <option value="0-0-1">Night (OD)</option>
+                                    <option value="SOS">On Need (SOS)</option>
+                                </select>
+                            </div>
+                            <div class="md:col-span-2 space-y-4">
+                                <label class="block text-[9px] font-black uppercase text-gray-400 tracking-[0.25em]">Duration</label>
+                                <input type="text" name="meds[0][duration]" placeholder="7 Days" class="w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium">
+                            </div>
+                            <div class="md:col-span-12 bg-teal-50/30 p-4 rounded-2xl space-y-2">
+                                <label class="block text-[9px] font-black uppercase text-teal-600 tracking-[0.25em]">Special Instructions</label>
+                                <input type="text" name="meds[0][instructions]" placeholder="e.g. Empty stomach, after meals..." class="w-full px-6 py-3 bg-white border border-gray-100 rounded-xl focus:ring-2 focus:ring-teal-500 text-sm font-medium">
                             </div>
                         </div>
-                    </template>
+                    </div>
                 </div>
-
-                <div x-show="rows.length === 0" class="text-center py-20 border-4 border-dashed border-gray-50 rounded-[3rem]">
+                <div id="rx-no-meds" style="display:none" class="text-center py-20 border-4 border-dashed border-gray-50 rounded-[3rem]">
                     <i class="fa-solid fa-pills text-6xl text-gray-100 mb-6 block"></i>
-                    <p class="text-gray-300 font-bold uppercase tracking-widest text-sm">No medication added to this script.</p>
-                    <button type="button" @click="addMedRow" class="mt-6 bg-teal-600 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-teal-700 transition-all">
-                        + Add First Medication
-                    </button>
+                    <p class="text-gray-300 font-bold uppercase tracking-widest text-sm">No medication added.</p>
+                    <button type="button" onclick="rxAddMed()" class="mt-6 bg-teal-600 text-white px-8 py-3 rounded-2xl font-black text-sm hover:bg-teal-700 transition-all">+ Add First Medication</button>
                 </div>
 
                 <div class="mt-12 flex items-center justify-between">
@@ -580,11 +554,59 @@ endif; ?>
 <link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script>
+// ── Vanilla JS medication rows (bypasses Alpine entirely for reliability) ──
+var _rxMedCount = 1; // start at 1 because row 0 is pre-rendered in HTML
+function rxAddMed() {
+    var i = _rxMedCount++;
+    var ic = 'w-full px-6 py-4 bg-white border border-gray-100 rounded-2xl focus:ring-2 focus:ring-teal-500 font-medium text-sm outline-none';
+    var html = '<div class="rx-med-row group relative bg-gray-50/50 rounded-[2.5rem] p-8 border-2 border-transparent mt-6">' +
+        '<button type="button" onclick="rxRemoveMed(this)" class="absolute -top-3 -right-3 w-10 h-10 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-lg"><i class="fa-solid fa-times"></i></button>' +
+        '<div class="grid grid-cols-1 md:grid-cols-12 gap-6">' +
+        '<div class="md:col-span-5"><label class="block text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2">Medication Name *</label>' +
+        '<input type="text" name="meds['+i+'][medicine_name]" placeholder="Type medicine name..." class="'+ic+'" oninput="rxMedSearch(this,'+i+')">' +
+        '<div id="rxmed-drop-'+i+'" class="absolute z-30 w-64 bg-white mt-1 rounded-2xl shadow-2xl border border-gray-100 overflow-hidden max-h-48 overflow-y-auto hidden"></div></div>' +
+        '<div class="md:col-span-2"><label class="block text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2">Dosage</label><input type="text" name="meds['+i+'][dosage]" placeholder="e.g. 500mg" class="'+ic+'"></div>' +
+        '<div class="md:col-span-3"><label class="block text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2">Frequency</label>' +
+        '<select name="meds['+i+'][frequency]" class="'+ic+'"><option value="1-0-1">Daily (BDS - 1-0-1)</option><option value="1-1-1">Daily (TDS - 1-1-1)</option><option value="1-0-0">Morning (OD)</option><option value="0-0-1">Night (OD)</option><option value="SOS">On Need (SOS)</option></select></div>' +
+        '<div class="md:col-span-2"><label class="block text-[9px] font-black uppercase text-gray-400 tracking-widest mb-2">Duration</label><input type="text" name="meds['+i+'][duration]" placeholder="7 Days" class="'+ic+'"></div>' +
+        '<div class="md:col-span-12 bg-teal-50/30 p-4 rounded-2xl"><label class="block text-[9px] font-black uppercase text-teal-600 tracking-widest mb-2">Special Instructions</label><input type="text" name="meds['+i+'][instructions]" placeholder="e.g. Empty stomach, after meals..." class="'+ic+'"></div>' +
+        '</div></div>';
+    document.getElementById('rx-med-rows').insertAdjacentHTML('beforeend', html);
+    document.getElementById('rx-no-meds').style.display = 'none';
+}
+function rxRemoveMed(btn) {
+    btn.closest('.rx-med-row').remove();
+    if (!document.querySelector('#rx-med-rows .rx-med-row')) document.getElementById('rx-no-meds').style.display = '';
+}
+var _rxMedTimer = {};
+function rxMedSearch(input, idx) {
+    clearTimeout(_rxMedTimer[idx]);
+    _rxMedTimer[idx] = setTimeout(async function() {
+        var q = input.value.trim();
+        var drop = document.getElementById('rxmed-drop-' + idx);
+        if (!drop) return;
+        if (q.length < 2) { drop.classList.add('hidden'); return; }
+        try {
+            var res = await fetch('api_search_medications.php?q=' + encodeURIComponent(q));
+            var data = await res.json();
+            if (data.length === 0) { drop.classList.add('hidden'); return; }
+            drop.innerHTML = data.map(m => '<button type="button" class="w-full text-left px-4 py-2 hover:bg-teal-50 text-sm font-bold border-b border-gray-50" onmousedown="rxMedSelect(this,\'' + m.name.replace(/'/g,"\\'" ) + '\',' + idx + ')">' + m.name + '</button>').join('');
+            drop.classList.remove('hidden');
+        } catch(e) { drop.classList.add('hidden'); }
+    }, 300);
+}
+function rxMedSelect(btn, name, idx) {
+    var row = btn.closest('.rx-med-row');
+    if (row) row.querySelector('input[name="meds['+idx+'][medicine_name]"]').value = name;
+    var drop = document.getElementById('rxmed-drop-' + idx);
+    if (drop) drop.classList.add('hidden');
+}
+
     let quill;
     function prescriptionWizard() {
         return {
             step: 1,
-            rows: [{ medicine_name: '', dosage: '', frequency: '1-0-1', duration: '', instructions: '' }],
+            rows: [],
             medResults: {},
             icdSearch: '',
             icdResults: [],
@@ -672,8 +694,8 @@ endif; ?>
             },
 
             prepareSubmit() {
+                // Medications now use real form fields (vanilla JS rows) — no serialization needed
                 document.getElementById('clinical_notes').value = quill ? quill.root.innerHTML : '';
-                document.getElementById('medications_data').value = JSON.stringify(this.rows);
                 document.getElementById('lab_tests_data').value = JSON.stringify(this.selectedLabs);
                 document.getElementById('icd10_data').value = JSON.stringify(this.selectedDiagnoses);
             }

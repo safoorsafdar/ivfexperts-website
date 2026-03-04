@@ -771,10 +771,11 @@ endif; ?>
 else: ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     <?php foreach ($semen_reports as $sr):
+        $is_file_report = ($sr['report_type'] ?? 'manual') === 'file';
         $conc_ok = !$sr['concentration'] || $sr['concentration'] >= 16;
         $mot_ok = !$sr['pr_motility'] || ($sr['pr_motility'] + $sr['np_motility']) >= 42;
         $morph_ok = !$sr['normal_morphology'] || $sr['normal_morphology'] >= 4;
-        $status = ($conc_ok && $mot_ok && $morph_ok) ? 'normal' : 'abnormal';
+        $status = $is_file_report ? 'external' : (($conc_ok && $mot_ok && $morph_ok) ? 'normal' : 'abnormal');
 ?>
                     <div class="bg-white rounded-[2rem] border border-gray-100 hover:border-cyan-200 hover:shadow-2xl transition-all duration-500 overflow-hidden group">
                         <div class="bg-white p-6 md:p-8 relative">
@@ -789,12 +790,13 @@ else: ?>
                             </div>
                             <div class="relative z-10">
                                 <div class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] mb-1">Clinical Assessment</div>
-                                <div class="text-xl font-black <?php echo $status === 'normal' ? 'text-emerald-400' : 'text-rose-400'; ?>">
+                                <div class="text-xl font-black <?php echo $status === 'normal' ? 'text-emerald-400' : ($status === 'external' ? 'text-sky-400' : 'text-rose-400'); ?>">
                                     <?php echo esc($sr['auto_diagnosis'] ?: ($status === 'normal' ? 'Normozoospermia' : 'Oligo/Asthenospermia')); ?>
                                 </div>
                             </div>
                         </div>
                         <div class="p-6 md:p-8">
+                            <?php if (!$is_file_report): ?>
                             <div class="grid grid-cols-3 gap-3 mb-8">
                                 <div class="bg-gray-50 rounded-2xl p-4 text-center border border-gray-50">
                                     <div class="text-xs font-black text-slate-400 uppercase tracking-tighter mb-1">Conc</div>
@@ -812,6 +814,12 @@ else: ?>
                                     <div class="text-[9px] text-slate-400 font-bold uppercase">Normal</div>
                                 </div>
                             </div>
+                            <?php else: ?>
+                            <div class="mb-8 flex flex-col items-center justify-center py-5 bg-sky-50 rounded-2xl border border-sky-100 text-center">
+                                <i class="fa-solid fa-file-waveform text-sky-300 text-2xl mb-2"></i>
+                                <p class="text-xs font-semibold text-sky-600">Parameters in attached report</p>
+                            </div>
+                            <?php endif; ?>
                             <?php if (!empty($sr['lab_name']) || !empty($sr['lab_report_number'])): ?>
                             <div class="mb-4 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-700">
                                 <?php if (!empty($sr['lab_name'])): ?>

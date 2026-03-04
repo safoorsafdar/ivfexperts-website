@@ -44,6 +44,13 @@ if (!$sa)
 // Log download and get tracking code
 $tracking_code = log_document_download($conn, 'sa', $id);
 
+// If this is a file-upload report, redirect to the uploaded file directly
+if (($sa['report_type'] ?? 'manual') === 'file' && !empty($sa['report_file_path'])) {
+    $file_url = 'https://ivfexperts.pk/' . ltrim($sa['report_file_path'], '/');
+    header("Location: $file_url");
+    exit;
+}
+
 // Since this is a custom plain A4 layout (not using hospital letterhead margins, we supply logos ourselves)
 $mt = 10;
 $mb = 12;

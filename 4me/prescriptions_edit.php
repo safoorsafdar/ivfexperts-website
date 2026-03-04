@@ -75,12 +75,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
     if ($upd) {
         $upd->bind_param("ssssssi", $diagnosis, $clinical_notes, $general_advice, $next_visit, $record_for, $icd10_codes, $rx_id);
         if ($upd->execute()) {
-            // Replace medication items
+            // Replace medication items — read from PHP array inputs (meds[0][medicine_name] etc.)
             $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
-            $medications_json = $_POST['medications_data'] ?? '[]';
-            $meds = json_decode($medications_json, true);
-            if (is_array($meds)) {
-                // Auto-ensure table exists
+            $meds_post = $_POST['meds'] ?? [];
+            if (is_array($meds_post) && count($meds_post) > 0) {
                 $conn->query("CREATE TABLE IF NOT EXISTS prescription_items (
                     id INT AUTO_INCREMENT PRIMARY KEY,
                     prescription_id INT NOT NULL,
@@ -91,18 +89,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
                     instructions TEXT,
                     INDEX (prescription_id)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4");
-
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
                 $auto_med = $conn->prepare("INSERT IGNORE INTO medications (name) VALUES (?)");
-
                 if ($m_stmt) {
-                    foreach ($meds as $m) {
-                        if (empty($m['medicine_name']))
-                            continue;
-                        $name = $m['medicine_name'];
+                    foreach ($meds_post as $m) {
+                        $name = trim($m['medicine_name'] ?? '');
+                        if (empty($name)) continue;
                         $dose = $m['dosage'] ?? '';
                         $freq = $m['frequency'] ?? '';
-                        $dur = $m['duration'] ?? '';
+                        $dur  = $m['duration'] ?? '';
                         $instr = $m['instructions'] ?? '';
                         $m_stmt->bind_param("isssss", $rx_id, $name, $dose, $freq, $dur, $instr);
                         $m_stmt->execute();
@@ -111,16 +106,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
                 }
             }
 
-            // Replace advised lab tests
+            // Replace advised lab tests — read from PHP array inputs (labs[0][id], labs[0][for])
             $conn->query("DELETE FROM advised_lab_tests WHERE prescription_id = $rx_id");
-            $lab_tests_json = $_POST['lab_tests_data'] ?? '[]';
-            $labs = json_decode($lab_tests_json, true);
-            if (is_array($labs) && !empty($labs)) {
+            $labs_post = $_POST['labs'] ?? [];
+            if (is_array($labs_post) && !empty($labs_post)) {
                 $l_stmt = $conn->prepare("INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for) VALUES (?, ?, ?, ?)");
                 if ($l_stmt) {
-                    foreach ($labs as $l) {
-                        if (empty($l['id'])) continue;
-                        $tid = intval($l['id']);
+                    foreach ($labs_post as $l) {
+                        $tid = intval($l['id'] ?? 0);
+                        if ($tid <= 0) continue;
                         $lab_for = in_array($l['for'] ?? '', ['Patient', 'Spouse']) ? $l['for'] : 'Patient';
                         $l_stmt->bind_param("iiis", $rx_id, $patient_id, $tid, $lab_for);
                         $l_stmt->execute();
@@ -154,15 +148,29 @@ include __DIR__ . '/includes/header.php';
 </style>
 
 <script>
+// Vanilla JS medication rows — no Alpine dependency
+var _medCount = <?php echo count($items); ?>;
+var _ic = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full';
+function addMedRow() {
+    var i = _medCount++;
+    var html = '<div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative mb-2">' +
+        '<button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100"><i class="fa-solid fa-times"></i></button>' +
+        '<div class="col-span-2 md:col-span-3"><input type="text" name="meds['+i+'][medicine_name]" placeholder="Medicine name *" class="'+_ic+'"></div>' +
+        '<input type="text" name="meds['+i+'][dosage]" placeholder="Dosage (e.g. 500mg)" class="'+_ic+'">' +
+        '<input type="text" name="meds['+i+'][frequency]" placeholder="Frequency (e.g. BD)" class="'+_ic+'">' +
+        '<input type="text" name="meds['+i+'][duration]" placeholder="Duration (e.g. 7 days)" class="'+_ic+'">' +
+        '<input type="text" name="meds['+i+'][instructions]" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 '+_ic+'">' +
+        '</div>';
+    document.getElementById('med-rows').insertAdjacentHTML('beforeend', html);
+    document.getElementById('no-meds-msg').style.display = 'none';
+}
+function removeMedRow(btn) {
+    btn.closest('.med-row').remove();
+    if (!document.querySelector('#med-rows .med-row')) document.getElementById('no-meds-msg').style.display = '';
+}
+
 function rxEditData() {
     return {
-        medsRaw: <?php echo json_encode(array_map(fn($i) => [
-'medicine_name' => $i['medicine_name'],
-'dosage' => $i['dosage'] ?? '',
-'frequency' => $i['frequency'] ?? '',
-'duration' => $i['duration'] ?? '',
-'instructions' => $i['instructions'] ?? '',
-], $items)); ?>,
         icdCodes: <?php echo json_encode($existing_icd); ?>,
         selectedLabs: <?php echo json_encode(array_map(fn($l) => ['id' => $l['id'], 'test_name' => $l['test_name'], 'for' => $l['for'] ?? 'Patient'], $advised_labs)); ?>,
         icdQuery: '',
@@ -171,8 +179,6 @@ function rxEditData() {
         icdOpen: false,
         labSearch: '',
         labResults: [],
-        addMed() { this.medsRaw.push({medicine_name:'',dosage:'',frequency:'',duration:'',instructions:''}); },
-        removeMed(i) { this.medsRaw.splice(i,1); },
         async searchIcd() {
             if (this.icdQuery.length < 2) { this.icdOpen = false; return; }
             this.icdLoading = true; this.icdOpen = true;
@@ -205,9 +211,9 @@ function rxEditData() {
         removeLab(i) { this.selectedLabs.splice(i, 1); },
         toggleLabFor(i) { this.selectedLabs[i].for = this.selectedLabs[i].for === 'Patient' ? 'Spouse' : 'Patient'; },
         submitForm() {
-            document.getElementById('edit_medications_data').value = JSON.stringify(this.medsRaw);
-            document.getElementById('edit_lab_tests_data').value = JSON.stringify(this.selectedLabs);
-            document.getElementById('edit_icd10_data').value = JSON.stringify(this.icdCodes);
+            // Meds and labs now use :name bindings — only ICD codes still need JSON
+            var el = document.getElementById('edit_icd10_data');
+            if (el) el.value = JSON.stringify(this.icdCodes);
         }
     };
 }
@@ -236,7 +242,7 @@ function rxEditData() {
         <?php
 endif; ?>
 
-        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()" @submit="submitForm()">
+        <form method="POST" class="p-6 space-y-5" x-data="rxEditData()" id="rxEditForm">
 
             <!-- Record For -->
 
@@ -311,39 +317,34 @@ endif; ?>
                 <input type="hidden" name="icd10_data" id="edit_icd10_data">
             </div>
 
-            <!-- Medications -->
+            <!-- Medications (PHP-rendered + vanilla JS — no Alpine) -->
             <div>
                 <div class="flex items-center justify-between mb-3">
                     <label class="text-xs font-medium text-slate-500">Medications</label>
-                    <button type="button" @click="addMed()" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1">
+                    <button type="button" onclick="addMedRow()" class="text-xs text-teal-600 hover:text-teal-800 font-semibold flex items-center gap-1">
                         <i class="fa-solid fa-plus text-[10px]"></i> Add Medicine
                     </button>
                 </div>
-                <div class="space-y-3">
-                    <template x-for="(med, idx) in medsRaw" :key="idx">
-                        <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative">
-                            <button type="button" @click="removeMed(idx)" class="absolute top-2 right-2 w-6 h-6 rounded-lg text-gray-300 hover:text-rose-500 hover:bg-rose-50 flex items-center justify-center text-xs transition-all">
-                                <i class="fa-solid fa-times"></i>
-                            </button>
-                            <div class="col-span-2 md:col-span-3">
-                                <input type="text" x-model="med.medicine_name" placeholder="Medicine name *"
-                                       class="w-full px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
-                            </div>
-                            <input type="text" x-model="med.dosage" placeholder="Dosage (e.g. 500mg)"
-                                   class="px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
-                            <input type="text" x-model="med.frequency" placeholder="Frequency (e.g. BD)"
-                                   class="px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
-                            <input type="text" x-model="med.duration" placeholder="Duration (e.g. 7 days)"
-                                   class="px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
-                            <input type="text" x-model="med.instructions" placeholder="Instructions (optional)"
-                                   class="col-span-2 md:col-span-3 px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm focus:ring-2 focus:ring-teal-500/20 outline-none">
+                <div id="med-rows" class="space-y-2">
+                    <?php $ic = 'px-3 py-2 bg-white border border-gray-100 rounded-lg text-sm outline-none w-full'; ?>
+                    <?php foreach ($items as $i => $item): ?>
+                    <div class="med-row bg-gray-50 rounded-xl p-3 border border-gray-100 grid grid-cols-2 md:grid-cols-3 gap-2 relative">
+                        <button type="button" onclick="removeMedRow(this)" class="absolute top-2 right-2 w-6 h-6 rounded-lg bg-white text-gray-300 hover:text-rose-500 flex items-center justify-center text-xs border border-gray-100">
+                            <i class="fa-solid fa-times"></i>
+                        </button>
+                        <div class="col-span-2 md:col-span-3">
+                            <input type="text" name="meds[<?=$i?>][medicine_name]" value="<?=esc($item['medicine_name'])?>" placeholder="Medicine name *" class="<?=$ic?>">
                         </div>
-                    </template>
-                    <div x-show="medsRaw.length === 0" class="text-center py-6 text-xs text-gray-400">
-                        No medications added. Click "+ Add Medicine" to start.
+                        <input type="text" name="meds[<?=$i?>][dosage]" value="<?=esc($item['dosage']??'')?>" placeholder="Dosage (e.g. 500mg)" class="<?=$ic?>">
+                        <input type="text" name="meds[<?=$i?>][frequency]" value="<?=esc($item['frequency']??'')?>" placeholder="Frequency (e.g. BD)" class="<?=$ic?>">
+                        <input type="text" name="meds[<?=$i?>][duration]" value="<?=esc($item['duration']??'')?>" placeholder="Duration (e.g. 7 days)" class="<?=$ic?>">
+                        <input type="text" name="meds[<?=$i?>][instructions]" value="<?=esc($item['instructions']??'')?>" placeholder="Instructions (optional)" class="col-span-2 md:col-span-3 <?=$ic?>">
                     </div>
+                    <?php endforeach; ?>
                 </div>
-                <input type="hidden" name="medications_data" id="edit_medications_data">
+                <div id="no-meds-msg" class="text-center py-6 text-xs text-gray-400"<?= !empty($items) ? ' style="display:none"' : '' ?>>
+                    No medications added. Click "+ Add Medicine" to start.
+                </div>
             </div>
 
             <!-- Lab Tests -->
@@ -370,6 +371,8 @@ endif; ?>
                 <div class="space-y-2" x-show="selectedLabs.length > 0">
                     <template x-for="(l, idx) in selectedLabs" :key="idx">
                         <div class="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                            <input type="hidden" :name="'labs[' + idx + '][id]'" :value="l.id">
+                            <input type="hidden" :name="'labs[' + idx + '][for]'" :value="l.for">
                             <div class="flex items-center gap-2">
                                 <i class="fa-solid fa-vial text-amber-400 text-xs"></i>
                                 <span class="text-sm font-semibold text-gray-800" x-text="l.test_name"></span>
@@ -384,7 +387,6 @@ endif; ?>
                     </template>
                 </div>
                 <div x-show="selectedLabs.length === 0" class="text-center py-3 text-xs text-gray-400">No lab tests advised. Search above to add.</div>
-                <input type="hidden" name="lab_tests_data" id="edit_lab_tests_data">
             </div>
 
             <!-- General Advice + Next Visit -->
@@ -402,10 +404,11 @@ endif; ?>
             </div>
 
             <!-- Actions -->
+            <input type="hidden" name="update_prescription" value="1">
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <a href="patients_view.php?id=<?php echo $patient_id; ?>&tab=rx"
                    class="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-500 bg-gray-100 hover:bg-gray-200 transition-all">Cancel</a>
-                <button type="submit" name="update_prescription" value="1"
+                <button type="submit" @click="submitForm()"
                         class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition-all active:scale-95">
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
