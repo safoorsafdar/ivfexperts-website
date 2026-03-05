@@ -191,7 +191,8 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
            ══════════════════════════════════════════════ */
         @page {
             size: A4 portrait;
-            margin: <?php echo $mt; ?> <?php echo $mr; ?> <?php echo $mb; ?> <?php echo $ml; ?>;
+            margin: 0 !important; /* Forces edge-to-edge printing for letterhead background */
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
             /* Suppress browser default "URL / date" headers and footers */
             @top-center    { content: none; }
             @top-left      { content: none; }
@@ -199,10 +200,6 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             @bottom-center { content: none; }
             @bottom-left   { content: none; }
             @bottom-right  { content: none; }
-        }
-
-        @page :first {
-            margin-top: <?php echo $mt; ?>;
         }
 
         /* ── Screen: show as A4 card ── */
@@ -213,23 +210,22 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             margin: 0 auto 20px auto;
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             position: relative;
-            /* In Patient view, we simulate the physical page margins on screen */
-            <?php if ($digital_auto): ?>
+            box-sizing: border-box;
+            /* Apply hospital margins as padding to strictly contain text.
+               This applies to BOTH screen view and print mode! */
             padding: <?php echo $mt; ?> <?php echo $mr; ?> <?php echo $mb; ?> <?php echo $ml; ?>;
-            <?php
-endif; ?>
         }
 
         /* ── Print: each rx-page = one physical page ── */
         @media print {
             html, body { background: transparent !important; margin: 0 !important; padding: 0 !important; }
             .rx-page {
-                width: 100%;
-                min-height: auto;
+                width: 210mm;
+                min-height: 297mm;
                 margin: 0;
-                padding: 0; /* Print margins handled by @page */
                 box-shadow: none;
                 page-break-after: always;
+                page-break-inside: avoid;
             }
             .rx-page:last-child { page-break-after: avoid; }
             .no-print { display: none !important; }
@@ -240,6 +236,8 @@ endif; ?>
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
+            position: relative;
+            z-index: 10; /* Keep text above the letterhead background */
         }
 
         /* ── Repeating HEADER on every page ── */
@@ -301,7 +299,7 @@ endif; ?>
         /* ── Letterhead background ── */
         .letterhead-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: -1; object-fit: fill; pointer-events: none;
+            z-index: 0; object-fit: fill; pointer-events: none;
         }
         
         /* If printing Digital PDF, force background graphics */
@@ -760,7 +758,6 @@ function injectLetterheads(callback) {
         };
         img.onload = doneFn;
         img.onerror = doneFn;
-        img.crossOrigin = 'anonymous'; // Allow loading from ivfexperts.pk cross-origin
         setTimeout(doneFn, 4000); // 4s fallback per image (was 3s)
 
         page.insertBefore(img, page.firstChild);
