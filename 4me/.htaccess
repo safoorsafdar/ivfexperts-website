@@ -10,6 +10,12 @@ RewriteEngine On
 # ---- Block direct web access to DB config ----
 RewriteRule ^config(/.*)?$ - [F,L]
 
+# ---- Block migration / setup scripts from web access ----
+<FilesMatch "^(migrate_|master_migration|cleanup_ghost|schema_check|run_migration).*\.php$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
 
 # ---- Block sensitive files ----
 <FilesMatch "\.(sql|log|env|bak|swp|sh|py)$">

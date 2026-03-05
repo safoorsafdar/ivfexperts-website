@@ -24,13 +24,27 @@ $cnic_clean = preg_replace('/[^0-9]/', '', $patient['cnic'] ?? '');
 $phone = $patient['phone'] ?? '';
 $mr = $patient['mr_number'] ?? '';
 
+// Securely avoid empty-string matches
+$p_phone = !empty($phone) ? $phone : 'NEVER_MATCH_EMPTY_PHONE';
+$p_mr = !empty($mr) ? $mr : 'NEVER_MATCH_EMPTY_MR';
+$p_cnic = !empty($cnic_clean) ? $cnic_clean : 'NEVER_MATCH_EMPTY_CNIC';
+
+// Forward check: patient listed spouse_name
 $stmt_spouse = $conn->prepare("SELECT * FROM patients WHERE first_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
-$stmt_spouse->bind_param("ssss", $patient['spouse_name'], $phone, $mr, $cnic_clean);
+$stmt_spouse->bind_param("ssss", $patient['spouse_name'], $p_phone, $p_mr, $p_cnic);
 $stmt_spouse->execute();
 $partner = $stmt_spouse->get_result()->fetch_assoc();
 
+// Reverse check: spouse listed this patient's name
 if (!$partner) {
-    die("Partner record not found in system. Please contact clinic to link your partner's profile.");
+    $stmt_rev = $conn->prepare("SELECT * FROM patients WHERE spouse_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
+    $stmt_rev->bind_param("ssss", $patient['first_name'], $p_phone, $p_mr, $p_cnic);
+    $stmt_rev->execute();
+    $partner = $stmt_rev->get_result()->fetch_assoc();
+}
+
+if (!$partner) {
+    die("Partner record not found. We attempt to securely match accounts using Phone Number, MR Number, or CNIC. Please ask the clinic reception to ensure these details match exactly on both profiles.");
 }
 
 $partner_id = $partner['id'];

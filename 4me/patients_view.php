@@ -182,6 +182,15 @@ include __DIR__ . '/includes/header.php';
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
+
+/*
+ * Pre-show the initial active tab BEFORE Alpine.js initialises.
+ * Alpine will take over x-show after it boots (removing x-cloak).
+ * Without this, the deferred Alpine script causes a blank content flash.
+ */
+[x-cloak].tab-panel#panel-<?php echo esc($initial_tab); ?> {
+    display: block !important;
+}
 </style>
 
 <?php if ($error): ?>
@@ -468,7 +477,7 @@ if ($active_protocol):
 endif; ?>
 
             <!-- ─── TAB: Clinical History ─── -->
-            <div x-show="tab === 'history'" x-cloak class="tab-panel">
+            <div x-show="tab === 'history'" x-cloak class="tab-panel" id="panel-history">
                 <?php if (empty($histories)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-brand-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-brand-100">
@@ -591,7 +600,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Prescriptions ─── -->
-            <div x-show="tab === 'rx'" x-cloak class="tab-panel">
+            <div x-show="tab === 'rx'" x-cloak class="tab-panel" id="panel-rx">
                 <?php if (empty($prescriptions)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-brand-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-brand-100">
@@ -710,17 +719,21 @@ else: ?>
                                     <span class="text-xs font-semibold text-violet-800"><?php echo esc($item['medicine_name']); ?></span>
                                     <?php if (!empty($item['formula'])): ?>
                                     <span class="text-[10px] text-indigo-400 font-medium leading-tight"><?php echo esc($item['formula']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <div class="flex items-center gap-1 mt-0.5 flex-wrap">
                                     <?php if (!empty($item['dosage'])): ?>
                                     <span class="text-[10px] text-violet-400">· <?php echo esc($item['dosage']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['frequency'])): ?>
                                     <span class="text-[10px] text-violet-400"><?php echo esc($item['frequency']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     <?php if (!empty($item['duration'])): ?>
                                     <span class="text-[10px] text-violet-300">for <?php echo esc($item['duration']); ?></span>
-                                    <?php endif; ?>
+                                    <?php
+                endif; ?>
                                     </div>
                                 </div>
                                 <?php
@@ -746,6 +759,22 @@ else: ?>
                             </span>
                             <?php
         endif; ?>
+
+                            <!-- Action Buttons -->
+                            <div class="ml-auto flex items-center gap-2">
+                                <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-teal-50 text-teal-700 hover:bg-teal-100 transition-all border border-teal-100">
+                                    <i class="fa-solid fa-eye text-[9px]"></i> View
+                                </a>
+                                <a href="prescriptions_edit.php?id=<?php echo $rx['id']; ?>"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-all border border-indigo-100">
+                                    <i class="fa-solid fa-pen-to-square text-[9px]"></i> Edit
+                                </a>
+                                <a href="prescriptions_print.php?id=<?php echo $rx['id']; ?>" target="_blank"
+                                   class="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-widest px-3 py-1.5 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-all border border-gray-200">
+                                    <i class="fa-solid fa-print text-[9px]"></i> Print
+                                </a>
+                            </div>
                         </div>
                     </div>
                     <?php
@@ -757,7 +786,7 @@ endif; ?>
 
             <!-- ─── TAB: Semen Analysis ─── -->
 
-            <div x-show="tab === 'semen'" x-cloak class="tab-panel">
+            <div x-show="tab === 'semen'" x-cloak class="tab-panel" id="panel-semen">
                 <?php if (empty($semen_reports)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-cyan-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-cyan-100">
@@ -816,22 +845,27 @@ else: ?>
                                     <div class="text-[9px] text-slate-400 font-bold uppercase">Normal</div>
                                 </div>
                             </div>
-                            <?php else: ?>
+                            <?php
+        else: ?>
                             <div class="mb-8 flex flex-col items-center justify-center py-5 bg-sky-50 rounded-2xl border border-sky-100 text-center">
                                 <i class="fa-solid fa-file-waveform text-sky-300 text-2xl mb-2"></i>
                                 <p class="text-xs font-semibold text-sky-600">Parameters in attached report</p>
                             </div>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                             <?php if (!empty($sr['lab_name']) || !empty($sr['lab_report_number'])): ?>
                             <div class="mb-4 px-3 py-2 bg-sky-50 border border-sky-100 rounded-xl text-xs text-sky-700">
                                 <?php if (!empty($sr['lab_name'])): ?>
                                     <span class="font-bold"><i class="fa-solid fa-flask mr-1"></i><?php echo esc($sr['lab_name']); ?></span>
-                                <?php endif; ?>
+                                <?php
+            endif; ?>
                                 <?php if (!empty($sr['lab_report_number'])): ?>
                                     <span class="ml-2 text-sky-500">· Ref: <?php echo esc($sr['lab_report_number']); ?></span>
-                                <?php endif; ?>
+                                <?php
+            endif; ?>
                             </div>
-                            <?php endif; ?>
+                            <?php
+        endif; ?>
                             <div class="flex items-center justify-between pt-6 border-t border-gray-50">
                                 <a href="semen_analyses_add.php?edit=<?php echo $sr['id']; ?>" class="w-10 h-10 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-teal-600 hover:text-white transition-all">
                                     <i class="fa-solid fa-pen-to-square text-xs"></i>
@@ -847,7 +881,8 @@ else: ?>
                                         <a href="https://ivfexperts.pk/<?php echo esc($sr['report_file_path']); ?>" target="_blank" class="inline-flex items-center gap-2 bg-sky-100 hover:bg-sky-200 text-sky-700 font-black text-[10px] px-4 py-2.5 rounded-xl transition-all uppercase tracking-widest">
                                             <i class="fa-solid fa-file-arrow-down"></i> View File
                                         </a>
-                                    <?php endif; ?>
+                                    <?php
+        endif; ?>
                                     <a href="semen_analyses_print.php?id=<?php echo $sr['id']; ?>" target="_blank" class="inline-flex items-center gap-2 bg-cyan-600 hover:bg-cyan-700 text-white font-black text-[10px] px-5 py-2.5 rounded-xl transition-all shadow-lg active:scale-95 uppercase tracking-widest">
                                         <i class="fa-solid fa-print"></i> Full Report
                                     </a>
@@ -863,7 +898,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Ultrasounds ─── -->
-            <div x-show="tab === 'usg'" x-cloak class="tab-panel">
+            <div x-show="tab === 'usg'" x-cloak class="tab-panel" id="panel-usg">
                 <?php if (empty($ultrasounds)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-orange-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-orange-100">
@@ -928,7 +963,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Lab Results ─── -->
-            <div x-show="tab === 'labs'" x-cloak class="tab-panel">
+            <div x-show="tab === 'labs'" x-cloak class="tab-panel" id="panel-labs">
                 <?php if (empty($lab_results)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-amber-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-amber-100">
@@ -1031,7 +1066,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Procedures ─── -->
-            <div x-show="tab === 'procedures'" x-cloak class="tab-panel pb-12">
+            <div x-show="tab === 'procedures'" x-cloak class="tab-panel pb-12" id="panel-procedures">
                 <?php if (empty($advised_procedures)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-rose-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-rose-100">

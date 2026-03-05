@@ -9,13 +9,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
+    <!-- Tailwind CSS via CDN (required: dynamic PHP class composition can't be statically compiled) -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for interactivity -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
     <script>
         tailwind.config = {
             theme: {
@@ -25,28 +20,23 @@
                     },
                     colors: {
                         brand: {
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            500: '#14b8a6',
-                            600: '#0d9488',
-                            700: '#0f766e',
-                            800: '#115e59',
-                            900: '#134e4a',
-                            950: '#042f2e',
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4',
+                            300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6',
+                            600: '#0d9488', 700: '#0f766e', 800: '#115e59',
+                            900: '#134e4a', 950: '#042f2e',
                         },
-                        slate: {
-                            850: '#1e293b',
-                            950: '#020617',
-                        }
                     },
                     boxShadow: {
                         'premium': '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
-                        'glass': 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
                     }
                 }
             }
         }
     </script>
+    <!-- Alpine.js (self-hosted — no CDN) -->
+    <script defer src="/assets/js/alpine.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <style>
         [x-cloak] { display: none !important; }
         
@@ -89,6 +79,39 @@
             font-weight: 700;
             margin-top: 4px;
         }
+
+        /* ── Global UI Component Classes ──────────────────────────────── */
+        .btn-primary   { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:12px; font-size:13px; font-weight:700; color:#fff; background:#0d9488; border:none; cursor:pointer; text-decoration:none; transition:all .15s; }
+        .btn-primary:hover   { background:#0f766e; }
+        .btn-secondary { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:12px; font-size:13px; font-weight:700; color:#374151; background:#f3f4f6; border:none; cursor:pointer; text-decoration:none; transition:all .15s; }
+        .btn-secondary:hover { background:#e5e7eb; }
+        .btn-danger    { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:12px; font-size:13px; font-weight:700; color:#fff; background:#e11d48; border:none; cursor:pointer; text-decoration:none; transition:all .15s; }
+        .btn-danger:hover    { background:#be123c; }
+        .btn-sm { padding:5px 12px; font-size:11px; }
+
+        .badge-green  { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#ecfdf5; color:#065f46; border:1px solid #a7f3d0; }
+        .badge-red    { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#fff1f2; color:#9f1239; border:1px solid #fecdd3; }
+        .badge-blue   { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#f0f9ff; color:#0c4a6e; border:1px solid #bae6fd; }
+        .badge-amber  { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#fffbeb; color:#92400e; border:1px solid #fde68a; }
+        .badge-gray   { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#f9fafb; color:#374151; border:1px solid #e5e7eb; }
+        .badge-teal   { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#f0fdfa; color:#115e59; border:1px solid #99f6e4; }
+        .badge-violet { display:inline-flex; align-items:center; padding:2px 8px; border-radius:9999px; font-size:10px; font-weight:700; background:#f5f3ff; color:#4c1d95; border:1px solid #ddd6fe; }
+
+        .card { background:#fff; border-radius:16px; border:1px solid #f3f4f6; box-shadow:0 1px 3px rgba(0,0,0,.05); overflow:hidden; }
+        .card-header { padding:16px 24px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; }
+
+        /* Standard data table */
+        .data-table { width:100%; border-collapse:collapse; }
+        .data-table th { padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#9ca3af; background:#f9fafb; border-bottom:1px solid #f3f4f6; }
+        .data-table td { padding:12px 16px; font-size:13px; color:#374151; border-bottom:1px solid #f9fafb; vertical-align:middle; }
+        .data-table tbody tr:hover { background:#fafafa; }
+        .data-table tbody tr:last-child td { border-bottom:none; }
+
+        /* Empty state */
+        .empty-state { padding:80px 24px; text-align:center; }
+        .empty-state i { font-size:48px; color:#e5e7eb; margin-bottom:16px; display:block; }
+        .empty-state h3 { font-size:16px; font-weight:700; color:#9ca3af; }
+        .empty-state p  { font-size:13px; color:#d1d5db; margin-top:4px; }
     </style>
 </head>
 <body class="bg-gray-50 flex h-screen overflow-hidden" x-data="{ sidebarOpen: true }">

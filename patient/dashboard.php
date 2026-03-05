@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
 }
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once dirname(__DIR__) . '/4me/includes/error_handler.php';
 require_once __DIR__ . '/includes/analytics_helper.php';
 
 $patient_id = intval($_SESSION['portal_patient_id']);
@@ -42,10 +43,15 @@ $cnic_clean = preg_replace('/[^0-9]/', '', $patient['cnic'] ?? '');
 $phone = $patient['phone'] ?? '';
 $mr = $patient['mr_number'] ?? '';
 
+// Ensure we actually have contact info to match against to avoid empty-string collisions
+$p_phone = !empty($phone) ? $phone : 'NEVER_MATCH_EMPTY_PHONE';
+$p_mr = !empty($mr) ? $mr : 'NEVER_MATCH_EMPTY_MR';
+$p_cnic = !empty($cnic_clean) ? $cnic_clean : 'NEVER_MATCH_EMPTY_CNIC';
+
 // Find if anyone matches this patient's spouse_name and shares contact info
 if (!empty($patient['spouse_name'])) {
     $stmt_spouse = $conn->prepare("SELECT id FROM patients WHERE first_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
-    $stmt_spouse->bind_param("ssss", $patient['spouse_name'], $phone, $mr, $cnic_clean);
+    $stmt_spouse->bind_param("ssss", $patient['spouse_name'], $p_phone, $p_mr, $p_cnic);
     $stmt_spouse->execute();
     $res_spouse = $stmt_spouse->get_result();
     while ($row = $res_spouse->fetch_assoc()) {
@@ -55,7 +61,7 @@ if (!empty($patient['spouse_name'])) {
 
 // Find if anyone listed THIS patient as their spouse
 $stmt_rev = $conn->prepare("SELECT id FROM patients WHERE spouse_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
-$stmt_rev->bind_param("ssss", $patient['first_name'], $phone, $mr, $cnic_clean);
+$stmt_rev->bind_param("ssss", $patient['first_name'], $p_phone, $p_mr, $p_cnic);
 $stmt_rev->execute();
 $res_rev = $stmt_rev->get_result();
 while ($row = $res_rev->fetch_assoc()) {
@@ -63,6 +69,7 @@ while ($row = $res_rev->fetch_assoc()) {
 }
 
 $patient_ids = array_unique($patient_ids);
+$patient_ids = array_map('intval', $patient_ids); // Security: enforce integers
 $ids_csv = implode(',', $patient_ids);
 
 // Fetch all 5 document streams for all linked IDs with spouse attribution
@@ -180,18 +187,37 @@ $portal_tabs = [
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         [x-cloak] { display: none !important; }
+        #panel-timeline:not([style*="display"]) { display: block !important; }
         body { font-family: 'Noto Sans', sans-serif; }
         h1, h2, h3, h4, .font-heading { font-family: 'Figtree', sans-serif; }
         .prose-portal p { margin-bottom: 0.5em; }
         .prose-portal ul, .prose-portal ol { padding-left: 1.25em; margin-bottom: 0.5em; }
         .prose-portal li { margin-bottom: 0.15em; }
         .medical-gradient { background: linear-gradient(135deg, #0891B2 0%, #0e7490 100%); }
+        .medical-bg {
+            background-color: #F8FAFC;
+            background-image: radial-gradient(at 0% 0%, hsla(192, 91%, 91%, 1) 0, transparent 50%), 
+                              radial-gradient(at 50% 0%, hsla(152, 63%, 92%, 1) 0, transparent 50%);
+        }
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.05);
+        }
     </style>
 </head>
-<body class="bg-slate-100 min-h-screen text-slate-900" x-data="{ activeTab: 'timeline' }">
+<body class="medical-bg min-h-screen text-slate-900 relative" x-data="{ activeTab: 'timeline' }">
+
+    <!-- Ambient glow -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-[-1]" aria-hidden="true">
+        <div class="absolute -top-32 -right-32 w-96 h-96 bg-cyan-200/40 rounded-full blur-3xl"></div>
+        <div class="absolute -bottom-32 -left-32 w-96 h-96 bg-indigo-200/30 rounded-full blur-3xl"></div>
+    </div>
 
     <!-- Navigation -->
-    <nav class="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
+    <nav class="glass-panel sticky top-0 z-50 border-b border-white/50">
         <div class="max-w-7xl mx-auto px-4 h-16 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div class="w-9 h-9 bg-cyan-600 rounded-xl flex items-center justify-center text-white shadow-lg shadow-cyan-100">
@@ -231,7 +257,7 @@ $portal_tabs = [
         
         <!-- Dashboard Header -->
         <div class="mb-8">
-            <div class="bg-white rounded-3xl p-7 md:p-9 shadow-sm border border-slate-200">
+            <div class="bg-white/80 backdrop-blur-[20px] rounded-[2.5rem] p-7 md:p-9 shadow-xl shadow-cyan-900/5 border border-white">
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-5">
                     <div class="flex-1">
                         <div class="text-[9px] font-black text-cyan-600 uppercase tracking-[0.25em] mb-2">Patient Records</div>
@@ -315,7 +341,7 @@ $quick = [
 ];
 foreach ($quick as $q):
 ?>
-                        <div class="bg-slate-50 border border-slate-200 rounded-2xl px-4 py-3 text-center min-w-[64px]">
+                        <div class="bg-white rounded-2xl px-4 py-3 text-center min-w-[64px] shadow-sm shadow-slate-200/50 border border-slate-100">
                             <div class="text-xl font-bold text-slate-900"><?php echo $q['n']; ?></div>
                             <div class="text-[9px] font-bold text-slate-400 uppercase tracking-widest"><?php echo $q['l']; ?></div>
                         </div>
@@ -343,7 +369,7 @@ endif; ?>
         <div class="lg:hidden flex gap-2 overflow-x-auto pb-4 mb-6 -mx-4 px-4 scrollbar-hide">
             <?php foreach ($portal_tabs as $tab): ?>
             <button @click="activeTab = '<?php echo $tab['id']; ?>'"
-                    :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' : 'bg-white text-slate-500 border-slate-200'"
+                    :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100/50 border-cyan-500' : 'bg-white/80 backdrop-blur-md text-slate-500 border-white shadow-sm'"
                     class="shrink-0 flex items-center gap-2 px-5 py-3 rounded-2xl text-xs font-bold whitespace-nowrap border transition-all">
                 <i class="fa-solid <?php echo $tab['icon']; ?>"></i>
                 <?php echo $tab['label']; ?>
@@ -361,11 +387,11 @@ endforeach; ?>
             
             <!-- Sidebar Navigation -->
             <div class="lg:col-span-1">
-                <div class="bg-white rounded-3xl border border-slate-200 p-2 shadow-sm sticky top-24">
+                <div class="glass-panel rounded-[2.5rem] p-3 shadow-xl shadow-cyan-900/5 sticky top-24">
                     <nav class="space-y-1">
                         <?php foreach ($portal_tabs as $tab): ?>
                         <button @click="activeTab = '<?php echo $tab['id']; ?>'"
-                                :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-100' : 'text-slate-500 hover:bg-slate-50 hover:text-cyan-600'"
+                                :class="activeTab === '<?php echo $tab['id']; ?>' ? 'bg-cyan-600 text-white shadow-lg shadow-cyan-200/50' : 'text-slate-500 hover:bg-white/60 hover:text-cyan-600 hover:shadow-sm'"
                                 class="w-full flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm group">
                             <i class="fa-solid <?php echo $tab['icon']; ?> text-base shrink-0 group-hover:scale-110 transition-transform"></i>
                             <span class="text-left flex-1 whitespace-nowrap font-heading"><?php echo $tab['label']; ?></span>
@@ -384,8 +410,9 @@ endforeach; ?>
 
                 <!-- Partner Quick Link -->
                 <?php if ($patient['spouse_name']): ?>
-                <div class="mt-4 bg-pink-50 rounded-3xl border border-pink-100 p-2 shadow-sm">
-                    <a href="partner.php" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all font-bold text-sm text-pink-600 hover:bg-white shadow-sm shadow-pink-100 group">
+                <div class="mt-6 bg-gradient-to-br from-pink-50 to-white rounded-[2.5rem] border border-pink-100/50 p-2.5 shadow-lg shadow-pink-100/50 relative overflow-hidden">
+                    <div class="absolute -top-4 -right-4 w-12 h-12 bg-pink-200 rounded-full blur-xl opacity-60 pointer-events-none"></div>
+                    <a href="partner.php" class="relative flex items-center gap-3 px-4 py-3 xl:px-6 xl:py-4 rounded-2xl transition-all font-bold text-sm text-pink-600 hover:bg-white/80 shadow-sm shadow-pink-100/30 group">
                         <i class="fa-solid fa-user-venus-mars text-base shrink-0 group-hover:scale-110 transition-transform"></i>
                         <span class="text-left flex-1 whitespace-nowrap font-heading">Partner Profile</span>
                         <i class="fa-solid fa-chevron-right text-[10px] opacity-30"></i>
@@ -399,7 +426,7 @@ endif; ?>
             <div class="lg:col-span-3">
                 
                 <!-- Tab: Clinical Timeline -->
-                <div x-show="activeTab === 'timeline'" 
+                <div id="panel-timeline" x-show="activeTab === 'timeline'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -410,9 +437,9 @@ endif; ?>
                         </h2>
                         
                         <?php if (empty($histories)): ?>
-                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center">
-                                <i class="fa-solid fa-calendar-day text-5xl text-slate-100 mb-4 block"></i>
-                                <div class="text-slate-400 font-bold max-w-xs mx-auto">Your clinical visit notes will appear here after your consultation with Dr. Adnan Jabbar.</div>
+                            <div class="glass-panel rounded-[2.5rem] p-12 text-center">
+                                <i class="fa-solid fa-calendar-day text-5xl text-slate-300 mb-4 block"></i>
+                                <div class="text-slate-500 font-bold max-w-xs mx-auto">Your clinical visit notes will appear here after your consultation with Dr. Adnan Jabbar.</div>
                             </div>
 <?php
 else: ?>
@@ -422,7 +449,7 @@ else: ?>
                                         <!-- Timeline Dot -->
                                         <div class="absolute -left-[41px] top-0 w-5 h-5 bg-white border-4 border-cyan-600 rounded-full shadow-sm"></div>
                                         
-                                        <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-shadow">
+                                        <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white p-6 shadow-xl shadow-slate-200/40 hover:shadow-cyan-900/10 transition-shadow">
                                             <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-4">
                                                 <div>
                                                     <span class="text-[10px] uppercase font-black tracking-widest text-slate-400 bg-slate-50 px-2 py-1 rounded-md">
@@ -472,7 +499,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: My Procedures -->
-                <div x-show="activeTab === 'procedures'" 
+                <div id="panel-procedures" x-show="activeTab === 'procedures'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -482,14 +509,14 @@ endif; ?>
                             <i class="fa-solid fa-syringe text-cyan-600"></i> Advised & Upcoming Procedures
                         </h2>
                         <?php if (empty($advised_procedures)): ?>
-                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                            <div class="glass-panel rounded-[2.5rem] p-12 text-center text-slate-500 font-bold max-w-xs mx-auto">
                                 No procedures have been advised for you at this time.
                             </div>
                         <?php
 else: ?>
                             <div class="space-y-4">
                                 <?php foreach ($advised_procedures as $ap): ?>
-                                    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm">
+                                    <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white p-6 shadow-xl shadow-slate-200/40">
                                         <div class="flex justify-between items-start">
                                             <div>
                                                 <div class="font-black text-slate-800"><?php echo htmlspecialchars($ap['procedure_name']); ?></div>
@@ -519,7 +546,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Lab Results -->
-                <div x-show="activeTab === 'labs'" 
+                <div id="panel-labs" x-show="activeTab === 'labs'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -529,11 +556,11 @@ endif; ?>
                             <i class="fa-solid fa-vials text-cyan-600"></i> Laboratory & Blood Tests
                         </h2>
 
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/40 overflow-hidden">
                             <?php if (empty($lab_results)): ?>
                                 <div class="p-12 text-center">
-                                    <i class="fa-solid fa-box-open text-5xl text-slate-100 mb-4 block"></i>
-                                    <div class="text-slate-400 font-bold max-w-xs mx-auto">Your lab results will appear here once your blood tests have been processed and uploaded by the clinic.</div>
+                                    <i class="fa-solid fa-box-open text-5xl text-slate-300 mb-4 block"></i>
+                                    <div class="text-slate-500 font-bold max-w-xs mx-auto">Your lab results will appear here once your blood tests have been processed and uploaded by the clinic.</div>
                                 </div>
                             <?php
 else: ?>
@@ -611,7 +638,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Treatment Analytics -->
-                <div x-show="activeTab === 'analytics'" 
+                <div id="panel-analytics" x-show="activeTab === 'analytics'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -622,7 +649,7 @@ endif; ?>
                         </h2>
 
                         <?php if (empty($follicle_trends) && empty($beta_hcg_trends)): ?>
-                            <div class="bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                            <div class="glass-panel rounded-[2.5rem] p-12 text-center text-slate-500 font-bold max-w-xs mx-auto">
                                 No analytics data available yet. Trends will appear once you have multiple scans or blood tests.
                             </div>
                         <?php
@@ -630,7 +657,7 @@ else: ?>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Follicle Tracking -->
                                 <?php if (!empty($follicle_trends)): ?>
-                                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                                <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/40 p-6">
                                     <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
                                         <i class="fa-solid fa-egg text-cyan-600"></i> Follicle Tracking
                                     </h3>
@@ -657,7 +684,7 @@ else: ?>
 
                                 <!-- Hormone Trends (Beta-hCG) -->
                                 <?php if (!empty($beta_hcg_trends)): ?>
-                                <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6">
+                                <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/40 p-6">
                                     <h3 class="text-sm font-black uppercase tracking-widest text-slate-400 mb-6 flex items-center gap-2">
                                         <i class="fa-solid fa-droplet text-rose-500"></i> Hormone Trends (Beta-hCG)
                                     </h3>
@@ -684,7 +711,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Scans & Reports -->
-                <div x-show="activeTab === 'diagnostic'" 
+                <div id="panel-diagnostic" x-show="activeTab === 'diagnostic'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -715,7 +742,7 @@ usort($all_scans, function ($a, $b) {
 ?>
 
                             <?php if (empty($all_scans)): ?>
-                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">
+                                <div class="md:col-span-2 glass-panel rounded-[2.5rem] p-12 text-center text-slate-500 font-bold max-w-xs mx-auto">
                                     Ultrasound reports and semen analysis results will appear here after your diagnostic visit.
                                 </div>
                             <?php
@@ -758,7 +785,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Prescriptions -->
-                <div x-show="activeTab === 'prescriptions'" 
+                <div id="panel-prescriptions" x-show="activeTab === 'prescriptions'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -770,11 +797,11 @@ endif; ?>
 
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <?php if (empty($prescriptions)): ?>
-                                <div class="md:col-span-2 bg-white rounded-3xl border border-slate-200 p-12 text-center text-slate-400 font-bold max-w-xs mx-auto">No prescriptions found. Digital medication plans will appear here after your visit.</div>
+                                <div class="md:col-span-2 glass-panel rounded-[2.5rem] p-12 text-center text-slate-500 font-bold max-w-xs mx-auto">No prescriptions found. Digital medication plans will appear here after your visit.</div>
                             <?php
 else: ?>
                                 <?php foreach ($prescriptions as $rx): ?>
-                                    <div class="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition-all">
+                                    <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white p-6 shadow-xl shadow-slate-200/40 hover:shadow-cyan-900/10 transition-all">
                                          <div class="flex justify-between items-start mb-4">
                                             <div class="flex items-center gap-3">
                                                 <div class="w-10 h-10 bg-cyan-50 text-cyan-600 rounded-xl flex items-center justify-center font-bold">Rx</div>
@@ -812,7 +839,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Billing -->
-                <div x-show="activeTab === 'billing'" 
+                <div id="panel-billing" x-show="activeTab === 'billing'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -823,18 +850,18 @@ endif; ?>
                         </h2>
                         
                         <div class="grid grid-cols-2 gap-4 mb-6">
-                            <div class="bg-emerald-50 border border-emerald-100 rounded-3xl p-5 text-center">
+                            <div class="bg-emerald-50 border border-emerald-100 rounded-[2.5rem] p-5 text-center">
                                 <div class="text-2xl font-black text-emerald-700">Rs. <?php echo number_format($total_paid, 0); ?></div>
                                 <div class="text-[9px] font-black text-emerald-500 uppercase tracking-widest mt-1">Total Paid</div>
                             </div>
                             <?php if ($total_pending > 0): ?>
-                            <div class="bg-amber-50 border border-amber-100 rounded-3xl p-5 text-center">
+                            <div class="bg-amber-50 border border-amber-100 rounded-[2.5rem] p-5 text-center shadow-inner">
                                 <div class="text-2xl font-black text-amber-700">Rs. <?php echo number_format($total_pending, 0); ?></div>
                                 <div class="text-[9px] font-black text-amber-500 uppercase tracking-widest mt-1">Pending Balance</div>
                             </div>
                             <?php
 else: ?>
-                            <div class="bg-slate-50 border border-slate-100 rounded-3xl p-5 text-center opacity-50">
+                            <div class="glass-panel border-white rounded-[2.5rem] p-5 text-center opacity-50">
                                 <div class="text-2xl font-black text-slate-400">Rs. 0</div>
                                 <div class="text-[9px] font-black text-slate-400 uppercase tracking-widest mt-1">Pending Balance</div>
                             </div>
@@ -842,9 +869,9 @@ else: ?>
 endif; ?>
                         </div>
 
-                        <div class="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
+                        <div class="bg-white/90 backdrop-blur-md rounded-[2.5rem] border border-white shadow-xl shadow-slate-200/40 overflow-hidden">
                             <?php if (empty($receipts)): ?>
-                                <div class="p-12 text-center text-slate-400 font-bold">No billing history found.</div>
+                                <div class="p-12 text-center text-slate-500 font-bold">No billing history found.</div>
                             <?php
 else: ?>
                                 <div class="overflow-x-auto">

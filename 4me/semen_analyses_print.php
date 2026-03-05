@@ -69,37 +69,53 @@ $total_motility = $sa['pr_motility'] + $sa['np_motility'];
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
-        @page { size: A4; margin: <?php echo $mt; ?>mm <?php echo $mr; ?>mm <?php echo $mb; ?>mm <?php echo $ml; ?>mm; }
-        body { background: #f3f4f6; -webkit-print-color-adjust: exact; color: #000; }
-        .a4-container {
-            width: 210mm; min-height: 297mm; background: #fff; margin: 0 auto;
-            padding: <?php echo $mt; ?>mm <?php echo $mr; ?>mm <?php echo $mb; ?>mm <?php echo $ml; ?>mm;
-            box-sizing: border-box; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ══════════════════════════════════════════════════════════════
+           @PAGE — overrides ALL browser & printer margin settings
+           ══════════════════════════════════════════════════════════════ */
+        @page {
+            size: A4 portrait;
+            margin: <?php echo $mt; ?>mm <?php echo $mr; ?>mm <?php echo $mb; ?>mm <?php echo $ml; ?>mm;
+            /* Suppress browser URL / date injected headers & footers */
+            @top-center    { content: none; }
+            @top-left      { content: none; }
+            @top-right     { content: none; }
+            @bottom-center { content: none; }
+            @bottom-left   { content: none; }
+            @bottom-right  { content: none; }
         }
+
+        body {
+            background: #e5e7eb;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color: #000;
+        }
+
+        /* A4 card on screen */
+        .a4-container {
+            width: 210mm;
+            min-height: 297mm;
+            background: #fff;
+            margin: 0 auto;
+            padding: <?php echo $mt; ?>mm <?php echo $mr; ?>mm <?php echo $mb; ?>mm <?php echo $ml; ?>mm;
+            box-sizing: border-box;
+            box-shadow: 0 4px 32px rgba(0,0,0,0.15);
+            position: relative;
+        }
+
         @media print {
-            body { background: #fff; }
-            .a4-container { width: 100%; min-height: 297mm; box-shadow: none; margin: 0; }
+            html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+            .a4-container { width: 100%; box-shadow: none; margin: 0; }
             .no-print { display: none !important; }
         }
-        
-        /* Digital Backdrop Classes */
-        .digital-mode .a4-container {
-            padding: <?php echo $mt; ?>mm <?php echo $mr; ?>mm <?php echo $mb; ?>mm <?php echo $ml; ?>mm !important;
-            background: transparent !important;
-        }
-        .digital-mode @page {
-            margin: 0;
-        }
-        
+
+        /* Letterhead background */
         .letterhead-bg {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            min-height: 297mm;
-            z-index: -10;
-            object-fit: fill;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; object-fit: fill; pointer-events: none;
         }
 
         .sa-table th { padding: 4px 8px; text-align: left; background: #f9fafb; font-size: 11px; text-transform: uppercase; border: 1px solid #e5e7eb; }
@@ -110,48 +126,70 @@ $total_motility = $sa['pr_motility'] + $sa['np_motility'];
             font-size: 8px; color: #94a3b8; font-family: monospace;
             pointer-events: none; text-transform: uppercase;
         }
+
+        /* Toolbar */
+        .toolbar {
+            display: flex; flex-wrap: wrap; align-items: center; justify-content: center;
+            gap: 12px; padding: 14px; background: #1e293b; border-bottom: 3px solid #0f172a;
+            position: sticky; top: 0; z-index: 100;
+        }
+        .toolbar button, .toolbar a {
+            display: inline-flex; align-items: center; gap: 8px;
+            padding: 8px 18px; border-radius: 8px; font-size: 12px; font-family: inherit;
+            font-weight: 700; cursor: pointer; border: none; text-decoration: none;
+            transition: all 0.15s;
+        }
+        .btn-teal   { background: #0d9488; color: #fff; }
+        .btn-teal:hover   { background: #0f766e; }
+        .btn-blue   { background: #2563eb; color: #fff; }
+        .btn-blue:hover   { background: #1d4ed8; }
+        .btn-green  { background: #16a34a; color: #fff; }
+        .btn-green:hover  { background: #15803d; }
+        .btn-gray   { background: #334155; color: #cbd5e1; }
+        .btn-gray:hover   { background: #475569; }
+        .toolbar-label { color: #94a3b8; font-size: 10px; font-weight: 600; text-transform: uppercase; }
+        @media print { .toolbar, .no-print { display: none !important; } }
     </style>
 </head>
-<body class="py-10 print:py-0 <?php echo(!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])) ? 'digital-mode' : ''; ?>">
+<body>
 
-    <div class="flex flex-wrap justify-center gap-4 py-4 mb-6 bg-slate-50 border-b border-slate-200 no-print w-full shadow-sm">
-        <?php if (isset($_SESSION['admin_id'])): ?>
-            <!-- Admin Controls -->
-            <button onclick="printDigital()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold" <?php if (empty($sa['letterhead_image_path']))
-        echo 'disabled title="No Letterhead uploaded in settings" style="opacity: 0.5; cursor: not-allowed;"'; ?>>
-                <i class="fa-solid fa-file-pdf"></i> Print Digital PDF
-            </button>
-            <button onclick="window.print()" class="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold">
-                <i class="fa-solid fa-print"></i> Print on Physical Letterhead
-            </button>
-            <button onclick="sendWhatsApp()" class="bg-[#25D366] hover:bg-[#128C7E] text-white px-6 py-2 rounded-lg shadow-lg font-bold shadow-green-500/30">
-                <i class="fa-brands fa-whatsapp text-lg mr-1"></i> Send via WhatsApp
-            </button>
-        <?php
+<!-- Toolbar (screen only) -->
+<div class="toolbar no-print">
+    <?php if (isset($_SESSION['admin_id'])): ?>
+        <button onclick="printDigital()" class="btn-teal"
+                <?php echo empty($sa['letterhead_image_path']) ? 'disabled style="opacity:0.4;cursor:not-allowed;" title="Upload a letterhead in Hospital Settings first"' : ''; ?>>
+            <i class="fa-solid fa-file-pdf"></i> Print Digital PDF
+        </button>
+        <button onclick="window.print()" class="btn-blue">
+            <i class="fa-solid fa-print"></i> Print on Physical Letterhead
+        </button>
+        <button onclick="sendWhatsApp()" class="btn-green">
+            <i class="fa-brands fa-whatsapp"></i> WhatsApp Report
+        </button>
+    <?php
 else: ?>
-            <!-- Patient Portal Controls -->
-            <div class="flex flex-col items-center">
-                <button onclick="printDigital()" class="bg-sky-600 hover:bg-sky-700 text-white px-6 py-2 rounded-lg shadow-lg font-bold">
-                    <i class="fa-solid fa-download"></i> Save as PDF / Print
-                </button>
-                <span class="text-[9px] text-slate-400 mt-1 uppercase font-black tracking-widest">(Choose "Save as PDF" in print dialog)</span>
-            </div>
-            <a href="https://patient.ivfexperts.pk/dashboard.php" class="bg-sky-50 border border-sky-200 text-sky-700 px-4 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2">
-                <i class="fa-solid fa-house-user"></i> My Records
-            </a>
-        <?php
-endif; ?>
-        <a href="javascript:history.back()" class="bg-gray-800 hover:bg-gray-900 text-white px-5 py-2 rounded-lg shadow-lg font-bold">
-            <i class="fa-solid fa-arrow-left mr-1"></i> Back
+        <div style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+            <button onclick="printDigital()" class="btn-blue">
+                <i class="fa-solid fa-download"></i> Save as PDF / Print
+            </button>
+            <span class="toolbar-label">Choose “Save as PDF” in the dialog</span>
+        </div>
+        <a href="https://patient.ivfexperts.pk/dashboard.php" class="btn-gray">
+            <i class="fa-solid fa-house-user"></i> My Records
         </a>
-    </div>
+    <?php
+endif; ?>
+    <a href="javascript:history.back()" class="btn-gray">
+        <i class="fa-solid fa-arrow-left"></i> Back
+    </a>
+</div>
 
     <!-- The Actual Document -->
-    <div class="a4-container flex flex-col relative pb-20 font-sans" id="document-container">
-        
-        <!-- Permanent Letterhead Background for Patients -->
+    <div class="a4-container" id="document-container" style="font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;position:relative;">
+
+        <!-- Permanent letterhead for patient portal -->
         <?php if (!isset($_SESSION['admin_id']) && !empty($sa['letterhead_image_path'])): ?>
-            <img src="https://ivfexperts.pk/<?php echo htmlspecialchars($sa['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
+        <img src="https://ivfexperts.pk/<?php echo htmlspecialchars($sa['letterhead_image_path']); ?>" alt="Letterhead" class="letterhead-bg" />
         <?php
 endif; ?>
 
@@ -404,94 +442,68 @@ endif; ?>
 
     </div>
 
-    <!-- Digital PDF Print & WhatsApp Logic -->
     <script>
+        var SA_CONFIG = {
+            letterheadUrl: '<?php echo !empty($sa['letterhead_image_path']) ? addslashes('https://ivfexperts.pk/' . $sa['letterhead_image_path']) : ''; ?>',
+            hasLetterhead: <?php echo !empty($sa['letterhead_image_path']) ? 'true' : 'false'; ?>,
+            isAdmin: <?php echo isset($_SESSION['admin_id']) ? 'true' : 'false'; ?>
+        };
+
+        var _printAttempted = false;
         function printDigital() {
-            <?php if (!empty($sa['letterhead_image_path'])): ?>
-            
-            <?php if (isset($_SESSION['admin_id'])): ?>
-                // Admin temporary digital print toggle
-                document.body.classList.add('digital-mode');
-                
-                const img = document.createElement('img');
-                img.src = 'https://ivfexperts.pk/<?php echo addslashes($sa['letterhead_image_path']); ?>';
-                img.setAttribute('class', 'letterhead-bg');
-                img.id = 'temp-letterhead';
-                document.getElementById('document-container').appendChild(img);
+            if (_printAttempted) return;
+            _printAttempted = true;
 
-                // Add a timeout to prevent hanging if image fails or is slow
-                const printTimeout = setTimeout(() => {
-                    if (!window.printAttempted) {
-                        window.printAttempted = true;
-                        window.print();
-                        document.body.classList.remove('digital-mode');
-                        img.remove();
-                    }
-                }, 3000);
+            if (SA_CONFIG.hasLetterhead && SA_CONFIG.isAdmin) {
+                document.body.style.background = '#fff';
+                var container = document.getElementById('document-container');
+                var old = container.querySelector('.temp-lh');
+                if (old) old.remove();
 
-                img.onload = () => {
-                    if (!window.printAttempted) {
-                        clearTimeout(printTimeout);
-                        window.printAttempted = true;
-                        window.print();
-                        document.body.classList.remove('digital-mode');
+                var img = document.createElement('img');
+                img.className = 'letterhead-bg temp-lh';
+                img.src = SA_CONFIG.letterheadUrl;
+                container.insertBefore(img, container.firstChild);
+
+                var done = false;
+                var doneFn = function() {
+                    if (done) return;
+                    done = true;
+                    window.print();
+                    setTimeout(function() {
+                        _printAttempted = false;
                         img.remove();
-                    }
+                    }, 1500);
                 };
-                img.onerror = () => {
-                    clearTimeout(printTimeout);
-                    if (!window.printAttempted) {
-                        window.printAttempted = true;
-                        alert("Letterhead Image failed to load. Printing without letterhead.");
-                        window.print();
-                        document.body.classList.remove('digital-mode');
-                        img.remove();
-                    }
-                };
-            <?php
-    else: ?>
-                // Patient is already in digital mode permanently
+                img.onload = doneFn;
+                img.onerror = doneFn;
+                setTimeout(doneFn, 3000);
+            } else {
                 window.print();
-            <?php
-    endif; ?>
-
-            <?php
-else: ?>
-            // No letterhead fallback
-            window.print();
-            <?php
-endif; ?>
+                setTimeout(function() { _printAttempted = false; }, 1500);
+            }
         }
 
         function sendWhatsApp() {
-            let phone = "<?php echo esc($sa['phone']); ?>";
-            phone = phone.replace(/\D/g, ''); // strip to numbers only
-            
+            var phone = '<?php echo esc($sa['phone']); ?>'.replace(/\D/g, '');
             if (!phone || phone.length < 10) {
-                let manualPhone = prompt("Patient phone number is missing or invalid. Please enter a valid number (e.g. 923111101483):", "92");
-                if (!manualPhone) return;
-                phone = manualPhone.replace(/\D/g, '');
+                phone = prompt('Enter WhatsApp number (e.g. 923001234567):', '92');
+                if (!phone) return;
+                phone = phone.replace(/\D/g, '');
             } else if (phone.startsWith('03')) {
                 phone = '92' + phone.substring(1);
             }
-            
-            const hash = "<?php echo $sa['qrcode_hash']; ?>";
-            const patientName = "<?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?>";
-            const link = "https://patient.ivfexperts.pk/verify.php?hash=" + hash;
-            
-            const text = `Dear ${patientName},\n\nWe hope this message finds you well. Here is your recent Semen Analysis from IVF Experts. You can view and download your secure digital record by clicking the link below:\n\nView & Download Record: ${link}\n\nPlease feel free to reach out if you have any questions. Your health and family are our priority.\n\nRegards,\nDr. Adnan Jabbar\nMBBS, DFM, MH, MPH, CGP\nFertility, Family & Emergency Medicine\n+92 3 111 101 483 (IVF)\nhello@ivfexperts.pk\nwww.ivfexperts.pk`;
-            
-            const url = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
-            window.open(url, '_blank');
+            var hash = '<?php echo $sa['qrcode_hash']; ?>';
+            var name = '<?php echo esc($sa['first_name'] . ' ' . $sa['last_name']); ?>';
+            var link = 'https://patient.ivfexperts.pk/verify.php?hash=' + hash;
+            var msg  = 'Dear ' + name + ',\n\nHere is your Semen Analysis report from IVF Experts Clinic. View and download securely:\n\n' + link + '\n\nRegards,\nDr. Adnan Jabbar\n+92 3 111 101 483';
+            window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
         }
 
-        // Auto-trigger digital print mode for patients on portal
         <?php if (!isset($_SESSION['admin_id'])): ?>
-        window.onload = function() {
-            setTimeout(() => {
-                printDigital();
-            }, 500);
-        };
+        window.addEventListener('load', function() {
+            setTimeout(function() { printDigital(); }, 600);
+        });
         <?php
 endif; ?>
     </script>

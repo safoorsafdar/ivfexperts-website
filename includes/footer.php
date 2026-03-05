@@ -35,7 +35,7 @@
                     <li><a href="/blog/" class="hover:text-teal-400 transition-colors duration-300">Blog / Articles</a></li>
                     <li><a href="/contact/" class="hover:text-teal-400 transition-colors duration-300">Consultation</a></li>
                     <li class="pt-3">
-                        <a href="/portal/" class="inline-flex items-center gap-2 bg-sky-700 hover:bg-sky-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-[0_0_20px_rgba(3,105,161,0.3)] hover:shadow-[0_0_30px_rgba(3,105,161,0.5)]">
+                        <a href="https://patient.ivfexperts.pk" class="inline-flex items-center gap-2 bg-sky-700 hover:bg-sky-600 text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 shadow-[0_0_20px_rgba(3,105,161,0.3)] hover:shadow-[0_0_30px_rgba(3,105,161,0.5)]">
                             <i class="fa-solid fa-laptop-medical"></i> Patient Reporting Portal
                         </a>
                     </li>

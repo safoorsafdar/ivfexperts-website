@@ -9,6 +9,7 @@ $today = date('Y-m-d');
 $stats = [
     'patients_total' => 0,
     'patients_month' => 0,
+    'patients_today' => 0,
     'prescriptions_month' => 0,
     'pending_labs' => 0,
     'revenue_month' => 0,
@@ -16,8 +17,8 @@ $stats = [
 ];
 
 try {
-    $m = $conn->escape_string($currentMonth);
-    $t = $conn->escape_string($today);
+    $m = date('Y-m');
+    $t = date('Y-m-d');
 
     $r = $conn->query("SELECT COUNT(*) AS c FROM patients");
     if ($r)
@@ -25,6 +26,9 @@ try {
     $r = $conn->query("SELECT COUNT(*) AS c FROM patients WHERE DATE_FORMAT(created_at,'%Y-%m') = '$m'");
     if ($r)
         $stats['patients_month'] = $r->fetch_assoc()['c'];
+    $r = $conn->query("SELECT COUNT(*) AS c FROM patients WHERE DATE(created_at) = '$t'");
+    if ($r)
+        $stats['patients_today'] = $r->fetch_assoc()['c'];
     $r = $conn->query("SELECT COUNT(*) AS c FROM prescriptions WHERE DATE_FORMAT(created_at,'%Y-%m') = '$m'");
     if ($r)
         $stats['prescriptions_month'] = $r->fetch_assoc()['c'];
@@ -233,31 +237,37 @@ endif; ?>
         <div class="space-y-8">
 
             <!-- Quick Actions -->
-            <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 overflow-hidden relative group">
-                <div class="absolute -right-10 -top-10 w-40 h-40 bg-brand-500/10 rounded-full blur-3xl group-hover:bg-brand-500/20 transition-all duration-700"></div>
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-2xl p-6 shadow-xl border border-slate-700/50 overflow-hidden relative group">
+                <div class="absolute -right-10 -top-10 w-40 h-40 bg-teal-500/10 rounded-full blur-3xl group-hover:bg-teal-500/20 transition-all duration-700"></div>
                 <div class="relative z-10">
-                    <h3 class="font-black text-white text-sm flex items-center gap-2 mb-6 uppercase tracking-[0.2em]">
-                        <i class="fa-solid fa-bolt-lightning text-brand-400 text-xs"></i> Clinical Forge
+                    <h3 class="font-black text-white text-sm flex items-center gap-2 mb-1 uppercase tracking-[0.2em]">
+                        <i class="fa-solid fa-bolt-lightning text-teal-400 text-xs"></i> Quick Actions
                     </h3>
+                    <p class="text-slate-400 text-[10px] mb-5 font-medium">Shortcuts to clinical workflows</p>
                     <div class="grid grid-cols-2 gap-3">
                         <?php
 $actions = [
-    ['href' => 'patients_add.php', 'icon' => 'fa-user-plus', 'label' => 'Register', 'color' => 'brand'],
+    ['href' => 'patients_add.php', 'icon' => 'fa-user-plus', 'label' => 'New Patient', 'color' => 'teal'],
     ['href' => 'semen_analyses_add.php', 'icon' => 'fa-flask-vial', 'label' => 'Semen Lab', 'color' => 'sky'],
-    ['href' => 'prescriptions_add.php', 'icon' => 'fa-prescription', 'label' => 'Rx Write', 'color' => 'indigo'],
-    ['href' => 'lab_results_add.php', 'icon' => 'fa-vials', 'label' => 'Lab Post', 'color' => 'amber'],
-    ['href' => 'ultrasounds_add.php', 'icon' => 'fa-image', 'label' => 'Scan Add', 'color' => 'emerald'],
+    ['href' => 'prescriptions_add.php', 'icon' => 'fa-prescription', 'label' => 'Write Rx', 'color' => 'indigo'],
+    ['href' => 'lab_results_add.php', 'icon' => 'fa-vials', 'label' => 'Lab Result', 'color' => 'amber'],
+    ['href' => 'ultrasounds_add.php', 'icon' => 'fa-image', 'label' => 'Ultrasound', 'color' => 'emerald'],
     ['href' => 'receipts_add.php', 'icon' => 'fa-file-invoice-dollar', 'label' => 'Billing', 'color' => 'rose'],
 ];
 foreach ($actions as $a):
 ?>
                         <a href="<?php echo $a['href']; ?>"
-                           class="flex flex-col items-center justify-center gap-2 p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 hover:border-white/10 group/btn">
-                            <i class="fa-solid <?php echo $a['icon']; ?> text-brand-400 text-lg group-hover/btn:scale-110 transition-transform"></i>
-                            <span class="text-[10px] font-black text-slate-400 uppercase tracking-widest group-hover/btn:text-white transition-colors"><?php echo $a['label']; ?></span>
+                           class="flex flex-col items-center justify-center gap-2 p-3.5 bg-white/5 hover:bg-white/10 rounded-2xl transition-all border border-white/5 hover:border-white/15 group/btn">
+                            <i class="fa-solid <?php echo $a['icon']; ?> text-<?php echo $a['color']; ?>-400 text-lg group-hover/btn:scale-110 transition-transform"></i>
+                            <span class="text-[10px] font-bold text-slate-300 group-hover/btn:text-white transition-colors"><?php echo $a['label']; ?></span>
                         </a>
                         <?php
 endforeach; ?>
+                    </div>
+                    <!-- Today badge -->
+                    <div class="mt-4 pt-4 border-t border-white/10 flex items-center justify-between">
+                        <span class="text-slate-400 text-[10px] font-semibold">Patients today</span>
+                        <span class="text-white font-black text-sm"><?php echo number_format($stats['patients_today']); ?></span>
                     </div>
                 </div>
             </div>

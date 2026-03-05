@@ -333,7 +333,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </nav>
   <!-- CTA Buttons (Desktop) - Patient Login + WhatsApp -->
   <div class="hidden md:flex items-center gap-2">
-    <a href="/portal/"
+    <a href="https://patient.ivfexperts.pk"
        class="bg-sky-600 text-white px-3 py-2 rounded-md font-semibold hover:bg-sky-700 transition text-xs shadow-[0_4px_15px_rgba(14,165,233,0.3)] border-none flex items-center gap-2">
       <i class="fa-solid fa-laptop-medical text-xs"></i> Patient Login
     </a>
@@ -403,7 +403,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <a href="/male-infertility/erectile-ejaculatory-dysfunction.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-triangle-exclamation" style="width:16px;text-align:center;margin-right:6px;color:#f59e0b;"></i> Erectile &amp; Ejaculatory Dysfunction</a>
           <a href="/male-infertility/dna-fragmentation.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-link-slash" style="width:16px;text-align:center;margin-right:6px;color:#f97316;"></i> DNA Fragmentation</a>
           <a href="/male-infertility/unexplained-male-infertility.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-question" style="width:16px;text-align:center;margin-right:6px;color:#94a3b8;"></i> Unexplained Male Infertility</a>
-          <a href="/male-infertility/klinefelters-syndrome.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-person-circle-question text-indigo-400 w-4 text-center text-xs"></i> Klinefelter's Syndrome</a>
+          <a href="/male-infertility/klinefelters-syndrome.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-person-circle-question" style="width:16px;text-align:center;margin-right:6px;color:#a855f7;"></i> Klinefelter's Syndrome</a>
           <a href="/male-infertility/hypogonadotropic-hypogonadism.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-arrow-trend-down" style="width:16px;text-align:center;margin-right:6px;color:#ec4899;"></i> Hypogonadotropic Hypogonadism</a>
           <a href="/male-infertility/low-testicular-volume.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-minimize" style="width:16px;text-align:center;margin-right:6px;color:#64748b;"></i> Low Testicular Volume</a>
           <a href="/male-infertility/primary-testicular-failure.php" style="display:block;padding:8px 16px;font-size:13px;color:#475569;text-decoration:none;"><i class="fa-solid fa-circle-xmark" style="width:16px;text-align:center;margin-right:6px;color:#ef4444;"></i> Primary Testicular Failure</a>
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </nav>
     <!-- Mobile CTAs -->
     <div style="padding:16px 24px 32px;display:flex;flex-direction:column;gap:10px;">
-      <a href="/portal/" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0284c7;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(14,165,233,0.3);">
+      <a href="https://patient.ivfexperts.pk" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0284c7;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(14,165,233,0.3);">
         <i class="fa-solid fa-laptop-medical"></i>
         Patient Login
       </a>

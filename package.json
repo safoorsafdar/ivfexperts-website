@@ -5,7 +5,10 @@
   "main": "index.js",
   "scripts": {
     "build": "tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css",
-    "watch": "tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch"
+    "watch": "tailwindcss -i ./assets/css/input.css -o ./assets/css/style.css --watch",
+    "admin:build": "tailwindcss -i ./4me/assets/css/admin-input.css -o ./4me/assets/css/admin-compiled.css",
+    "admin:watch": "tailwindcss -i ./4me/assets/css/admin-input.css -o ./4me/assets/css/admin-compiled.css --watch",
+    "build:all": "npm run build && npm run admin:build"
   },
   "repository": {
     "type": "git",
