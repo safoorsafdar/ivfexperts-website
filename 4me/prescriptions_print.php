@@ -208,18 +208,26 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         /* ── Screen: show as A4 card ── */
         .rx-page {
             width: 210mm;
+            min-height: 297mm;
             background: #fff;
             margin: 0 auto 20px auto;
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             position: relative;
+            /* In Patient view, we simulate the physical page margins on screen */
+            <?php if ($digital_auto): ?>
+            padding: <?php echo $mt; ?> <?php echo $mr; ?> <?php echo $mb; ?> <?php echo $ml; ?>;
+            <?php
+endif; ?>
         }
 
         /* ── Print: each rx-page = one physical page ── */
         @media print {
-            html, body { background: #fff !important; margin: 0 !important; padding: 0 !important; }
+            html, body { background: transparent !important; margin: 0 !important; padding: 0 !important; }
             .rx-page {
                 width: 100%;
+                min-height: auto;
                 margin: 0;
+                padding: 0; /* Print margins handled by @page */
                 box-shadow: none;
                 page-break-after: always;
             }
@@ -294,6 +302,14 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         .letterhead-bg {
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             z-index: -1; object-fit: fill; pointer-events: none;
+        }
+        
+        /* If printing Digital PDF, force background graphics */
+        @media print {
+            .letterhead-bg {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
         }
 
         /* ── QR code ── */
@@ -585,18 +601,19 @@ else: ?>
                         <thead>
                             <tr>
                                 <th style="width:28px;text-align:center;">Sr.</th>
-                                <th style="width:35%;">Medicine</th>
-                                <th style="width:15%;">Dosage</th>
-                                <th style="width:16%;">Frequency</th>
-                                <th style="width:14%;">Duration</th>
-                                <th>Instructions</th>
+                                <th style="width:40%;">Medicine</th>
+                                <th style="width:20%;">Dosage</th>
+                                <th style="width:20%;">Frequency</th>
+                                <th style="width:20%;">Duration</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($items as $idx => $item): ?>
-                            <tr style="background:<?php echo $idx % 2 === 0 ? '#fff' : '#f9fafb'; ?>">
-                                <td style="text-align:center;font-weight:700;color:#9ca3af;"><?php echo $idx + 1; ?>.</td>
-                                <td>
+                            <?php foreach ($items as $idx => $item):
+        $bg = $idx % 2 === 0 ? '#fff' : '#f9fafb';
+?>
+                            <tr style="background:<?php echo $bg; ?>; border-bottom: none;">
+                                <td style="text-align:center;font-weight:700;color:#9ca3af;border-bottom:none;padding-bottom:1px;"><?php echo $idx + 1; ?>.</td>
+                                <td style="border-bottom:none;padding-bottom:1px;">
                                     <div class="med-name"><?php echo esc($item['medicine_name']); ?></div>
                                     <?php if (!empty($item['formula'])): ?>
                                     <div class="med-formula"><?php echo esc($item['formula']); ?></div>
@@ -606,10 +623,15 @@ else: ?>
                                     <?php
         endif; ?>
                                 </td>
-                                <td style="font-weight:600;color:#1f2937;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
-                                <td class="med-freq"><?php echo esc($item['frequency'] ?: '—'); ?></td>
-                                <td style="font-weight:600;color:#1f2937;white-space:nowrap;"><?php echo esc($item['duration'] ?: '—'); ?></td>
-                                <td style="font-size:10px;color:#4b5563;font-style:italic;"><?php echo esc($item['instructions'] ?: '—'); ?></td>
+                                <td style="font-weight:600;color:#1f2937;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
+                                <td class="med-freq" style="border-bottom:none;padding-bottom:1px;"><?php echo esc($item['frequency'] ?: '—'); ?></td>
+                                <td style="font-weight:600;color:#1f2937;white-space:nowrap;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['duration'] ?: '—'); ?></td>
+                            </tr>
+                            <tr style="background:<?php echo $bg; ?>; border-top: none;">
+                                <td style="border-top:none;padding-top:1px;"></td>
+                                <td colspan="4" style="border-top:none;padding-top:1px;font-size:10px;color:#4b5563;font-style:italic;">
+                                    <?php echo esc($item['instructions'] ?: '—'); ?>
+                                </td>
                             </tr>
                             <?php
     endforeach; ?>
@@ -752,16 +774,19 @@ function printDigital() {
     if (_printAttempted) return;
     _printAttempted = true;
 
-    if (RX_CONFIG.hasLetterhead && RX_CONFIG.isAdmin) {
+    if (RX_CONFIG.hasLetterhead) {
         document.body.style.background = '#fff';
         injectLetterheads(function() {
             window.print();
             setTimeout(function() {
                 _printAttempted = false;
-                // Remove injected letterheads to restore screen view
-                document.querySelectorAll('.rx-page .letterhead-bg').forEach(function(img) {
-                    if (!img.classList.contains('perm-lh')) img.remove();
-                });
+                // Remove injected letterheads to restore screen view ONLY for admin.
+                // Patient portal keeps them permanently.
+                if (RX_CONFIG.isAdmin) {
+                    document.querySelectorAll('.rx-page .letterhead-bg').forEach(function(img) {
+                        if (!img.classList.contains('perm-lh')) img.remove();
+                    });
+                }
             }, 1500);
         });
     } else {
