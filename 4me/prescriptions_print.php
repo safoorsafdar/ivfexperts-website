@@ -131,20 +131,17 @@ $icds = array_filter($diagnoses, fn($d) => $d['type'] === 'ICD');
 $cpts = array_filter($diagnoses, fn($d) => in_array($d['type'], ['CPT', 'SNOMED']));
 
 // ── Margins from DB ───────────────────────────────────────────────────────────
-$mt = $rx['margin_top'] ?: '40mm';
-$mb = $rx['margin_bottom'] ?: '30mm';
-$ml = $rx['margin_left'] ?: '20mm';
-$mr = $rx['margin_right'] ?: '20mm';
+// Parse pure numeric values for bulletproof CSS geometry (avoids calc() syntax errors)
+$mt_raw = floatval(preg_replace('/[^0-9.]/', '', $rx['margin_top'] ?: '40'));
+$mb_raw = floatval(preg_replace('/[^0-9.]/', '', $rx['margin_bottom'] ?: '30'));
+$ml_raw = floatval(preg_replace('/[^0-9.]/', '', $rx['margin_left'] ?: '20'));
+$mr_raw = floatval(preg_replace('/[^0-9.]/', '', $rx['margin_right'] ?: '20'));
 
-// Make sure margin values end in mm
-if (is_numeric($mt))
-    $mt .= 'mm';
-if (is_numeric($mb))
-    $mb .= 'mm';
-if (is_numeric($ml))
-    $ml .= 'mm';
-if (is_numeric($mr))
-    $mr .= 'mm';
+// Keep original variables for legacy text just in case
+$mt = $mt_raw . 'mm';
+$mb = $mb_raw . 'mm';
+$ml = $ml_raw . 'mm';
+$mr = $mr_raw . 'mm';
 
 $has_letterhead = !empty($rx['letterhead_image_path']);
 $letterhead_url = $has_letterhead ? 'https://ivfexperts.pk/' . addslashes($rx['letterhead_image_path']) : '';
@@ -211,14 +208,16 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             position: relative;
             box-sizing: border-box;
-            /* Apply left/right edges. Top/bottom offset handled natively by repeating table header/footer */
-            padding: 0 <?php echo $mr; ?> 0 <?php echo $ml; ?>;
+            /* Apply left/right edges. */
+            padding-left: <?php echo $ml; ?>;
+            padding-right: <?php echo $mr; ?>;
         }
 
         .rx-page.with-letterhead {
             background-image: url('<?php echo addslashes($letterhead_url); ?>');
             background-size: 210mm 297mm;
             background-repeat: repeat-y;
+            background-position: top center;
             /* Force exact printing of the background image */
             -webkit-print-color-adjust: exact !important;
             print-color-adjust: exact !important;
@@ -251,15 +250,27 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         /* ── Repeating HEADER on every page ── */
         .rx-layout-table thead tr td { padding: 0; }
         .rx-header-cell {
-            padding: calc(<?php echo $mt; ?> + 12px) 16px 8px 16px;
+            padding: 0;
             border-bottom: 2px solid #d1d5db;
+        }
+        .rx-header-content {
+            padding-top: <?php echo $mt_raw + 4; ?>mm; /* Adds margin + 4mm visual buffer */
+            padding-bottom: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
         }
 
         /* ── Repeating FOOTER on every page ── */
         .rx-layout-table tfoot tr td { padding: 0; }
         .rx-footer-cell {
-            padding: 8px 16px calc(<?php echo $mb; ?> + 12px) 16px;
+            padding: 0;
             border-top: 1px solid #d1d5db;
+        }
+        .rx-footer-content {
+            padding-bottom: <?php echo $mb_raw + 4; ?>mm; /* Adds margin + 4mm visual buffer */
+            padding-top: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
         }
 
         /* ── Body content area ── */
@@ -276,7 +287,7 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         }
 
         /* ── Medication table ── */
-        .med-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+        .med-table { width: 100%; border-collapse: collapse; font-size: 11px; table-layout: auto; word-wrap: break-word; overflow-wrap: break-word; }
         .med-table th {
             background: #f3f4f6; font-size: 9px; text-transform: uppercase;
             letter-spacing: 1px; color: #374151; font-weight: 700;
@@ -434,7 +445,7 @@ endif; ?>
         <!-- ══ REPEATING HEADER ══════════════════════════════════ -->
         <thead>
             <tr><td class="rx-header-cell">
-                <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+                <div class="rx-header-content" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
 
                     <!-- Patient Details -->
                     <div style="flex:1;">
@@ -494,7 +505,7 @@ endif; ?>
         <!-- ══ REPEATING FOOTER ══════════════════════════════════ -->
         <tfoot>
             <tr><td class="rx-footer-cell">
-                <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+                <div class="rx-footer-content" style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
                     <!-- Sig line -->
                     <div class="sig-line" style="flex:1;">
                         <div class="sig-text">
