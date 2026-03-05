@@ -15,6 +15,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['logout'])) {
 }
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once dirname(__DIR__) . '/4me/includes/error_handler.php';
 require_once __DIR__ . '/includes/analytics_helper.php';
 
 $patient_id = intval($_SESSION['portal_patient_id']);
@@ -42,10 +43,15 @@ $cnic_clean = preg_replace('/[^0-9]/', '', $patient['cnic'] ?? '');
 $phone = $patient['phone'] ?? '';
 $mr = $patient['mr_number'] ?? '';
 
+// Ensure we actually have contact info to match against to avoid empty-string collisions
+$p_phone = !empty($phone) ? $phone : 'NEVER_MATCH_EMPTY_PHONE';
+$p_mr = !empty($mr) ? $mr : 'NEVER_MATCH_EMPTY_MR';
+$p_cnic = !empty($cnic_clean) ? $cnic_clean : 'NEVER_MATCH_EMPTY_CNIC';
+
 // Find if anyone matches this patient's spouse_name and shares contact info
 if (!empty($patient['spouse_name'])) {
     $stmt_spouse = $conn->prepare("SELECT id FROM patients WHERE first_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
-    $stmt_spouse->bind_param("ssss", $patient['spouse_name'], $phone, $mr, $cnic_clean);
+    $stmt_spouse->bind_param("ssss", $patient['spouse_name'], $p_phone, $p_mr, $p_cnic);
     $stmt_spouse->execute();
     $res_spouse = $stmt_spouse->get_result();
     while ($row = $res_spouse->fetch_assoc()) {
@@ -55,7 +61,7 @@ if (!empty($patient['spouse_name'])) {
 
 // Find if anyone listed THIS patient as their spouse
 $stmt_rev = $conn->prepare("SELECT id FROM patients WHERE spouse_name = ? AND (phone = ? OR mr_number = ? OR REPLACE(cnic, '-', '') = ?)");
-$stmt_rev->bind_param("ssss", $patient['first_name'], $phone, $mr, $cnic_clean);
+$stmt_rev->bind_param("ssss", $patient['first_name'], $p_phone, $p_mr, $p_cnic);
 $stmt_rev->execute();
 $res_rev = $stmt_rev->get_result();
 while ($row = $res_rev->fetch_assoc()) {
@@ -63,6 +69,7 @@ while ($row = $res_rev->fetch_assoc()) {
 }
 
 $patient_ids = array_unique($patient_ids);
+$patient_ids = array_map('intval', $patient_ids); // Security: enforce integers
 $ids_csv = implode(',', $patient_ids);
 
 // Fetch all 5 document streams for all linked IDs with spouse attribution
@@ -176,10 +183,11 @@ $portal_tabs = [
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Figtree:wght@300;400;500;600;700&family=Noto+Sans:wght@300;400;500;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="/assets/js/alpine.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     <style>
         [x-cloak] { display: none !important; }
+        #panel-timeline:not([style*="display"]) { display: block !important; }
         body { font-family: 'Noto Sans', sans-serif; }
         h1, h2, h3, h4, .font-heading { font-family: 'Figtree', sans-serif; }
         .prose-portal p { margin-bottom: 0.5em; }
@@ -399,7 +407,7 @@ endif; ?>
             <div class="lg:col-span-3">
                 
                 <!-- Tab: Clinical Timeline -->
-                <div x-show="activeTab === 'timeline'" 
+                <div id="panel-timeline" x-show="activeTab === 'timeline'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -472,7 +480,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: My Procedures -->
-                <div x-show="activeTab === 'procedures'" 
+                <div id="panel-procedures" x-show="activeTab === 'procedures'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -519,7 +527,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Lab Results -->
-                <div x-show="activeTab === 'labs'" 
+                <div id="panel-labs" x-show="activeTab === 'labs'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -611,7 +619,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Treatment Analytics -->
-                <div x-show="activeTab === 'analytics'" 
+                <div id="panel-analytics" x-show="activeTab === 'analytics'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -684,7 +692,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Scans & Reports -->
-                <div x-show="activeTab === 'diagnostic'" 
+                <div id="panel-diagnostic" x-show="activeTab === 'diagnostic'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"
@@ -758,7 +766,7 @@ endif; ?>
                 </div>
 
                 <!-- Tab: Prescriptions -->
-                <div x-show="activeTab === 'prescriptions'" 
+                <div id="panel-prescriptions" x-show="activeTab === 'prescriptions'" 
                      x-transition:enter="transition ease-out duration-300"
                      x-transition:enter-start="opacity-0 translate-y-4"
                      x-transition:enter-end="opacity-100 translate-y-0"

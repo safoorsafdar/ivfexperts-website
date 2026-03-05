@@ -10,7 +10,7 @@ require_once __DIR__ . '/includes/rate_limit.php';
 require_once __DIR__ . '/includes/csrf.php';
 
 $hash = preg_replace('/[^a-f0-9]/i', '', trim($_GET['hash'] ?? ''));
-$type = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt']) ? $_GET['type'] : null;
+$type = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt'], true) ? $_GET['type'] : null;
 
 if (empty($hash)) {
     die("Invalid QR code. Please scan the code directly from your printed report.");

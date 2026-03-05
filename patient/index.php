@@ -7,27 +7,31 @@ if (isset($_SESSION['portal_patient_id'])) {
 }
 
 require_once dirname(__DIR__) . '/4me/config/db.php';
+require_once dirname(__DIR__) . '/4me/includes/error_handler.php';
 require_once __DIR__ . '/includes/rate_limit.php';
 require_once __DIR__ . '/includes/csrf.php';
 $error = '';
 
 if (!empty($_GET['redirect_hash'])) {
     $_SESSION['portal_redirect_hash'] = preg_replace('/[^a-f0-9]/', '', $_GET['redirect_hash']);
-    $_SESSION['portal_redirect_type'] = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt']) ? $_GET['type'] : 'rx';
+    $_SESSION['portal_redirect_type'] = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt'], true) ? $_GET['type'] : 'rx';
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (!csrf_verify()) {
         $error = "Security token mismatch. Please try again.";
-    } elseif (!check_rate_limit('login_attempts')) {
+    }
+    elseif (!check_rate_limit('login_attempts')) {
         $error = "Too many login attempts. Please wait a few minutes.";
-    } else {
-        $phone_mr   = trim($_POST['phone_mr'] ?? '');
+    }
+    else {
+        $phone_mr = trim($_POST['phone_mr'] ?? '');
         $cnic_clean = preg_replace('/[^0-9]/', '', $_POST['cnic'] ?? '');
 
         if (empty($phone_mr) || empty($cnic_clean)) {
             $error = "Please fill in both fields.";
-        } else {
+        }
+        else {
             try {
                 $stmt = $conn->prepare(
                     "SELECT id FROM patients
@@ -42,21 +46,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 if ($row) {
                     session_regenerate_id(true);
                     $_SESSION['portal_patient_id'] = $row['id'];
-                    $_SESSION['session_start']      = time();
-                    $_SESSION['last_activity']      = time();
+                    $_SESSION['session_start'] = time();
+                    $_SESSION['last_activity'] = time();
                     if (!empty($_SESSION['portal_redirect_hash'])) {
                         $h = $_SESSION['portal_redirect_hash'];
                         $t = $_SESSION['portal_redirect_type'];
                         unset($_SESSION['portal_redirect_hash'], $_SESSION['portal_redirect_type']);
                         header("Location: verify.php?hash={$h}&type={$t}");
-                    } else {
+                    }
+                    else {
                         header("Location: dashboard.php");
                     }
                     exit;
-                } else {
+                }
+                else {
                     $error = "No record found. Please check your Phone / MR Number and CNIC.";
                 }
-            } catch (Exception $e) {
+            }
+            catch (Exception $e) {
                 $error = "System error. Please try again later.";
             }
         }
@@ -210,14 +217,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <i class="fa-solid fa-circle-exclamation mt-0.5 shrink-0"></i>
                     <span><?php echo htmlspecialchars($error); ?></span>
                 </div>
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <?php if (isset($_GET['expired'])): ?>
                 <div class="warn-box px-4 py-3 text-sm font-medium mb-5 flex items-start gap-2.5">
                     <i class="fa-solid fa-clock-rotate-left mt-0.5 shrink-0"></i>
                     <span>Session expired for your security. Please log in again.</span>
                 </div>
-            <?php endif; ?>
+            <?php
+endif; ?>
 
             <form method="POST" novalidate>
                 <input type="hidden" name="_csrf" value="<?php echo csrf_token(); ?>">
@@ -279,20 +288,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Feature Chips -->
         <div class="grid grid-cols-3 gap-2 mt-4">
             <?php
-            $features = [
-                ['icon' => 'fa-prescription-bottle-medical', 'color' => 'text-indigo-500',  'label' => 'Prescriptions'],
-                ['icon' => 'fa-vials',                       'color' => 'text-teal-500',    'label' => 'Lab Results'],
-                ['icon' => 'fa-image',                       'color' => 'text-emerald-500', 'label' => 'Scan Reports'],
-                ['icon' => 'fa-microscope',                  'color' => 'text-sky-500',     'label' => 'Semen Analysis'],
-                ['icon' => 'fa-syringe',                     'color' => 'text-violet-500',  'label' => 'Procedures'],
-                ['icon' => 'fa-receipt',                     'color' => 'text-amber-500',   'label' => 'Billing'],
-            ];
-            foreach ($features as $f): ?>
+$features = [
+    ['icon' => 'fa-prescription-bottle-medical', 'color' => 'text-indigo-500', 'label' => 'Prescriptions'],
+    ['icon' => 'fa-vials', 'color' => 'text-teal-500', 'label' => 'Lab Results'],
+    ['icon' => 'fa-image', 'color' => 'text-emerald-500', 'label' => 'Scan Reports'],
+    ['icon' => 'fa-microscope', 'color' => 'text-sky-500', 'label' => 'Semen Analysis'],
+    ['icon' => 'fa-syringe', 'color' => 'text-violet-500', 'label' => 'Procedures'],
+    ['icon' => 'fa-receipt', 'color' => 'text-amber-500', 'label' => 'Billing'],
+];
+foreach ($features as $f): ?>
             <div class="feature-chip px-3 py-3 text-center">
                 <i class="fa-solid <?php echo $f['icon']; ?> <?php echo $f['color']; ?> text-base mb-1.5 block"></i>
                 <span class="text-[9px] font-semibold text-slate-500 leading-tight"><?php echo $f['label']; ?></span>
             </div>
-            <?php endforeach; ?>
+            <?php
+endforeach; ?>
         </div>
 
         <p class="text-center text-slate-400 text-[9px] font-semibold uppercase tracking-widest mt-5">

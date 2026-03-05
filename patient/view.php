@@ -3,7 +3,7 @@ session_start();
 if (!isset($_SESSION['portal_patient_id'])) {
     // Preserve hash and type for post-login redirect
     $h = preg_replace('/[^a-f0-9]/i', '', $_GET['hash'] ?? '');
-    $t = in_array($_GET['type'] ?? '', ['rx','sa','usg','receipt']) ? $_GET['type'] : 'rx';
+    $t = in_array($_GET['type'] ?? '', ['rx', 'sa', 'usg', 'receipt'], true) ? $_GET['type'] : 'rx';
     header("Location: verify.php?hash={$h}&type={$t}");
     exit;
 }
@@ -69,7 +69,7 @@ if ($doc_id > 0 && !empty($script)) {
 }
 else {
     // Clean error page
-    ?>
+?>
     <!DOCTYPE html>
     <html lang="en"><head><meta charset="UTF-8"><title>Not Found — IVF Experts</title>
     <script src="https://cdn.tailwindcss.com"></script>
