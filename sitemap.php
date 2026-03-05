@@ -27,6 +27,17 @@ $pages = [
     '/portal/' => ['freq' => 'monthly', 'priority' => '0.50'],
 ];
 
+// Glossary pages (clean URLs, no .php extension)
+$pages['/glossary/'] = ['freq' => 'monthly', 'priority' => '0.70'];
+$glossaryTerms = ['ivf', 'icsi', 'amh', 'azoospermia', 'pcos'];
+foreach ($glossaryTerms as $term) {
+    $pages['/glossary/' . $term] = ['freq' => 'monthly', 'priority' => '0.65'];
+}
+
+// Tools pages (clean URLs)
+$pages['/tools/'] = ['freq' => 'monthly', 'priority' => '0.75'];
+$pages['/tools/ivf-success-calculator'] = ['freq' => 'monthly', 'priority' => '0.80'];
+
 // Scan predefined directories dynamically
 foreach ($directoriesToScan as $dir) {
     if (is_dir(__DIR__ . '/' . $dir)) {
