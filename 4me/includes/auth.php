@@ -13,6 +13,8 @@ if (!defined('BYPASS_AUTH') || BYPASS_AUTH !== true) {
 
 // Pass global config
 require_once dirname(__DIR__) . '/config/db.php';
+// Load shared utility helpers (formatDate, badge, emptyState, paginate, db_select, etc.)
+require_once __DIR__ . '/helpers.php';
 
 // Provide standard function for sanitizing output
 function esc($string)
