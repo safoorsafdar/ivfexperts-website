@@ -231,12 +231,13 @@
                 });
             }
         }
-        webVitals.onCLS(sendToGTM);
-        webVitals.onFID(sendToGTM);
-        webVitals.onLCP(sendToGTM);
-        webVitals.onINP(sendToGTM);
-        webVitals.onFCP(sendToGTM);
-        webVitals.onTTFB(sendToGTM);
+        try {
+            webVitals.onCLS(sendToGTM);
+            webVitals.onLCP(sendToGTM);
+            webVitals.onINP(sendToGTM);
+            webVitals.onFCP(sendToGTM);
+            webVitals.onTTFB(sendToGTM);
+        } catch(e) {}
     };
     document.head.appendChild(script);
 })();
