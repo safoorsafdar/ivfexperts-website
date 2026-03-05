@@ -221,7 +221,8 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             background-position: top center;
         }
 
-        /* ── Fixed Letterhead Watermark (PRINT ONLY) ── */
+        /* ── Fixed Letterhead Watermark (DIGITAL PRINT ONLY) ── */
+        /* Hidden on screen always; shown only when body.print-digital class is active */
         .print-watermark {
             display: none;
         }
@@ -229,16 +230,19 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         /* ── Print: each rx-page = one physical page ── */
         @media print {
             html, body { background: transparent !important; margin: 0 !important; padding: 0 !important; }
-            
-            /* The fixed watermark natively stamps on every physical page printed */
-            .print-watermark {
-                display: block;
+
+            /*
+             * Watermark repeats on EVERY page only in digital mode.
+             * position:fixed in @media print = Chrome/Edge stamp it on every physical page.
+             * Physical print: body.print-digital is NOT added → watermark stays hidden → no double letterhead.
+             */
+            body.print-digital .print-watermark {
+                display: block !important;
                 position: fixed;
                 top: 0; left: 0;
                 width: 210mm;
                 height: 297mm;
                 z-index: -1;
-                /* Force background image printing */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
@@ -355,8 +359,7 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
              break-inside: avoid; page-break-inside: avoid;
         }
         .med-table td { padding: 5px 6px; border: 1px solid #e5e7eb; vertical-align: top; }
-        .med-table tbody tr:nth-child(4n-3) td, .med-table tbody tr:nth-child(4n-2) td { background: #fff; }
-        .med-table tbody tr:nth-child(4n-1) td, .med-table tbody tr:nth-child(4n) td { background: #f9fafb; }
+        /* Zebra colouring is set via inline style on each <tbody> — no nth-child needed */
         .med-name { font-weight: 700; color: #111827; font-size: 11px; text-transform: uppercase; }
         .med-formula { font-size: 9px; color: #6366f1; margin-top: 1px; }
         .med-freq { font-weight: 700; color: #4f46e5; }
@@ -676,7 +679,11 @@ endif; ?>
 
                 <div class="med-table-wrap">
                     <table class="med-table" style="border-bottom:1px solid #e5e7eb;">
-                        <tbody>
+                        <!--
+                            Column headers in <thead> so they repeat if the med table
+                            itself happens to overflow a page (rare but possible with 10+ meds).
+                        -->
+                        <thead>
                             <tr class="med-tbl-head">
                                 <th style="width:28px;text-align:center;">Sr.</th>
                                 <th style="width:40%;">Medicine</th>
@@ -684,12 +691,19 @@ endif; ?>
                                 <th style="width:20%;">Frequency</th>
                                 <th style="width:20%;">Duration</th>
                             </tr>
-                            <?php foreach ($items as $idx => $item):
+                        </thead>
+                        <!--
+                            Each medicine gets its OWN <tbody class="med-row-group">.
+                            break-inside:avoid on tbody keeps the name row + instructions row
+                            together — browser won't split them across pages.
+                        -->
+                        <?php foreach ($items as $idx => $item):
         $bg = $idx % 2 === 0 ? '#fff' : '#f9fafb';
 ?>
-                            <tr style="background:<?php echo $bg; ?>; border-bottom: none;" class="med-row-group">
-                                <td style="width:28px; text-align:center;font-weight:700;color:#9ca3af;border-bottom:none;padding-bottom:1px;"><?php echo $idx + 1; ?>.</td>
-                                <td style="width:40%; border-bottom:none;padding-bottom:1px;">
+                        <tbody class="med-row-group" style="background:<?php echo $bg; ?>;">
+                            <tr style="border-bottom:none;">
+                                <td style="width:28px;text-align:center;font-weight:700;color:#9ca3af;border-bottom:none;padding-bottom:1px;"><?php echo $idx + 1; ?>.</td>
+                                <td style="width:40%;border-bottom:none;padding-bottom:1px;">
                                     <div class="med-name"><?php echo esc($item['medicine_name']); ?></div>
                                     <?php if (!empty($item['formula'])): ?>
                                     <div class="med-formula"><?php echo esc($item['formula']); ?></div>
@@ -699,19 +713,19 @@ endif; ?>
                                     <?php
         endif; ?>
                                 </td>
-                                <td style="width:20%; font-weight:600;color:#1f2937;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
-                                <td style="width:20%;" class="med-freq" style="border-bottom:none;padding-bottom:1px;"><?php echo esc($item['frequency'] ?: '—'); ?></td>
-                                <td style="width:20%; font-weight:600;color:#1f2937;white-space:nowrap;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['duration'] ?: '—'); ?></td>
+                                <td style="width:20%;font-weight:600;color:#1f2937;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
+                                <td style="width:20%;font-weight:700;color:#4f46e5;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['frequency'] ?: '—'); ?></td>
+                                <td style="width:20%;font-weight:600;color:#1f2937;white-space:nowrap;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['duration'] ?: '—'); ?></td>
                             </tr>
-                            <tr style="background:<?php echo $bg; ?>; border-top: none;" class="med-row-group">
-                                <td style="width:28px; border-top:none;padding-top:1px;border-bottom:1px solid #e5e7eb;"></td>
+                            <tr style="border-top:none;">
+                                <td style="border-top:none;padding-top:1px;border-bottom:1px solid #e5e7eb;"></td>
                                 <td colspan="4" style="border-top:none;padding-top:1px;border-bottom:1px solid #e5e7eb;font-size:10px;color:#4b5563;font-style:italic;">
                                     <?php echo esc($item['instructions'] ?: '—'); ?>
                                 </td>
                             </tr>
-                            <?php
-    endforeach; ?>
                         </tbody>
+                        <?php
+    endforeach; ?>
                     </table>
                 </div>
                 <?php
@@ -792,9 +806,9 @@ endif; ?>
 <script>
 // ── Configuration from PHP ───────────────────────────────────────────────────
 var RX_CONFIG = {
-    letterheadUrl:  '<?php echo addslashes($letterhead_url); ?>',
-    hasLetterhead:  <?php echo $has_letterhead ? 'true' : 'false'; ?>,
-    isAdmin:        <?php echo $is_admin ? 'true' : 'false'; ?>,
+    letterheadUrl: '<?php echo addslashes($letterhead_url); ?>',
+    hasLetterhead: <?php echo $has_letterhead ? 'true' : 'false'; ?>,
+    isAdmin:       <?php echo $is_admin ? 'true' : 'false'; ?>,
     margins: {
         top:    '<?php echo $mt; ?>',
         bottom: '<?php echo $mb; ?>',
@@ -803,100 +817,58 @@ var RX_CONFIG = {
     }
 };
 
-// ── Helper: parse mm value ────────────────────────────────────────────────────
-function parseMM(v) {
-    return parseFloat(String(v).replace('mm','').replace('cm','')) || 0;
-}
-
-// ── Print Digital (Forces CSS Letterhead Background) ──────────────────────────
-var _printAttempted = false;
+// ── Print Digital PDF (with letterhead background on every page) ──────────────
+//
+// Strategy:
+//   1. Add body.print-digital → @media print rule makes .print-watermark visible
+//      (position:fixed stamps it on every physical page in Chrome/Edge).
+//   2. Call window.print().
+//   3. After dialog closes, remove body.print-digital (clean state for physical print).
+//
+// Physical print button calls window.print() directly — body.print-digital is
+// never added → watermark stays hidden → no double-letterhead on physical paper.
+//
+var _printBusy = false;
 function printDigital() {
-    if (_printAttempted) return;
-    _printAttempted = true;
+    if (_printBusy) return;
+    _printBusy = true;
 
-    if (RX_CONFIG.hasLetterhead) {
-        // Enforce the screen-level CSS letterhead preview for admins making a digital PDF
-        var page = document.getElementById('rx-page-1');
-        var wm = document.querySelector('.print-watermark');
-        
-        if (RX_CONFIG.isAdmin) {
-            page.classList.add('with-letterhead');
-            if (wm) wm.style.display = 'block'; // force watermark on for admin PDF print
-        }
+    document.body.classList.add('print-digital');
 
-        setTimeout(function() {
-            window.print();
-            setTimeout(function() {
-                _printAttempted = false;
-                if (RX_CONFIG.isAdmin) {
-                    page.classList.remove('with-letterhead');
-                    if (wm) wm.style.display = ''; // revert watermark block
-                }
-            }, 1000);
-        }, 100);
-    } else {
+    // Brief pause so browser paints the class before opening print dialog
+    setTimeout(function() {
         window.print();
-        setTimeout(function() { _printAttempted = false; }, 1000);
-    }
+        // Cleanup after the print dialog is dismissed
+        setTimeout(function() {
+            document.body.classList.remove('print-digital');
+            _printBusy = false;
+        }, 1500);
+    }, 150);
 }
 
 // ── WhatsApp sender ───────────────────────────────────────────────────────────
 function sendWhatsApp() {
     var phone = '<?php echo esc($rx['phone']); ?>'.replace(/\D/g, '');
     if (!phone || phone.length < 10) {
-        phone = prompt('Enter patient WhatsApp number (e.g. 923001234567):','92');
+        phone = prompt('Enter patient WhatsApp number (e.g. 923001234567):', '92');
         if (!phone) return;
-        phone = phone.replace(/\D/g,'');
+        phone = phone.replace(/\D/g, '');
     } else if (phone.startsWith('03')) {
         phone = '92' + phone.substring(1);
     }
-    var hash   = '<?php echo $qr_hash; ?>';
-    var name   = '<?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?>';
-    var link   = 'https://patient.ivfexperts.pk/verify.php?hash=' + hash;
-    var msg    = `Dear ${name},\n\nHere is your Prescription from IVF Experts Clinic. View and download:\n\n${link}\n\nRegards,\nDr. Adnan Jabbar\n+92 3 111 101 483`;
+    var hash = '<?php echo $qr_hash; ?>';
+    var name = '<?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?>';
+    var link = 'https://patient.ivfexperts.pk/verify.php?hash=' + hash;
+    var msg  = 'Dear ' + name + ',\n\nHere is your Prescription from IVF Experts Clinic. View and download:\n\n' + link + '\n\nRegards,\nDr. Adnan Jabbar\n+92 3 111 101 483';
     window.open('https://wa.me/' + phone + '?text=' + encodeURIComponent(msg), '_blank');
 }
 
-// ── Auto-trigger for patient portal ──────────────────────────────────────────
+// ── Auto-trigger for patient portal (opens digital PDF immediately) ───────────
 <?php if (!$is_admin): ?>
 window.addEventListener('DOMContentLoaded', function() {
-    setTimeout(function() {
-        printDigital();
-    }, 600);
+    setTimeout(printDigital, 600);
 });
-<?php
-endif; ?>
-// ── Print Digital (Forces CSS Letterhead Background) ──────────────────────────
-var _printAttempted = false;
-function printDigital() {
-    if (_printAttempted) return;
-    _printAttempted = true;
-
-    if (RX_CONFIG.hasLetterhead) {
-        // Enforce the screen-level CSS letterhead preview for admins making a digital PDF
-        var page = document.getElementById('rx-page-1');
-        var wm = document.querySelector('.print-watermark');
-        
-        if (RX_CONFIG.isAdmin) {
-            page.classList.add('with-letterhead');
-            if (wm) wm.style.display = 'block'; // force watermark on for admin PDF print
-        }
-
-        setTimeout(function() {
-            window.print();
-            setTimeout(function() {
-                _printAttempted = false;
-                if (RX_CONFIG.isAdmin) {
-                    page.classList.remove('with-letterhead');
-                    if (wm) wm.style.display = ''; // revert watermark block
-                }
-            }, 1000);
-        }, 100);
-    } else {
-        window.print();
-        setTimeout(function() { _printAttempted = false; }, 1000);
-    }
-}
+<?php endif; ?>
 </script>
 </body>
 </html>
