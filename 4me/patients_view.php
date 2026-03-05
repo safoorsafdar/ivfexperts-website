@@ -182,6 +182,15 @@ include __DIR__ . '/includes/header.php';
 @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style:none; scrollbar-width:none; }
+
+/*
+ * Pre-show the initial active tab BEFORE Alpine.js initialises.
+ * Alpine will take over x-show after it boots (removing x-cloak).
+ * Without this, the deferred Alpine script causes a blank content flash.
+ */
+[x-cloak].tab-panel#panel-<?php echo esc($initial_tab); ?> {
+    display: block !important;
+}
 </style>
 
 <?php if ($error): ?>
@@ -468,7 +477,7 @@ if ($active_protocol):
 endif; ?>
 
             <!-- ─── TAB: Clinical History ─── -->
-            <div x-show="tab === 'history'" x-cloak class="tab-panel">
+            <div x-show="tab === 'history'" x-cloak class="tab-panel" id="panel-history">
                 <?php if (empty($histories)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-brand-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-brand-100">
@@ -591,7 +600,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Prescriptions ─── -->
-            <div x-show="tab === 'rx'" x-cloak class="tab-panel">
+            <div x-show="tab === 'rx'" x-cloak class="tab-panel" id="panel-rx">
                 <?php if (empty($prescriptions)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-brand-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-brand-100">
@@ -777,7 +786,7 @@ endif; ?>
 
             <!-- ─── TAB: Semen Analysis ─── -->
 
-            <div x-show="tab === 'semen'" x-cloak class="tab-panel">
+            <div x-show="tab === 'semen'" x-cloak class="tab-panel" id="panel-semen">
                 <?php if (empty($semen_reports)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-cyan-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-cyan-100">
@@ -889,7 +898,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Ultrasounds ─── -->
-            <div x-show="tab === 'usg'" x-cloak class="tab-panel">
+            <div x-show="tab === 'usg'" x-cloak class="tab-panel" id="panel-usg">
                 <?php if (empty($ultrasounds)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-orange-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-orange-100">
@@ -954,7 +963,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Lab Results ─── -->
-            <div x-show="tab === 'labs'" x-cloak class="tab-panel">
+            <div x-show="tab === 'labs'" x-cloak class="tab-panel" id="panel-labs">
                 <?php if (empty($lab_results)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-amber-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-amber-100">
@@ -1057,7 +1066,7 @@ endif; ?>
             </div>
 
             <!-- ─── TAB: Procedures ─── -->
-            <div x-show="tab === 'procedures'" x-cloak class="tab-panel pb-12">
+            <div x-show="tab === 'procedures'" x-cloak class="tab-panel pb-12" id="panel-procedures">
                 <?php if (empty($advised_procedures)): ?>
                 <div class="flex flex-col items-center justify-center py-24 text-center">
                     <div class="w-24 h-24 bg-rose-50 rounded-[2.5rem] flex items-center justify-center mb-6 shadow-inner border border-rose-100">
