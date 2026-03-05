@@ -215,3 +215,28 @@
 
 })();
 
+// Web Vitals reporting to GTM dataLayer
+(function() {
+    var script = document.createElement('script');
+    script.src = 'https://unpkg.com/web-vitals@3/dist/web-vitals.iife.js';
+    script.onload = function() {
+        function sendToGTM(metric) {
+            if (window.dataLayer) {
+                window.dataLayer.push({
+                    event: 'web_vitals',
+                    metric_name: metric.name,
+                    metric_value: Math.round(metric.name === 'CLS' ? metric.value * 1000 : metric.value),
+                    metric_rating: metric.rating,
+                    metric_id: metric.id
+                });
+            }
+        }
+        webVitals.onCLS(sendToGTM);
+        webVitals.onFID(sendToGTM);
+        webVitals.onLCP(sendToGTM);
+        webVitals.onINP(sendToGTM);
+        webVitals.onFCP(sendToGTM);
+        webVitals.onTTFB(sendToGTM);
+    };
+    document.head.appendChild(script);
+})();
