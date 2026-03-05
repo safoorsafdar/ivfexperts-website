@@ -738,7 +738,8 @@ function injectLetterheads(callback) {
         };
         img.onload = doneFn;
         img.onerror = doneFn;
-        setTimeout(doneFn, 3000); // 3s fallback per image
+        img.crossOrigin = 'anonymous'; // Allow loading from ivfexperts.pk cross-origin
+        setTimeout(doneFn, 4000); // 4s fallback per image (was 3s)
 
         page.insertBefore(img, page.firstChild);
     });
@@ -806,11 +807,20 @@ window.addEventListener('DOMContentLoaded', function() {
 <?php
 endif; ?>
 
-// ── Update page numbers on load ───────────────────────────────────────────────
-window.addEventListener('DOMContentLoaded', function() {
+// ── Paginate after all resources are loaded (images, fonts) ─────────────────
+// Using window.load instead of DOMContentLoaded so that images are
+// measured at their real height before we split pages.
+var _paginateDone = false;
+function _safePaginate() {
+    if (_paginateDone) return;
+    _paginateDone = true;
     paginateContent();
     updatePageNumbers();
-});
+}
+// Primary trigger: after everything is loaded
+window.addEventListener('load', _safePaginate);
+// Absolute fallback: run after 5 seconds regardless
+setTimeout(_safePaginate, 5000);
 
 // ══════════════════════════════════════════════════════════════════════════════
 // PHASE 4 — JS Content Paginator
