@@ -60,7 +60,7 @@ include __DIR__ . '/../includes/header.php';
     <div id="timeline-result" class="hidden mb-8">
         <h2 class="text-2xl font-bold text-slate-900 mb-6">Your IVF Timeline</h2>
 
-        <div id="timeline-steps" class="relative pl-8 space-y-0"></div>
+        <div id="timeline-steps" class="relative pl-8 space-y-0 border-l-2 border-slate-200"></div>
 
         <!-- Amber warning -->
         <div class="bg-amber-50 border border-amber-200 rounded-xl p-5 mt-8 mb-6">
@@ -146,8 +146,6 @@ include __DIR__ . '/../includes/header.php';
         var steps = buildTimeline(startDate, protocol);
         var stepsEl = document.getElementById('timeline-steps');
         stepsEl.innerHTML = '';
-
-        stepsEl.style.borderLeft = '2px solid #e2e8f0';
 
         steps.forEach(function (step) {
             var date = fmtDate(addDays(startDate, step.day));

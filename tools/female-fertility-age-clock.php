@@ -31,7 +31,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div>
                 <label for="age" class="block text-sm font-semibold text-slate-700 mb-2">Your age</label>
-                <input type="number" id="age" min="20" max="50" step="1" placeholder="e.g. 32"
+                <input type="number" id="age" min="20" max="55" step="1" placeholder="e.g. 32"
                        class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
             </div>
 
@@ -129,7 +129,8 @@ include __DIR__ . '/../includes/header.php';
 
     document.getElementById('age-clock-btn').addEventListener('click', function () {
         var age = parseInt(document.getElementById('age').value);
-        var amh = parseFloat(document.getElementById('amh-age').value) || null;
+        var amhRaw = document.getElementById('amh-age').value;
+        var amh = (amhRaw !== '' && !isNaN(parseFloat(amhRaw))) ? parseFloat(amhRaw) : null;
 
         if (!age || age < 20 || age > 55) {
             alert('Please enter a valid age between 20 and 55.');
