@@ -871,11 +871,6 @@ setTimeout(_safePaginate, 5000);
 // Iterates strictly over `.rx-chunk` divs and cuts the DOM into exact A4 clones.
 // ══════════════════════════════════════════════════════════════════════════════
 function paginateContent() {
-    var marginTopMM    = parseFloat(RX_CONFIG.margins.top) || 40;
-    var marginBottomMM = parseFloat(RX_CONFIG.margins.bottom) || 30;
-    // We allocate 297mm minus physical top/bottom margins
-    var pageHeightMM   = 297 - marginTopMM - marginBottomMM;
-
     var firstPage = document.getElementById('rx-page-1');
     if (!firstPage) return;
 
@@ -885,15 +880,19 @@ function paginateContent() {
     var pageRect     = firstPage.getBoundingClientRect();
     var pageWidthPx  = pageRect.width;
     var mmToPx       = pageWidthPx / 210; // Simple ratio
-    var maxBodyPx    = pageHeightMM * mmToPx;
+    
+    // The physical A4 height in pixels
+    var physicalPageHeightPx = 297 * mmToPx;
 
     var header = firstPage.querySelector('thead');
     var footer = firstPage.querySelector('tfoot');
+    
+    // The heights of header and footer ALREADY INCLUDE the hospital top/bottom margins padding
     var headerH = header ? header.getBoundingClientRect().height : 0;
     var footerH = footer ? footer.getBoundingClientRect().height : 0;
     
-    // We also leave 15px buffer for spacing anomalies
-    var usableBodyPx = maxBodyPx - headerH - footerH - 15;
+    // We leave 15px buffer for spacing anomalies
+    var usableBodyPx = physicalPageHeightPx - headerH - footerH - 15;
 
     var chunks = Array.from(bodyCell.querySelectorAll(':scope > .rx-chunk'));
     if (chunks.length === 0) return;
