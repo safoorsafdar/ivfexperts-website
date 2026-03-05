@@ -343,11 +343,14 @@ function rxEditData() {
         removeLab(i)    { this.selectedLabs.splice(i, 1); },
         toggleLabFor(i) { this.selectedLabs[i].for = this.selectedLabs[i].for === 'Patient' ? 'Spouse' : 'Patient'; },
 
-        // Called on form @submit.prevent — populate hidden field then submit
-        handleSubmit(event) {
+        // Populate hidden ICD field and submit the form — called from submit button onclick
+        submitForm() {
             var el = document.getElementById('edit_icd10_data');
             if (el) el.value = JSON.stringify(this.icdCodes);
-            event.target.submit(); // native form submit bypassing Alpine intercept
+            // Use a small delay so Alpine can flush reactive bindings before native submit
+            setTimeout(function() {
+                document.getElementById('rxEditForm').submit();
+            }, 10);
         }
     };
 }
@@ -383,8 +386,7 @@ function rxEditData() {
 endif; ?>
 
         <form method="POST" class="p-6 space-y-5" id="rxEditForm"
-              x-data="rxEditData()"
-              @submit.prevent="handleSubmit($event)">
+              x-data="rxEditData()">
 
             <!-- Record For -->
             <div class="flex items-center gap-3">
@@ -534,7 +536,7 @@ endif; ?>
             <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                 <a href="patients_view.php?id=<?php echo $patient_id; ?>&tab=rx"
                    class="px-5 py-2.5 rounded-xl text-sm font-medium text-slate-500 bg-gray-100 hover:bg-gray-200 transition-all">Cancel</a>
-                <button type="submit"
+                <button type="button" @click="submitForm()"
                         class="inline-flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-sm transition-all active:scale-95">
                     <i class="fa-solid fa-floppy-disk"></i> Save Changes
                 </button>
