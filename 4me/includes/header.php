@@ -9,11 +9,33 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS (compiled locally — no CDN) -->
-    <link rel="stylesheet" href="/4me/assets/css/admin-compiled.css">
+    <!-- Tailwind CSS via CDN (required: dynamic PHP class composition can't be statically compiled) -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0fdfa', 100: '#ccfbf1', 200: '#99f6e4',
+                            300: '#5eead4', 400: '#2dd4bf', 500: '#14b8a6',
+                            600: '#0d9488', 700: '#0f766e', 800: '#115e59',
+                            900: '#134e4a', 950: '#042f2e',
+                        },
+                    },
+                    boxShadow: {
+                        'premium': '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
+                    }
+                }
+            }
+        }
+    </script>
     <!-- Alpine.js (self-hosted — no CDN) -->
     <script defer src="/4me/assets/js/alpine.min.js"></script>
-    <!-- FontAwesome (CDN) -->
+    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <style>
         [x-cloak] { display: none !important; }
