@@ -78,10 +78,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST" && isset($_POST['save_sa'])) {
     $auto_diag = trim($_POST['auto_diagnosis'] ?? 'Pending');
     $notes = trim($_POST['notes'] ?? '');
     $editing = intval($_POST['edit_id'] ?? 0);
-    $report_type      = $_POST['report_type'] ?? 'manual';
-    $lab_name         = trim($_POST['lab_name'] ?? '');
+    $report_type = $_POST['report_type'] ?? 'manual';
+    $lab_name = trim($_POST['lab_name'] ?? '');
     $lab_report_number = trim($_POST['lab_report_number'] ?? '');
-    $file_path        = $edit_data['report_file_path'] ?? null;
+    $file_path = $edit_data['report_file_path'] ?? null;
 
     // Handle File Upload — stored inside 4me/uploads/semen_reports/
     if (isset($_FILES['report_file']) && $_FILES['report_file']['error'] !== UPLOAD_ERR_NO_FILE) {
@@ -414,7 +414,10 @@ endif; ?>
                             <div class="flex items-center justify-between">
                                 <label class="text-sm font-medium text-gray-700 w-1/3">Immotility (IM)</label>
                                 <div class="w-1/3 relative">
-                                    <input type="number" step="1" name="im_motility" :value="im()" readonly class="w-full px-3 py-2 border border-gray-100 rounded text-gray-500 bg-gray-50 font-mono text-right cursor-not-allowed">
+                                    <!-- Display only — computed value shown for user -->
+                                    <input type="number" step="1" :value="im()" readonly class="w-full px-3 py-2 border border-gray-100 rounded text-gray-500 bg-gray-50 font-mono text-right cursor-not-allowed">
+                                    <!-- Hidden input ensures computed value is POSTed correctly -->
+                                    <input type="hidden" name="im_motility" x-bind:value="im()">
                                     <span class="absolute right-3 top-2 text-xs text-gray-400">%</span>
                                 </div>
                                 <div class="w-1/3 text-right text-xs text-gray-400 italic">Auto</div>
@@ -452,7 +455,9 @@ endif; ?>
                             <div class="flex items-center justify-between">
                                 <label class="text-sm font-medium text-gray-700 w-1/3">Abnormal Forms</label>
                                 <div class="w-1/3 relative">
-                                    <input type="number" step="1" name="abnormal_morphology" :value="100 - norm" readonly class="w-full px-3 py-2 border border-gray-100 bg-gray-50 rounded text-gray-500 font-mono text-right cursor-not-allowed">
+                                    <input type="number" step="1" :value="100 - norm" readonly class="w-full px-3 py-2 border border-gray-100 bg-gray-50 rounded text-gray-500 font-mono text-right cursor-not-allowed">
+                                    <!-- Hidden field ensures the computed value is POSTed -->
+                                    <input type="hidden" name="abnormal_morphology" x-bind:value="100 - norm">
                                     <span class="absolute right-3 top-2 text-xs text-gray-400">%</span>
                                 </div>
                                 <div class="w-1/3 text-right text-xs text-gray-400 italic">Auto</div>
