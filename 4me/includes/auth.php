@@ -13,6 +13,8 @@ if (!defined('BYPASS_AUTH') || BYPASS_AUTH !== true) {
 
 // Pass global config
 require_once dirname(__DIR__) . '/config/db.php';
+// Centralized error logging and exception handling
+require_once __DIR__ . '/error_handler.php';
 // Load shared utility helpers (formatDate, badge, emptyState, paginate, db_select, etc.)
 require_once __DIR__ . '/helpers.php';
 

@@ -9,44 +9,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Alpine.js for interactivity -->
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
-                    },
-                    colors: {
-                        brand: {
-                            50: '#f0fdfa',
-                            100: '#ccfbf1',
-                            500: '#14b8a6',
-                            600: '#0d9488',
-                            700: '#0f766e',
-                            800: '#115e59',
-                            900: '#134e4a',
-                            950: '#042f2e',
-                        },
-                        slate: {
-                            850: '#1e293b',
-                            950: '#020617',
-                        }
-                    },
-                    boxShadow: {
-                        'premium': '0 10px 40px -10px rgba(0, 0, 0, 0.1)',
-                        'glass': 'inset 0 0 0 1px rgba(255, 255, 255, 0.1)',
-                    }
-                }
-            }
-        }
-    </script>
+    <!-- Tailwind CSS (compiled locally — no CDN) -->
+    <link rel="stylesheet" href="/4me/assets/css/admin-compiled.css">
+    <!-- Alpine.js (self-hosted — no CDN) -->
+    <script defer src="/4me/assets/js/alpine.min.js"></script>
+    <!-- FontAwesome (CDN) -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <style>
         [x-cloak] { display: none !important; }
         
