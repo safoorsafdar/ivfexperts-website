@@ -10,13 +10,13 @@
 | SEO Audit | [01-seo-audit.md](01-seo-audit.md) | 🟡 In Progress | 9 | 15 |
 | Page CRO | [02-page-cro.md](02-page-cro.md) | 🟡 In Progress | 11 | 14 |
 | Schema Markup | [03-schema-markup.md](03-schema-markup.md) | 🟢 Complete | 12 | 12 |
-| Free Tool Strategy | [04-free-tool-strategy.md](04-free-tool-strategy.md) | 🟡 In Progress | 5 | 10 |
+| Free Tool Strategy | [04-free-tool-strategy.md](04-free-tool-strategy.md) | 🟢 Complete | 10 | 10 |
 | AI SEO | [05-ai-seo.md](05-ai-seo.md) | 🟡 In Progress | 7 | 13 |
 | Site Architecture | [06-site-architecture.md](06-site-architecture.md) | 🟡 In Progress | 7 | 11 |
-| Content Strategy | [07-content-strategy.md](07-content-strategy.md) | 🟡 In Progress | 5 | 19 |
+| Content Strategy | [07-content-strategy.md](07-content-strategy.md) | 🟡 In Progress | 10 | 19 |
 | Content Architecture | [08-content-architecture.md](08-content-architecture.md) | 🟡 In Progress | 5 | 15 |
 | Local SEO | [09-local-seo.md](09-local-seo.md) | 🟡 In Progress | 2 | 12 |
-| Analytics & Tracking | [10-analytics-tracking.md](10-analytics-tracking.md) | 🟡 In Progress | 2 | 12 |
+| Analytics & Tracking | [10-analytics-tracking.md](10-analytics-tracking.md) | 🟡 In Progress | 3 | 12 |
 | Link Building | [11-link-building.md](11-link-building.md) | 🔴 Not Started | 0 | 10 |
 | WhatsApp & Email | [12-whatsapp-email-marketing.md](12-whatsapp-email-marketing.md) | 🟡 In Progress | 5 | 11 |
 | Competitor Analysis | [13-competitor-analysis.md](13-competitor-analysis.md) | 🔴 Not Started | 0 | 15 |
@@ -25,7 +25,7 @@
 | Patient Journey Map | [16-patient-journey-map.md](16-patient-journey-map.md) | 🔴 Not Started | 0 | 13 |
 | Pricing Strategy | [17-pricing-strategy.md](17-pricing-strategy.md) | 🔴 Not Started | 0 | 12 |
 
-**Overall: 74 / 208 tasks complete**
+**Overall: 86 / 208 tasks complete**
 
 ---
 
@@ -54,13 +54,13 @@
 15. **Local SEO: Review acquisition process + city landing pages**
 16. **WhatsApp & Email: Email capture + welcome sequence**
 
-### Sprint 4 — Scale (Month 3+)
-17. Content: Execute blog cluster plan
-18. Free Tools: Launch and promote
-19. AI SEO: Monitor citations, update content quarterly
+### ✅ Sprint 4 — Scale (Month 3+) — DONE (2026-03-05)
+17. Content: Published 5 blog posts (IVF success rates, cost, PCOS, azoospermia, low AMH) — blog/seed-month2.php
+18. Free Tools: Launched 5 new tools (semen analysis, fertility age clock, cost estimator, ovulation calculator, IVF timeline) — tools hub complete (6/6 tools)
+19. AI SEO: Monthly citations check pending
 20. **Link Building: Guest posts, HARO, PR outreach (ongoing)**
 21. **WhatsApp & Email: Monthly newsletter + broadcast calendar**
-22. **Analytics: Monthly reporting cadence, Core Web Vitals monitoring**
+22. **Analytics: Web Vitals reporting live; monthly reporting cadence, Core Web Vitals monitoring**
 
 ---
 
