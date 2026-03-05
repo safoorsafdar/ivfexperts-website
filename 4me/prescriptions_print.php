@@ -211,9 +211,18 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             position: relative;
             box-sizing: border-box;
-            /* Apply hospital margins as padding to strictly contain text.
-               This applies to BOTH screen view and print mode! */
-            padding: <?php echo $mt; ?> <?php echo $mr; ?> <?php echo $mb; ?> <?php echo $ml; ?>;
+            /* Apply left/right edges. Top/bottom offset handled natively by repeating table header/footer */
+            padding: 0 <?php echo $mr; ?> 0 <?php echo $ml; ?>;
+        }
+
+        .rx-page.with-letterhead {
+            background-image: url('<?php echo addslashes($letterhead_url); ?>');
+            background-size: 210mm 297mm;
+            background-repeat: repeat-y;
+            /* Force exact printing of the background image */
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            background-color: transparent !important;
         }
 
         /* ── Print: each rx-page = one physical page ── */
@@ -225,7 +234,6 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
                 margin: 0;
                 box-shadow: none;
                 page-break-after: always;
-                page-break-inside: avoid;
             }
             .rx-page:last-child { page-break-after: avoid; }
             .no-print { display: none !important; }
@@ -243,14 +251,14 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         /* ── Repeating HEADER on every page ── */
         .rx-layout-table thead tr td { padding: 0; }
         .rx-header-cell {
-            padding: 12px 16px 8px 16px;
+            padding: calc(<?php echo $mt; ?> + 12px) 16px 8px 16px;
             border-bottom: 2px solid #d1d5db;
         }
 
         /* ── Repeating FOOTER on every page ── */
         .rx-layout-table tfoot tr td { padding: 0; }
         .rx-footer-cell {
-            padding: 8px 16px 12px 16px;
+            padding: 8px 16px calc(<?php echo $mb; ?> + 12px) 16px;
             border-top: 1px solid #d1d5db;
         }
 
@@ -419,13 +427,7 @@ endif; ?>
 ?>
 
 <!-- PAGE 1 (and possibly only page) -->
-<div class="rx-page" id="rx-page-1">
-
-    <!-- Letterhead for patient portal (permanent) -->
-    <?php if ($digital_auto && $has_letterhead): ?>
-    <img src="<?php echo esc($letterhead_url); ?>" class="letterhead-bg" alt="Letterhead" />
-    <?php
-endif; ?>
+<div class="rx-page <?php echo($digital_auto && $has_letterhead) ? 'with-letterhead' : ''; ?>" id="rx-page-1">
 
     <table class="rx-layout-table">
 
@@ -730,76 +732,34 @@ function parseMM(v) {
     return parseFloat(String(v).replace('mm','').replace('cm','')) || 0;
 }
 
-// ── Inject letterhead into every .rx-page ────────────────────────────────────
-function injectLetterheads(callback) {
-    if (!RX_CONFIG.hasLetterhead || !RX_CONFIG.letterheadUrl) {
-        if (callback) callback();
-        return;
-    }
-    var pages = document.querySelectorAll('.rx-page');
-    var pending = 0;
-    pages.forEach(function(page) {
-        // Remove any existing letterhead (avoid duplicates)
-        var old = page.querySelector('.letterhead-bg');
-        if (old) old.remove();
-
-        var img = document.createElement('img');
-        img.className = 'letterhead-bg';
-        img.src = RX_CONFIG.letterheadUrl;
-        img.alt = 'Letterhead';
-        pending++;
-
-        var done = false;
-        var doneFn = function() {
-            if (done) return;
-            done = true;
-            pending--;
-            if (pending <= 0 && callback) callback();
-        };
-        img.onload = doneFn;
-        img.onerror = doneFn;
-        setTimeout(doneFn, 4000); // 4s fallback per image (was 3s)
-
-        page.insertBefore(img, page.firstChild);
-    });
-    if (pending === 0 && callback) callback();
-}
-
-// ── Print Digital ─────────────────────────────────────────────────────────────
+// ── Print Digital (Forces CSS Letterhead Background) ──────────────────────────
 var _printAttempted = false;
 function printDigital() {
     if (_printAttempted) return;
     _printAttempted = true;
 
     if (RX_CONFIG.hasLetterhead) {
-        document.body.style.background = '#fff';
-        injectLetterheads(function() {
+        var page = document.getElementById('rx-page-1');
+        
+        // If viewing as admin, temporarily enforce letterhead class
+        if (RX_CONFIG.isAdmin) {
+            page.classList.add('with-letterhead');
+        }
+
+        // Slight delay to allow CSS background-image to decode/render
+        setTimeout(function() {
             window.print();
             setTimeout(function() {
                 _printAttempted = false;
-                // Remove injected letterheads to restore screen view ONLY for admin.
-                // Patient portal keeps them permanently.
                 if (RX_CONFIG.isAdmin) {
-                    document.querySelectorAll('.rx-page .letterhead-bg').forEach(function(img) {
-                        if (!img.classList.contains('perm-lh')) img.remove();
-                    });
+                    page.classList.remove('with-letterhead');
                 }
-            }, 1500);
-        });
+            }, 1000);
+        }, 100);
     } else {
         window.print();
-        setTimeout(function() { _printAttempted = false; }, 1500);
+        setTimeout(function() { _printAttempted = false; }, 1000);
     }
-}
-
-// ── Page number updater ───────────────────────────────────────────────────────
-function updatePageNumbers() {
-    var pages = document.querySelectorAll('.rx-page');
-    var total = pages.length;
-    pages.forEach(function(page, i) {
-        var el = page.querySelector('.page-num-ref');
-        if (el) el.textContent = 'Page ' + (i+1) + ' of ' + total;
-    });
 }
 
 // ── WhatsApp sender ───────────────────────────────────────────────────────────
@@ -828,145 +788,6 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 <?php
 endif; ?>
-
-// ── Paginate after all resources are loaded (images, fonts) ─────────────────
-// Using window.load instead of DOMContentLoaded so that images are
-// measured at their real height before we split pages.
-var _paginateDone = false;
-function _safePaginate() {
-    if (_paginateDone) return;
-    _paginateDone = true;
-    paginateContent();
-    updatePageNumbers();
-}
-// Primary trigger: after everything is loaded
-window.addEventListener('load', _safePaginate);
-// Absolute fallback: run after 5 seconds regardless
-setTimeout(_safePaginate, 5000);
-
-// ══════════════════════════════════════════════════════════════════════════════
-// PHASE 4 — JS Content Paginator
-// Splits rx-body-content sections into separate .rx-page divs when they
-// overflow a single A4 page height, so each page gets its own letterhead.
-// ══════════════════════════════════════════════════════════════════════════════
-function paginateContent() {
-    // A4 page in mm: 297mm tall. Subtract margins (top + bottom).
-    var marginTopMM    = parseMM(RX_CONFIG.margins.top);
-    var marginBottomMM = parseMM(RX_CONFIG.margins.bottom);
-    var pageHeightMM   = 297 - marginTopMM - marginBottomMM;
-
-    // Convert mm to pixels on this screen (1mm ≈ 3.7795px at 96dpi)
-    // We use getBoundingClientRect on the actual rx-page to get a real pixel measurement.
-    var firstPage = document.getElementById('rx-page-1');
-    if (!firstPage) return;
-
-    // Measure the actual available body height. We use the table's tbody td.
-    var bodyCell = document.getElementById('rx-body-content');
-    if (!bodyCell) return;
-
-    // Get DPR-aware px height of one page's content area
-    var pageRect     = firstPage.getBoundingClientRect();
-    var pageWidthPx  = pageRect.width;
-    // Calculate usable content height in pixels (A4 area minus margins)
-    var mmToPx       = pageWidthPx / (210 - parseMM(RX_CONFIG.margins.left) - parseMM(RX_CONFIG.margins.right));
-    var maxBodyPx    = pageHeightMM * mmToPx;
-
-    // Measure header + footer heights to subtract from usable area
-    var header = firstPage.querySelector('thead');
-    var footer = firstPage.querySelector('tfoot');
-    var headerH = header ? header.getBoundingClientRect().height : 0;
-    var footerH = footer ? footer.getBoundingClientRect().height : 0;
-    var usableBodyPx = maxBodyPx - headerH - footerH - 32; // 32px padding buffer
-
-    // Get all top-level sections inside the body cell
-    var sections = Array.from(bodyCell.children);
-    if (sections.length === 0) return;
-
-    // Measure each section's height
-    var sectionHeights = sections.map(function(s) {
-        return s.getBoundingClientRect().height;
-    });
-
-    // Check if total fits in one page
-    var totalH = sectionHeights.reduce(function(a, b) { return a + b; }, 0);
-    if (totalH <= usableBodyPx) return; // All fits — nothing to do
-
-    // Build page groups: assign sections to pages
-    var pages   = [[]];
-    var running = 0;
-    sections.forEach(function(section, i) {
-        var h = sectionHeights[i];
-        // If a single section is taller than the page, don't break it — just let it overflow
-        if (running + h > usableBodyPx && running > 0) {
-            pages.push([]);
-            running = 0;
-        }
-        pages[pages.length - 1].push(section);
-        running += h;
-    });
-
-    if (pages.length <= 1) return; // Still only one page needed
-
-    // Page 1 already exists — keep its sections as-is (pages[0])
-    // We need to remove sections assigned to pages 2+ from the body cell
-    // and create new .rx-page divs for them.
-
-    // Clone the page template (header + footer) to use for each new page
-    var templateTable = firstPage.querySelector('.rx-layout-table');
-    var templateThead = templateTable.querySelector('thead').cloneNode(true);
-    var templateTfoot = templateTable.querySelector('tfoot').cloneNode(true);
-
-    // Remove sections from firstPage body that belong to pages 2+
-    var sectionsToKeep = pages[0];
-    var sectionsToMove = sections.filter(function(s) { return !sectionsToKeep.includes(s); });
-    sectionsToMove.forEach(function(s) { s.remove(); });
-
-    // Build overflow pages
-    var allPagesDiv = document.getElementById('all-pages');
-    var pageCounter = 1;
-
-    for (var pi = 1; pi < pages.length; pi++) {
-        pageCounter++;
-        var newPage = document.createElement('div');
-        newPage.className = 'rx-page';
-        newPage.id = 'rx-page-' + pageCounter;
-
-        var newTable = document.createElement('table');
-        newTable.className = 'rx-layout-table';
-
-        // Add cloned header and footer
-        newTable.appendChild(templateThead.cloneNode(true));
-        newTable.appendChild(templateTfoot.cloneNode(true));
-
-        // Add body with this page's sections
-        var tbody = document.createElement('tbody');
-        var tr    = document.createElement('tr');
-        var td    = document.createElement('td');
-        td.className = 'rx-body-cell';
-        pages[pi].forEach(function(s) { td.appendChild(s); });
-        tr.appendChild(td);
-        tbody.appendChild(tr);
-
-        // Insert tbody BEFORE tfoot (correct table order: thead > tbody > tfoot)
-        var tfoot = newTable.querySelector('tfoot');
-        newTable.insertBefore(tbody, tfoot);
-
-        newPage.appendChild(newTable);
-        allPagesDiv.appendChild(newPage);
-    }
-
-    // If patient portal — letterheads are injected statically by PHP, re-inject for new pages
-    if (!RX_CONFIG.isAdmin && RX_CONFIG.hasLetterhead) {
-        var newPages = allPagesDiv.querySelectorAll('.rx-page:not(#rx-page-1)');
-        newPages.forEach(function(page) {
-            var img = document.createElement('img');
-            img.className = 'letterhead-bg';
-            img.src = RX_CONFIG.letterheadUrl;
-            img.alt = 'Letterhead';
-            page.insertBefore(img, page.firstChild);
-        });
-    }
-}
 </script>
 </body>
 </html>
