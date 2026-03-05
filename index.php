@@ -238,7 +238,657 @@ include("includes/header.php");
         </div>
     </div>
 </section>
+<?php
+/*
+ * ══════════════════════════════════════════════════════════════════
+ *  IVF EXPERTS — LANDING PAGE TOOLS SECTION
+ *  File: landing-widgets-section.php
+ *
+ *  HOW TO USE:
+ *  Open your index.php and find this comment block:
+ *
+ *      <!-- DIAGNOSTIC APPROACH (CARDS) -->
+ *      <section class="section-lg bg-soft relative">
+ *          ...  (The "Architecture of Success" 3-card section)
+ *          ...
+ *      </section>
+ *
+ *  Paste the ENTIRE contents of this file
+ *  DIRECTLY AFTER the closing </section> of that block,
+ *  and BEFORE the opening <section> of the Male/Female split section.
+ *
+ *  Also paste the <style> block into your main CSS or in a <style>
+ *  tag in your <head>. The <script> block can live inline here or
+ *  be moved before <?php include("includes/footer.php"); ?>
+ * ══════════════════════════════════════════════════════════════════
+ */
+?>
 
+
+<!-- ══════════════════════════════════════════════════════════════
+     FERTILITY TOOLS SECTION
+══════════════════════════════════════════════════════════════ -->
+<section class="relative py-24 overflow-hidden bg-white" id="fertility-tools">
+
+    <!-- Layered decorative background -->
+    <div class="absolute inset-0 -z-10" style="background-image: radial-gradient(circle at 2px 2px, rgba(15,118,110,0.045) 1px, transparent 0); background-size: 38px 38px;"></div>
+    <div class="tools-orb tools-orb-left absolute -left-40 top-1/4 w-[500px] h-[500px] rounded-full bg-teal-100/40 blur-[120px] -z-10 pointer-events-none"></div>
+    <div class="tools-orb tools-orb-right absolute -right-40 bottom-1/4 w-[400px] h-[400px] rounded-full bg-indigo-100/40 blur-[100px] -z-10 pointer-events-none"></div>
+
+    <div class="max-w-7xl mx-auto px-6">
+
+        <!-- Section Header -->
+        <div class="text-center max-w-2xl mx-auto mb-16 fade-in">
+            <div class="inline-flex items-center gap-2.5 px-5 py-2.5 rounded-full bg-teal-50 text-teal-700 text-sm font-bold mb-6 border border-teal-100 shadow-sm">
+                <i class="fa-solid fa-wand-magic-sparkles text-teal-500 animate-pulse"></i>
+                Free Patient Tools &middot; No Registration Required
+            </div>
+            <h2 class="text-3xl md:text-[2.6rem] font-extrabold text-slate-900 leading-tight tracking-tight mb-5">
+                Understand Your Fertility <span class="text-teal-700">Today</span>
+            </h2>
+            <p class="text-lg text-slate-500 leading-relaxed">
+                Clinically-informed tools used by patients across Pakistan — get instant clarity on your reproductive health in seconds.
+            </p>
+        </div>
+
+
+        <!-- TWO WIDGETS SIDE BY SIDE -->
+        <div class="grid lg:grid-cols-2 gap-8 mb-16">
+
+
+            <!-- WIDGET 1: OVULATION CALCULATOR (TEAL) -->
+            <div class="widget-card group relative rounded-3xl bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_48px_rgba(15,118,110,0.13)] transition-all duration-500 hover:-translate-y-1.5 overflow-hidden fade-in">
+
+                <div class="h-1.5 w-full bg-gradient-to-r from-teal-500 via-emerald-400 to-teal-600"></div>
+                <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-teal-50 blur-3xl opacity-60 pointer-events-none group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <div class="p-8 relative z-10">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-7">
+                        <div class="flex items-center gap-4">
+                            <div class="widget-icon-teal relative w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-500 to-emerald-600 flex items-center justify-center shadow-[0_8px_20px_rgba(15,118,110,0.3)] flex-shrink-0">
+                                <i class="fa-solid fa-calendar-days text-white text-xl"></i>
+                                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white animate-ping opacity-75"></span>
+                                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white"></span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ovulation Calculator</h3>
+                                <p class="text-sm text-slate-400 font-medium mt-0.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-dot text-emerald-400 text-[10px]"></i>
+                                    Find your peak fertile days
+                                </p>
+                            </div>
+                        </div>
+                        <span class="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-teal-600 bg-teal-50 border border-teal-100 px-3 py-1.5 rounded-full">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Private
+                        </span>
+                    </div>
+
+                    <!-- Form -->
+                    <div id="ov-form" class="space-y-5">
+                        <div>
+                            <label class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                <i class="fa-solid fa-calendar-check text-teal-500"></i>
+                                First Day of Last Period
+                            </label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                                <input type="date" id="ov-lmp"
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/70 text-slate-800 font-semibold text-sm focus:outline-none focus:border-teal-400 focus:bg-white transition-all duration-200">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center justify-between text-xs font-bold text-slate-500 uppercase tracking-widest mb-3">
+                                <span class="flex items-center gap-2"><i class="fa-solid fa-rotate text-teal-500"></i> Cycle Length</span>
+                                <span id="ov-cycle-label" class="text-base font-black text-teal-700 normal-case tracking-normal">28 days</span>
+                            </label>
+                            <input type="range" id="ov-cycle" min="21" max="40" value="28"
+                                class="w-full h-2 appearance-none rounded-full cursor-pointer outline-none ov-slider"
+                                oninput="updateOvCycle(this)">
+                            <div class="flex justify-between text-[11px] text-slate-400 font-medium mt-1.5">
+                                <span>21 days</span><span>Short &rarr; Long</span><span>40 days</span>
+                            </div>
+                        </div>
+
+                        <button onclick="calculateOvulation()"
+                            class="w-full relative overflow-hidden group/btn bg-gradient-to-r from-teal-600 to-emerald-600 hover:from-teal-700 hover:to-emerald-700 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_6px_20px_rgba(15,118,110,0.28)] hover:shadow-[0_10px_30px_rgba(15,118,110,0.38)] hover:-translate-y-0.5 text-sm tracking-wide flex items-center justify-center gap-2.5">
+                            <i class="fa-solid fa-magnifying-glass-chart group-hover/btn:scale-110 transition-transform duration-200"></i>
+                            Calculate My Fertile Window
+                            <i class="fa-solid fa-arrow-right text-xs opacity-70 group-hover/btn:translate-x-1 transition-transform duration-200"></i>
+                            <span class="btn-shimmer"></span>
+                        </button>
+                    </div>
+
+                    <!-- Result -->
+                    <div id="ov-result" class="hidden result-reveal">
+                        <div class="flex items-center gap-2 mb-5 p-3 rounded-xl bg-emerald-50 border border-emerald-100">
+                            <i class="fa-solid fa-circle-check text-emerald-500 text-lg flex-shrink-0"></i>
+                            <div>
+                                <p class="text-xs font-bold text-emerald-800">Your fertile window has been calculated</p>
+                                <p class="text-[11px] text-emerald-600">Based on your <span id="ov-cycle-result-label">28-day</span> cycle</p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 mb-5">
+                            <div class="text-center p-4 rounded-2xl bg-teal-50 border border-teal-100">
+                                <i class="fa-solid fa-seedling text-teal-500 text-lg mb-2 block"></i>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Fertile Window</p>
+                                <p id="ov-start" class="text-xs font-extrabold text-teal-700 leading-tight">—</p>
+                            </div>
+                            <div class="text-center p-4 rounded-2xl bg-emerald-50 border border-emerald-200 ring-2 ring-emerald-400 relative">
+                                <span class="absolute -top-2.5 left-1/2 -translate-x-1/2 text-[10px] font-black bg-emerald-500 text-white px-2 py-0.5 rounded-full whitespace-nowrap">PEAK DAY</span>
+                                <i class="fa-solid fa-star text-emerald-500 text-lg mb-2 block animate-pulse"></i>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Ovulation</p>
+                                <p id="ov-peak" class="text-sm font-extrabold text-emerald-700 leading-tight">—</p>
+                            </div>
+                            <div class="text-center p-4 rounded-2xl bg-slate-50 border border-slate-200">
+                                <i class="fa-solid fa-calendar-xmark text-slate-400 text-lg mb-2 block"></i>
+                                <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-1">Next Period</p>
+                                <p id="ov-next" class="text-sm font-extrabold text-slate-700 leading-tight">—</p>
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <div class="flex items-center justify-between text-[11px] text-slate-500 font-semibold mb-1.5">
+                                <span>Fertile window duration</span><span class="text-teal-600 font-bold">6 days</span>
+                            </div>
+                            <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="ov-bar" class="h-full bg-gradient-to-r from-teal-400 to-emerald-400 rounded-full w-0 transition-all duration-1000"></div>
+                            </div>
+                        </div>
+
+                        <p class="text-[11px] text-slate-400 leading-relaxed mb-4">
+                            <i class="fa-solid fa-circle-info text-amber-400 mr-1"></i>
+                            Estimates based on average cycle patterns. For irregular cycles or PCOS, consult Dr. Adnan for a precise ultrasound-tracked assessment.
+                        </p>
+                        <button onclick="resetOvulation()"
+                            class="w-full flex items-center justify-center gap-2 text-sm font-bold text-teal-600 hover:text-teal-800 border-2 border-teal-100 hover:border-teal-300 hover:bg-teal-50 py-3 rounded-xl transition-all duration-200">
+                            <i class="fa-solid fa-rotate-left text-xs"></i> Recalculate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-8 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                    <p class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <i class="fa-solid fa-flask text-teal-400"></i> Clinically informed estimate
+                    </p>
+                    <a href="/tools/ovulation-calculator.php" class="text-[11px] font-bold text-teal-600 hover:text-teal-800 flex items-center gap-1 transition-colors group/link">
+                        Advanced tool <i class="fa-solid fa-arrow-right text-[9px] group-hover/link:translate-x-0.5 transition-transform"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- END WIDGET 1 -->
+
+
+            <!-- WIDGET 2: FERTILITY AGE CLOCK (INDIGO) -->
+            <div class="widget-card group relative rounded-3xl bg-white border border-slate-200/80 shadow-[0_4px_24px_rgba(0,0,0,0.06)] hover:shadow-[0_16px_48px_rgba(99,102,241,0.12)] transition-all duration-500 hover:-translate-y-1.5 overflow-hidden fade-in" style="transition-delay:120ms;">
+
+                <div class="h-1.5 w-full bg-gradient-to-r from-indigo-500 via-violet-400 to-indigo-600"></div>
+                <div class="absolute -top-16 -right-16 w-48 h-48 rounded-full bg-indigo-50 blur-3xl opacity-60 pointer-events-none group-hover:opacity-100 transition-opacity duration-500"></div>
+
+                <div class="p-8 relative z-10">
+                    <!-- Header -->
+                    <div class="flex items-start justify-between mb-7">
+                        <div class="flex items-center gap-4">
+                            <div class="widget-icon-indigo relative w-14 h-14 rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 flex items-center justify-center shadow-[0_8px_20px_rgba(99,102,241,0.3)] flex-shrink-0">
+                                <i class="fa-solid fa-clock-rotate-left text-white text-xl"></i>
+                                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-violet-400 border-2 border-white animate-ping opacity-75"></span>
+                                <span class="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-violet-400 border-2 border-white"></span>
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Fertility Age Clock</h3>
+                                <p class="text-sm text-slate-400 font-medium mt-0.5 flex items-center gap-1.5">
+                                    <i class="fa-solid fa-circle-dot text-violet-400 text-[10px]"></i>
+                                    Know your reproductive timeline
+                                </p>
+                            </div>
+                        </div>
+                        <span class="hidden sm:flex items-center gap-1.5 text-[11px] font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-3 py-1.5 rounded-full">
+                            <i class="fa-solid fa-lock text-[9px]"></i> Private
+                        </span>
+                    </div>
+
+                    <!-- Form -->
+                    <div id="fac-form" class="space-y-5">
+                        <div>
+                            <label class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">
+                                <i class="fa-solid fa-cake-candles text-indigo-500"></i>
+                                Your Date of Birth
+                            </label>
+                            <div class="relative">
+                                <i class="fa-regular fa-calendar absolute left-4 top-1/2 -translate-y-1/2 text-slate-300 text-sm pointer-events-none"></i>
+                                <input type="date" id="fac-dob"
+                                    class="w-full pl-11 pr-4 py-3.5 rounded-xl border-2 border-slate-100 bg-slate-50/70 text-slate-800 font-semibold text-sm focus:outline-none focus:border-indigo-400 focus:bg-white transition-all duration-200">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-widest mb-2.5">
+                                <i class="fa-solid fa-venus-mars text-indigo-500"></i>
+                                Biological Sex
+                            </label>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="selectFacSex('female', this)" id="sex-btn-female"
+                                    class="sex-toggle-btn flex items-center justify-center gap-2.5 py-3.5 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-500 hover:border-indigo-300 hover:bg-indigo-50/60 transition-all duration-200">
+                                    <i class="fa-solid fa-venus text-slate-300 text-base transition-colors duration-200"></i> Female
+                                </button>
+                                <button onclick="selectFacSex('male', this)" id="sex-btn-male"
+                                    class="sex-toggle-btn flex items-center justify-center gap-2.5 py-3.5 rounded-xl border-2 border-slate-200 text-sm font-bold text-slate-500 hover:border-indigo-300 hover:bg-indigo-50/60 transition-all duration-200">
+                                    <i class="fa-solid fa-mars text-slate-300 text-base transition-colors duration-200"></i> Male
+                                </button>
+                            </div>
+                        </div>
+
+                        <button onclick="calculateFertilityAge()"
+                            class="w-full relative overflow-hidden group/btn bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-700 hover:to-violet-700 text-white font-bold py-4 rounded-xl transition-all duration-300 shadow-[0_6px_20px_rgba(99,102,241,0.28)] hover:shadow-[0_10px_30px_rgba(99,102,241,0.38)] hover:-translate-y-0.5 text-sm tracking-wide flex items-center justify-center gap-2.5">
+                            <i class="fa-solid fa-timeline group-hover/btn:scale-110 transition-transform duration-200"></i>
+                            Assess My Fertility Timeline
+                            <i class="fa-solid fa-arrow-right text-xs opacity-70 group-hover/btn:translate-x-1 transition-transform duration-200"></i>
+                            <span class="btn-shimmer"></span>
+                        </button>
+                    </div>
+
+                    <!-- Result -->
+                    <div id="fac-result" class="hidden result-reveal">
+                        <!-- Animated ring + tier label -->
+                        <div class="flex items-center gap-6 mb-5">
+                            <div class="relative flex-shrink-0" style="width:96px; height:96px;">
+                                <svg class="-rotate-90" width="96" height="96" viewBox="0 0 96 96">
+                                    <circle cx="48" cy="48" r="40" fill="none" stroke="#f1f5f9" stroke-width="7"/>
+                                    <circle cx="48" cy="48" r="40" fill="none"
+                                        id="fac-ring" stroke="url(#facGrad)"
+                                        stroke-width="7" stroke-linecap="round"
+                                        stroke-dasharray="251" stroke-dashoffset="251"
+                                        style="transition: stroke-dashoffset 1.2s cubic-bezier(0.34,1.56,0.64,1)"/>
+                                    <defs>
+                                        <linearGradient id="facGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                                            <stop offset="0%" id="fac-grad-stop1" style="stop-color:#6366f1"/>
+                                            <stop offset="100%" id="fac-grad-stop2" style="stop-color:#8b5cf6"/>
+                                        </linearGradient>
+                                    </defs>
+                                </svg>
+                                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                                    <span id="fac-icon" class="text-xl leading-none">&#8987;</span>
+                                    <span id="fac-age-num" class="text-xs font-black text-slate-700 mt-0.5">— yrs</span>
+                                </div>
+                            </div>
+                            <div class="flex-1">
+                                <p id="fac-tier-badge" class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-2 bg-indigo-100 text-indigo-700"></p>
+                                <p id="fac-headline" class="text-sm font-extrabold text-slate-800 leading-snug mb-1"></p>
+                                <p id="fac-subtext" class="text-xs text-slate-500 leading-relaxed"></p>
+                            </div>
+                        </div>
+
+                        <!-- Spectrum bar -->
+                        <div class="mb-5">
+                            <div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1.5">
+                                <span>Peak</span><span>Declining</span><span>Critical</span>
+                            </div>
+                            <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                                <div id="fac-spectrum-bar" class="h-full rounded-full transition-all duration-1000 ease-out bg-gradient-to-r from-indigo-400 to-violet-500" style="width:0%"></div>
+                            </div>
+                        </div>
+
+                        <div id="fac-insight-box" class="rounded-xl p-4 mb-4 text-sm leading-relaxed font-medium border bg-indigo-50 text-indigo-800 border-indigo-200"></div>
+
+                        <p class="text-[11px] text-slate-400 leading-relaxed mb-4">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1"></i>
+                            Individual fertility varies significantly. An AMH blood test and consultation with Dr. Adnan gives a precise personal assessment.
+                        </p>
+                        <button onclick="resetFertilityAge()"
+                            class="w-full flex items-center justify-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 border-2 border-indigo-100 hover:border-indigo-300 hover:bg-indigo-50 py-3 rounded-xl transition-all duration-200">
+                            <i class="fa-solid fa-rotate-left text-xs"></i> Recalculate
+                        </button>
+                    </div>
+                </div>
+
+                <div class="px-8 py-4 bg-slate-50/80 border-t border-slate-100 flex items-center justify-between">
+                    <p class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+                        <i class="fa-solid fa-chart-line text-indigo-400"></i> Evidence-based guidance
+                    </p>
+                    <a href="/tools/fertility-age-clock.php" class="text-[11px] font-bold text-indigo-600 hover:text-indigo-800 flex items-center gap-1 transition-colors group/link">
+                        Advanced tool <i class="fa-solid fa-arrow-right text-[9px] group-hover/link:translate-x-0.5 transition-transform"></i>
+                    </a>
+                </div>
+            </div>
+            <!-- END WIDGET 2 -->
+
+        </div>
+
+
+        <!-- 4 TOOL CARDS -->
+        <div class="fade-in" style="transition-delay:200ms;">
+            <div class="text-center mb-8">
+                <p class="text-sm font-bold text-slate-400 uppercase tracking-widest flex items-center justify-center gap-2">
+                    <span class="w-12 h-px bg-slate-200 block"></span>
+                    More Fertility Tools
+                    <span class="w-12 h-px bg-slate-200 block"></span>
+                </p>
+            </div>
+
+            <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
+
+                <a href="/tools/ivf-success-calculator.php"
+                    class="tool-card group relative flex flex-col p-6 rounded-2xl bg-white border border-slate-200 hover:border-teal-300 shadow-sm hover:shadow-[0_12px_32px_rgba(15,118,110,0.10)] transition-all duration-400 hover:-translate-y-1.5 overflow-hidden fade-in" style="transition-delay:220ms;">
+                    <div class="absolute inset-0 bg-gradient-to-br from-teal-50/0 group-hover:from-teal-50/70 to-transparent transition-all duration-400 pointer-events-none rounded-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-teal-50 group-hover:bg-teal-600 flex items-center justify-center mb-4 transition-all duration-300 shadow-sm group-hover:shadow-[0_6px_16px_rgba(15,118,110,0.3)]">
+                            <i class="fa-solid fa-percent text-teal-600 group-hover:text-white text-lg transition-colors duration-300"></i>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 mb-1.5 text-base group-hover:text-teal-800 transition-colors">IVF Success Rate</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-5">Estimate your personalized IVF success probability based on age, AMH &amp; diagnosis.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-teal-600 mt-auto group-hover:gap-2.5 transition-all">
+                            <span>Try Calculator</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-3 right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+                        <i class="fa-solid fa-percent text-teal-600 text-6xl"></i>
+                    </div>
+                </a>
+
+                <a href="/tools/semen-analysis-interpreter.php"
+                    class="tool-card group relative flex flex-col p-6 rounded-2xl bg-white border border-slate-200 hover:border-sky-300 shadow-sm hover:shadow-[0_12px_32px_rgba(14,165,233,0.10)] transition-all duration-400 hover:-translate-y-1.5 overflow-hidden fade-in" style="transition-delay:280ms;">
+                    <div class="absolute inset-0 bg-gradient-to-br from-sky-50/0 group-hover:from-sky-50/70 to-transparent transition-all duration-400 pointer-events-none rounded-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-sky-50 group-hover:bg-sky-600 flex items-center justify-center mb-4 transition-all duration-300 shadow-sm group-hover:shadow-[0_6px_16px_rgba(14,165,233,0.3)]">
+                            <i class="fa-solid fa-microscope text-sky-600 group-hover:text-white text-lg transition-colors duration-300"></i>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 mb-1.5 text-base group-hover:text-sky-800 transition-colors">Semen Analysis</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-5">Understand your semen analysis report with WHO reference ranges clearly explained.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-sky-600 mt-auto group-hover:gap-2.5 transition-all">
+                            <span>Interpret Report</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-3 right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+                        <i class="fa-solid fa-microscope text-sky-600 text-6xl"></i>
+                    </div>
+                </a>
+
+                <a href="/tools/ivf-cost-estimator.php"
+                    class="tool-card group relative flex flex-col p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 shadow-sm hover:shadow-[0_12px_32px_rgba(16,185,129,0.10)] transition-all duration-400 hover:-translate-y-1.5 overflow-hidden fade-in" style="transition-delay:340ms;">
+                    <div class="absolute inset-0 bg-gradient-to-br from-emerald-50/0 group-hover:from-emerald-50/70 to-transparent transition-all duration-400 pointer-events-none rounded-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 group-hover:bg-emerald-600 flex items-center justify-center mb-4 transition-all duration-300 shadow-sm group-hover:shadow-[0_6px_16px_rgba(16,185,129,0.3)]">
+                            <i class="fa-solid fa-coins text-emerald-600 group-hover:text-white text-lg transition-colors duration-300"></i>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 mb-1.5 text-base group-hover:text-emerald-800 transition-colors">IVF Cost Estimator</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-5">Get a transparent IVF treatment cost estimate tailored to your clinical needs.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-emerald-600 mt-auto group-hover:gap-2.5 transition-all">
+                            <span>Estimate Costs</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-3 right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+                        <i class="fa-solid fa-coins text-emerald-600 text-6xl"></i>
+                    </div>
+                </a>
+
+                <a href="/tools/ivf-timeline-calculator.php"
+                    class="tool-card group relative flex flex-col p-6 rounded-2xl bg-white border border-slate-200 hover:border-violet-300 shadow-sm hover:shadow-[0_12px_32px_rgba(139,92,246,0.10)] transition-all duration-400 hover:-translate-y-1.5 overflow-hidden fade-in" style="transition-delay:400ms;">
+                    <div class="absolute inset-0 bg-gradient-to-br from-violet-50/0 group-hover:from-violet-50/70 to-transparent transition-all duration-400 pointer-events-none rounded-2xl"></div>
+                    <div class="relative z-10">
+                        <div class="w-12 h-12 rounded-xl bg-violet-50 group-hover:bg-violet-600 flex items-center justify-center mb-4 transition-all duration-300 shadow-sm group-hover:shadow-[0_6px_16px_rgba(139,92,246,0.3)]">
+                            <i class="fa-solid fa-timeline text-violet-600 group-hover:text-white text-lg transition-colors duration-300"></i>
+                        </div>
+                        <h4 class="font-extrabold text-slate-800 mb-1.5 text-base group-hover:text-violet-800 transition-colors">IVF Timeline</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-5">Map your complete IVF journey from day one of stimulation to embryo transfer.</p>
+                        <div class="flex items-center gap-1.5 text-xs font-bold text-violet-600 mt-auto group-hover:gap-2.5 transition-all">
+                            <span>View My Timeline</span>
+                            <i class="fa-solid fa-arrow-right text-[10px] group-hover:translate-x-1 transition-transform"></i>
+                        </div>
+                    </div>
+                    <div class="absolute bottom-3 right-3 opacity-[0.04] group-hover:opacity-[0.08] transition-opacity">
+                        <i class="fa-solid fa-timeline text-violet-600 text-6xl"></i>
+                    </div>
+                </a>
+
+            </div>
+        </div>
+
+        <!-- CTA Strip -->
+        <div class="mt-12 text-center fade-in" style="transition-delay:450ms;">
+            <p class="text-slate-400 text-sm mb-5 font-medium">
+                <i class="fa-solid fa-circle-info text-teal-400 mr-1.5"></i>
+                Tools give you a starting point. A consultation gives you a complete plan.
+            </p>
+            <a href="https://wa.me/923111101483"
+                class="inline-flex items-center gap-3 bg-teal-700 hover:bg-teal-800 text-white px-8 py-4 rounded-xl font-bold text-sm shadow-[0_8px_25px_rgba(15,118,110,0.25)] hover:shadow-[0_12px_35px_rgba(15,118,110,0.35)] hover:-translate-y-0.5 transition-all duration-200">
+                <i class="fa-brands fa-whatsapp text-lg"></i>
+                Book a Personal Consultation with Dr. Adnan
+                <i class="fa-solid fa-arrow-right text-xs opacity-70"></i>
+            </a>
+        </div>
+
+    </div>
+</section>
+
+
+<!-- STYLES — add inside <head> or your main CSS file -->
+<style>
+/* Slider track */
+.ov-slider {
+    background: linear-gradient(to right, #0f766e 50%, #d1fae5 50%);
+}
+input[type=range].ov-slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 20px; height: 20px;
+    border-radius: 50%;
+    background: #0f766e;
+    cursor: pointer;
+    box-shadow: 0 0 0 3px white, 0 0 0 5px rgba(15,118,110,0.25);
+    transition: box-shadow 0.2s;
+}
+input[type=range].ov-slider::-webkit-slider-thumb:hover {
+    box-shadow: 0 0 0 3px white, 0 0 0 7px rgba(15,118,110,0.35);
+}
+input[type=range].ov-slider::-moz-range-thumb {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #0f766e; cursor: pointer;
+    border: 3px solid white;
+    box-shadow: 0 0 0 2px rgba(15,118,110,0.3);
+}
+
+/* Shimmer sweep on buttons */
+.btn-shimmer {
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%);
+    background-size: 200% 100%;
+    background-position: 200% 0;
+    transition: background-position 0.6s ease;
+    border-radius: inherit; pointer-events: none;
+}
+button:hover .btn-shimmer { background-position: -200% 0; }
+
+/* Result panel entrance */
+@keyframes resultReveal {
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+}
+.result-reveal { animation: resultReveal 0.4s cubic-bezier(0.16,1,0.3,1) both; }
+
+/* Floating orbs */
+@keyframes orbFloat {
+    0%,100%{ transform:translateY(0); }
+    50%    { transform:translateY(-22px); }
+}
+.tools-orb-left  { animation: orbFloat  8s ease-in-out infinite; }
+.tools-orb-right { animation: orbFloat 11s ease-in-out infinite reverse; }
+
+/* Widget icon entrance */
+@keyframes iconPop {
+    0%  { transform:scale(0.75); opacity:0; }
+    65% { transform:scale(1.06); }
+    100%{ transform:scale(1);    opacity:1; }
+}
+.widget-icon-teal,
+.widget-icon-indigo { animation: iconPop 0.55s cubic-bezier(0.34,1.56,0.64,1) both; }
+
+/* Shake */
+@keyframes shake {
+    0%,100%{transform:translateX(0)}
+    20%{transform:translateX(-5px)}
+    40%{transform:translateX(5px)}
+    60%{transform:translateX(-3px)}
+    80%{transform:translateX(3px)}
+}
+</style>
+
+
+<!-- JAVASCRIPT — place just before <?php include("includes/footer.php"); ?> -->
+<script>
+// ── Shared state ──────────────────────────────────────────
+let facSex = 'female';
+
+// ── Utilities ─────────────────────────────────────────────
+function fmtDate(d) {
+    return d.toLocaleDateString('en-PK', { day:'numeric', month:'short' });
+}
+function addDays(date, n) {
+    const d = new Date(date); d.setDate(d.getDate() + n); return d;
+}
+function shakeEl(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    el.style.animation = 'none'; el.offsetHeight;
+    el.style.animation = 'shake 0.4s ease';
+    el.classList.add('border-rose-400','bg-rose-50');
+    setTimeout(() => { el.classList.remove('border-rose-400','bg-rose-50'); el.style.animation=''; }, 1500);
+}
+
+// ── WIDGET 1: Ovulation Calculator ───────────────────────
+function updateOvCycle(input) {
+    const v = parseInt(input.value);
+    document.getElementById('ov-cycle-label').textContent = v + ' days';
+    const pct = ((v - 21) / (40 - 21)) * 100;
+    input.style.background = `linear-gradient(to right,#0f766e 0%,#0f766e ${pct}%,#d1fae5 ${pct}%,#d1fae5 100%)`;
+}
+document.addEventListener('DOMContentLoaded', () => {
+    const s = document.getElementById('ov-cycle');
+    if (s) updateOvCycle(s);
+});
+
+function calculateOvulation() {
+    const lmpVal = document.getElementById('ov-lmp').value;
+    const cycle  = parseInt(document.getElementById('ov-cycle').value);
+    if (!lmpVal) { shakeEl('ov-lmp'); return; }
+
+    const lmp       = new Date(lmpVal);
+    const ov        = addDays(lmp, cycle - 14);
+    const fStart    = addDays(ov, -5);
+    const fEnd      = addDays(ov, 1);
+    const nextPer   = addDays(lmp, cycle);
+
+    document.getElementById('ov-cycle-result-label').textContent = cycle + '-day';
+    document.getElementById('ov-start').innerHTML = fmtDate(fStart) + '<br><span class="text-[10px] text-slate-400">to ' + fmtDate(fEnd) + '</span>';
+    document.getElementById('ov-peak').textContent  = fmtDate(ov);
+    document.getElementById('ov-next').textContent  = fmtDate(nextPer);
+
+    setTimeout(() => {
+        const bar = document.getElementById('ov-bar');
+        if (bar) bar.style.width = Math.round((6 / cycle) * 100) + '%';
+    }, 150);
+
+    document.getElementById('ov-form').classList.add('hidden');
+    document.getElementById('ov-result').classList.remove('hidden');
+}
+
+function resetOvulation() {
+    document.getElementById('ov-lmp').value = '';
+    const bar = document.getElementById('ov-bar');
+    if (bar) bar.style.width = '0%';
+    document.getElementById('ov-form').classList.remove('hidden');
+    document.getElementById('ov-result').classList.add('hidden');
+}
+
+// ── WIDGET 2: Fertility Age Clock ─────────────────────────
+function selectFacSex(sex, btn) {
+    facSex = sex;
+    document.querySelectorAll('.sex-toggle-btn').forEach(b => {
+        b.classList.remove('border-indigo-400','bg-indigo-50','text-indigo-700');
+        b.classList.add('border-slate-200','text-slate-500');
+        b.querySelector('i').classList.remove('text-indigo-500');
+        b.querySelector('i').classList.add('text-slate-300');
+    });
+    btn.classList.remove('border-slate-200','text-slate-500');
+    btn.classList.add('border-indigo-400','bg-indigo-50','text-indigo-700');
+    btn.querySelector('i').classList.remove('text-slate-300');
+    btn.querySelector('i').classList.add('text-indigo-500');
+}
+
+function calculateFertilityAge() {
+    const dobVal = document.getElementById('fac-dob').value;
+    if (!dobVal) { shakeEl('fac-dob'); return; }
+
+    const dob   = new Date(dobVal);
+    const today = new Date();
+    let age = today.getFullYear() - dob.getFullYear();
+    const mo = today.getMonth() - dob.getMonth();
+    if (mo < 0 || (mo === 0 && today.getDate() < dob.getDate())) age--;
+    if (age < 18 || age > 65) { shakeEl('fac-dob'); return; }
+
+    const d = getFacData(age, facSex);
+    document.getElementById('fac-icon').textContent      = d.icon;
+    document.getElementById('fac-age-num').textContent   = age + ' yrs';
+    document.getElementById('fac-headline').textContent  = d.headline;
+    document.getElementById('fac-subtext').textContent   = d.subtext;
+
+    const badge = document.getElementById('fac-tier-badge');
+    badge.textContent = d.tier;
+    badge.className   = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-bold mb-2 ' + d.badgeClass;
+
+    document.getElementById('fac-grad-stop1').style.stopColor = d.g1;
+    document.getElementById('fac-grad-stop2').style.stopColor = d.g2;
+    setTimeout(() => {
+        document.getElementById('fac-ring').style.strokeDashoffset = 251 - (251 * d.bar / 100);
+    }, 150);
+
+    const specBar = document.getElementById('fac-spectrum-bar');
+    specBar.className = 'h-full rounded-full transition-all duration-1000 ease-out ' + d.barClass;
+    setTimeout(() => { specBar.style.width = d.bar + '%'; }, 150);
+
+    const ins = document.getElementById('fac-insight-box');
+    ins.textContent = d.insight;
+    ins.className   = 'rounded-xl p-4 mb-4 text-sm leading-relaxed font-medium border ' + d.insightClass;
+
+    document.getElementById('fac-form').classList.add('hidden');
+    document.getElementById('fac-result').classList.remove('hidden');
+}
+
+function getFacData(age, sex) {
+    if (sex === 'female') {
+        if (age <= 25) return { tier:'🌸 Peak Fertility', badgeClass:'bg-emerald-100 text-emerald-700', icon:'🌸', g1:'#34d399', g2:'#10b981', headline:'You are in your prime reproductive years.', subtext:'Egg quantity and quality are at their highest. Optimal for natural conception or IVF.', bar:95, barClass:'bg-gradient-to-r from-emerald-400 to-teal-400', insight:'✓ Excellent ovarian reserve expected. IVF success rates exceed 55–65% per transfer in this age group.', insightClass:'bg-emerald-50 text-emerald-800 border-emerald-200' };
+        if (age <= 30) return { tier:'🌿 High Fertility', badgeClass:'bg-teal-100 text-teal-700', icon:'🌿', g1:'#2dd4bf', g2:'#0d9488', headline:'Your fertility is strong and favorable.', subtext:'Egg quality remains excellent. High conception rates — a great time to start your family.', bar:80, barClass:'bg-gradient-to-r from-teal-400 to-teal-600', insight:'✓ Good ovarian reserve. Monthly conception probability ~20%. Evaluate after 12+ months if trying.', insightClass:'bg-teal-50 text-teal-800 border-teal-200' };
+        if (age <= 35) return { tier:'🕐 Good Fertility', badgeClass:'bg-sky-100 text-sky-700', icon:'🕐', g1:'#38bdf8', g2:'#6366f1', headline:'Fertility is still good with early planning.', subtext:'Gradual natural decline begins, but outcomes remain excellent with the right support.', bar:60, barClass:'bg-gradient-to-r from-sky-400 to-indigo-500', insight:'⚡ AMH assessment recommended if planning soon. Most common age group for IVF with great results.', insightClass:'bg-sky-50 text-sky-800 border-sky-200' };
+        if (age <= 38) return { tier:'⏳ Moderate Decline', badgeClass:'bg-amber-100 text-amber-700', icon:'⏳', g1:'#fbbf24', g2:'#f97316', headline:'Timely action matters — support is available.', subtext:'Egg quantity and quality decline more noticeably. Tailored IVF protocols improve outcomes.', bar:40, barClass:'bg-gradient-to-r from-amber-400 to-orange-400', insight:'⚠ Early consultation strongly advised. Personalized stimulation protocols maximize egg yield.', insightClass:'bg-amber-50 text-amber-800 border-amber-200' };
+        if (age <= 42) return { tier:'⌛ Significant Decline', badgeClass:'bg-orange-100 text-orange-700', icon:'⌛', g1:'#f97316', g2:'#ef4444', headline:'Advanced IVF protocols are recommended.', subtext:'Ovarian reserve is reduced, but specialized care and PGT testing still achieve pregnancies.', bar:22, barClass:'bg-gradient-to-r from-orange-400 to-rose-500', insight:'⚠ Prompt specialist consultation critical. Donor egg options and advanced protocols available.', insightClass:'bg-orange-50 text-orange-800 border-orange-200' };
+        return { tier:'💬 Specialist Needed', badgeClass:'bg-rose-100 text-rose-700', icon:'💬', g1:'#f43f5e', g2:'#dc2626', headline:'All options are still on the table.', subtext:'Advanced IVF, donor programs, and specialist care can still help build your family.', bar:8, barClass:'bg-gradient-to-r from-rose-400 to-rose-600', insight:'📋 Dr. Adnan will evaluate all options including donor egg programs and emerging stem cell therapies.', insightClass:'bg-rose-50 text-rose-800 border-rose-200' };
+    } else {
+        if (age <= 35) return { tier:'💪 Peak Fertility', badgeClass:'bg-emerald-100 text-emerald-700', icon:'💪', g1:'#34d399', g2:'#10b981', headline:'Male fertility is at its absolute peak.', subtext:'Sperm count, motility, and morphology are typically optimal.', bar:92, barClass:'bg-gradient-to-r from-emerald-400 to-teal-500', insight:'✓ Excellent sperm parameters expected. A baseline semen analysis is a smart investment.', insightClass:'bg-emerald-50 text-emerald-800 border-emerald-200' };
+        if (age <= 45) return { tier:'✅ Good Fertility', badgeClass:'bg-teal-100 text-teal-700', icon:'✅', g1:'#2dd4bf', g2:'#38bdf8', headline:'Male fertility remains strong.', subtext:'Gradual sperm DNA quality changes begin but conception is highly achievable.', bar:70, barClass:'bg-gradient-to-r from-teal-400 to-sky-500', insight:'✓ DNA fragmentation testing recommended alongside standard semen analysis.', insightClass:'bg-teal-50 text-teal-800 border-teal-200' };
+        if (age <= 50) return { tier:'⏳ Gradual Decline', badgeClass:'bg-amber-100 text-amber-700', icon:'⏳', g1:'#fbbf24', g2:'#f97316', headline:'Sperm quality is gradually declining.', subtext:'DNA fragmentation increases. Manageable with hormonal optimization and ICSI.', bar:48, barClass:'bg-gradient-to-r from-amber-400 to-orange-500', insight:'⚡ DNA fragmentation index testing advised. Antioxidant therapy can meaningfully improve sperm quality.', insightClass:'bg-amber-50 text-amber-800 border-amber-200' };
+        return { tier:'💬 Specialist Advised', badgeClass:'bg-orange-100 text-orange-700', icon:'💬', g1:'#f97316', g2:'#ef4444', headline:'A comprehensive evaluation is recommended.', subtext:'Hormonal assessment, sperm retrieval, and ICSI offer effective solutions.', bar:25, barClass:'bg-gradient-to-r from-orange-400 to-rose-500', insight:'📋 Full hormonal and semen evaluation will identify the best treatment pathway forward.', insightClass:'bg-orange-50 text-orange-800 border-orange-200' };
+    }
+}
+
+function resetFertilityAge() {
+    facSex = 'female';
+    document.getElementById('fac-dob').value = '';
+    document.getElementById('fac-ring').style.strokeDashoffset = '251';
+    const sb = document.getElementById('fac-spectrum-bar');
+    if (sb) sb.style.width = '0%';
+    document.querySelectorAll('.sex-toggle-btn').forEach(b => {
+        b.classList.remove('border-indigo-400','bg-indigo-50','text-indigo-700');
+        b.classList.add('border-slate-200','text-slate-500');
+        b.querySelector('i').classList.remove('text-indigo-500');
+        b.querySelector('i').classList.add('text-slate-300');
+    });
+    document.getElementById('fac-form').classList.remove('hidden');
+    document.getElementById('fac-result').classList.add('hidden');
+}
+</script>
 <!-- SPLIT SECTIONS FOR MALE/FEMALE FACTOR -->
 <section class="py-24 bg-white overflow-hidden relative">
     <div class="max-w-7xl mx-auto px-6">
