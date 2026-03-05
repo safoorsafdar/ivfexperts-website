@@ -213,28 +213,47 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             padding-right: <?php echo $mr; ?>;
         }
 
+        /* Screen-only background letterhead (not used in print) */
         .rx-page.with-letterhead {
             background-image: url('<?php echo addslashes($letterhead_url); ?>');
             background-size: 210mm 297mm;
-            background-repeat: repeat-y;
+            background-repeat: no-repeat;
             background-position: top center;
-            /* Force exact printing of the background image */
-            -webkit-print-color-adjust: exact !important;
-            print-color-adjust: exact !important;
-            background-color: transparent !important;
+        }
+
+        /* ── Fixed Letterhead Watermark (PRINT ONLY) ── */
+        .print-watermark {
+            display: none;
         }
 
         /* ── Print: each rx-page = one physical page ── */
         @media print {
             html, body { background: transparent !important; margin: 0 !important; padding: 0 !important; }
+            
+            /* The fixed watermark natively stamps on every physical page printed */
+            .print-watermark {
+                display: block;
+                position: fixed;
+                top: 0; left: 0;
+                width: 210mm;
+                height: 297mm;
+                z-index: -1;
+                /* Force background image printing */
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
             .rx-page {
                 width: 210mm;
                 min-height: 297mm;
                 margin: 0;
+                padding: 0; /* Clear screen padding */
                 box-shadow: none;
-                page-break-after: always;
+                /* Crucial for thead/tfoot repeating: do not use relative/absolute positioning here */
+                position: static !important;
+                background: transparent !important;
             }
-            .rx-page:last-child { page-break-after: avoid; }
+            .rx-page.with-letterhead { background-image: none !important; }
             .no-print { display: none !important; }
         }
 
@@ -243,9 +262,12 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             width: 100%;
             border-collapse: collapse;
             table-layout: fixed;
-            position: relative;
-            z-index: 10; /* Keep text above the letterhead background */
+            /* Must NOT be position: relative in print, otherwise thead won't repeat */
         }
+        
+        .rx-layout-table thead { display: table-header-group; }
+        .rx-layout-table tfoot { display: table-footer-group; }
+        .rx-layout-table tbody { display: table-row-group; }
 
         /* ── Repeating HEADER on every page ── */
         .rx-layout-table thead tr td { padding: 0; }
@@ -254,10 +276,18 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             border-bottom: 2px solid #d1d5db;
         }
         .rx-header-content {
-            padding-top: <?php echo $mt_raw + 4; ?>mm; /* Adds margin + 4mm visual buffer */
+            /* On screen, the .rx-page provides the padding. Top/bottom always defined here. */
+            padding-top: calc(<?php echo $mt_raw; ?>mm + 4px);
             padding-bottom: 8px;
             padding-left: 16px;
             padding-right: 16px;
+        }
+        /* In print mode, add the physical left/right margins directly into the header so it indents */
+        @media print {
+            .rx-header-content {
+                padding-left: calc(<?php echo $ml_raw; ?>mm + 16px);
+                padding-right: calc(<?php echo $mr_raw; ?>mm + 16px);
+            }
         }
 
         /* ── Repeating FOOTER on every page ── */
@@ -267,14 +297,29 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             border-top: 1px solid #d1d5db;
         }
         .rx-footer-content {
-            padding-bottom: <?php echo $mb_raw + 4; ?>mm; /* Adds margin + 4mm visual buffer */
+            padding-bottom: calc(<?php echo $mb_raw; ?>mm + 4px);
             padding-top: 8px;
             padding-left: 16px;
             padding-right: 16px;
         }
+        @media print {
+            .rx-footer-content {
+                padding-left: calc(<?php echo $ml_raw; ?>mm + 16px);
+                padding-right: calc(<?php echo $mr_raw; ?>mm + 16px);
+            }
+        }
 
         /* ── Body content area ── */
-        .rx-body-cell { padding: 8px 16px; vertical-align: top; }
+        .rx-body-cell { 
+            padding: 8px 16px; 
+            vertical-align: top; 
+        }
+        @media print {
+            .rx-body-cell {
+                padding-left: calc(<?php echo $ml_raw; ?>mm + 16px);
+                padding-right: calc(<?php echo $mr_raw; ?>mm + 16px);
+            }
+        }
 
         /* ── Content sections ── */
         .section { margin-bottom: 10px; }
@@ -317,8 +362,7 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
 
         /* ── Letterhead background ── */
         .letterhead-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 0; object-fit: fill; pointer-events: none;
+            display: none; /* Deprecated inline image, replaced by print-watermark */
         }
         
         /* If printing Digital PDF, force background graphics */
@@ -430,6 +474,12 @@ endif; ?>
      PAGE CONTENT WRAPPER — one .rx-page per printed sheet
      ══════════════════════════════════════════════════════ -->
 <div id="all-pages">
+
+    <!-- The physical print watermark (repeats natively via position:fixed) -->
+    <?php if ($has_letterhead): ?>
+    <div class="print-watermark" style="background: url('<?php echo esc($letterhead_url); ?>') top center / 210mm 297mm no-repeat;"></div>
+    <?php
+endif; ?>
 
 <?php
 // ── Prepare content sections ──────────────────────────────────────────────────
@@ -750,20 +800,22 @@ function printDigital() {
     _printAttempted = true;
 
     if (RX_CONFIG.hasLetterhead) {
+        // Enforce the screen-level CSS letterhead preview for admins making a digital PDF
         var page = document.getElementById('rx-page-1');
+        var wm = document.querySelector('.print-watermark');
         
-        // If viewing as admin, temporarily enforce letterhead class
         if (RX_CONFIG.isAdmin) {
             page.classList.add('with-letterhead');
+            if (wm) wm.style.display = 'block'; // force watermark on for admin PDF print
         }
 
-        // Slight delay to allow CSS background-image to decode/render
         setTimeout(function() {
             window.print();
             setTimeout(function() {
                 _printAttempted = false;
                 if (RX_CONFIG.isAdmin) {
                     page.classList.remove('with-letterhead');
+                    if (wm) wm.style.display = ''; // revert watermark block
                 }
             }, 1000);
         }, 100);
