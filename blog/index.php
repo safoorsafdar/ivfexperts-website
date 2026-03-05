@@ -117,6 +117,12 @@ if (!empty($slug) && $article):
     <?php
     endif; ?>
 
+    <!-- Table of Contents (JS-generated from H2s) -->
+    <div id="toc-container" class="hidden mb-8 bg-slate-50 border border-slate-200 rounded-xl p-5">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">In this article</p>
+        <ul id="toc-list" class="space-y-1 text-sm text-teal-700 font-medium"></ul>
+    </div>
+
     <!-- Article Content -->
     <div class="prose prose-lg max-w-none text-gray-700 leading-relaxed
         prose-headings:text-gray-900 prose-headings:font-bold
@@ -261,5 +267,28 @@ else:
 </div>
 <?php
 endif; ?>
+
+<script>
+(function() {
+    var content = document.querySelector('.prose');
+    if (!content) return;
+    var headings = content.querySelectorAll('h2');
+    if (headings.length < 2) return;
+    var list = document.getElementById('toc-list');
+    var container = document.getElementById('toc-container');
+    headings.forEach(function(h, i) {
+        var id = 'toc-' + i;
+        h.id = id;
+        var li = document.createElement('li');
+        var a = document.createElement('a');
+        a.href = '#' + id;
+        a.textContent = h.textContent;
+        a.className = 'hover:text-teal-900 transition-colors block py-0.5';
+        li.appendChild(a);
+        list.appendChild(li);
+    });
+    container.classList.remove('hidden');
+})();
+</script>
 
 <?php include __DIR__ . '/../includes/footer.php'; ?>
