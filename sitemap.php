@@ -37,6 +37,11 @@ foreach ($glossaryTerms as $term) {
 // Tools pages (clean URLs)
 $pages['/tools/'] = ['freq' => 'monthly', 'priority' => '0.75'];
 $pages['/tools/ivf-success-calculator'] = ['freq' => 'monthly', 'priority' => '0.80'];
+$pages['/tools/semen-analysis-interpreter'] = ['freq' => 'monthly', 'priority' => '0.80'];
+$pages['/tools/female-fertility-age-clock'] = ['freq' => 'monthly', 'priority' => '0.80'];
+$pages['/tools/ivf-cost-estimator-pakistan'] = ['freq' => 'monthly', 'priority' => '0.80'];
+$pages['/tools/ovulation-calculator-fertile-window'] = ['freq' => 'monthly', 'priority' => '0.80'];
+$pages['/tools/ivf-timeline-calculator'] = ['freq' => 'monthly', 'priority' => '0.80'];
 
 // Scan predefined directories dynamically
 foreach ($directoriesToScan as $dir) {
