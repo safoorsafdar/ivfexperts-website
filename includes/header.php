@@ -335,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
   </nav>
   <!-- CTA Buttons (Desktop) - Patient Login + WhatsApp -->
   <div class="hidden md:flex items-center gap-2">
-    <a href="/portal/"
+    <a href="https://patient.ivfexperts.pk"
        class="bg-sky-600 text-white px-3 py-2 rounded-md font-semibold hover:bg-sky-700 transition text-xs shadow-[0_4px_15px_rgba(14,165,233,0.3)] border-none flex items-center gap-2">
       <i class="fa-solid fa-laptop-medical text-xs"></i> Patient Login
     </a>
@@ -472,7 +472,7 @@ document.addEventListener('DOMContentLoaded', () => {
     </nav>
     <!-- Mobile CTAs -->
     <div style="padding:16px 24px 32px;display:flex;flex-direction:column;gap:10px;">
-      <a href="/portal/" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0284c7;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(14,165,233,0.3);">
+      <a href="https://patient.ivfexperts.pk" style="display:flex;align-items:center;justify-content:center;gap:10px;background:#0284c7;color:#fff;padding:14px 24px;border-radius:12px;font-weight:700;font-size:15px;text-decoration:none;box-shadow:0 4px 15px rgba(14,165,233,0.3);">
         <i class="fa-solid fa-laptop-medical"></i>
         Patient Login
       </a>
