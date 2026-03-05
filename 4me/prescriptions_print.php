@@ -602,7 +602,7 @@ if (!empty($complaint_text) || !empty($diagnosis_text) || !empty($icds) || !empt
                         <i class="fa-solid fa-notes-medical" style="color:#6d28d9;font-size:8px;"></i>
                         Clinical Assessment
                     </div>
-                    <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:4px;padding:8px 10px;">
+                    <div style="background:#f9fafb;padding:8px 10px;">
 
                         <?php if (!empty($complaint_text)): ?>
                         <div style="display:flex;gap:8px;border-bottom:1px solid #e5e7eb;padding-bottom:5px;margin-bottom:5px;">
@@ -748,7 +748,7 @@ endif; ?>
 endif; ?>
 
                 <!-- ── General Advice + Next Visit ────────────────── -->
-                <div class="rx-chunk section avoid-break" id="section-advice" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:8px;border-top:1px solid #e5e7eb;padding-top:8px;">
+                <div class="rx-chunk section avoid-break" id="section-advice" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:8px;padding-top:8px;">
                     <?php if (!empty($rx['general_advice'])): ?>
                     <div style="flex:1;">
                         <div style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
@@ -936,9 +936,10 @@ function paginateContent() {
 
     if (pages.length <= 1) return;
 
+    // Grab original elements before cloning
     var templateTable = firstPage.querySelector('.rx-layout-table');
-    var templateThead = templateTable.querySelector('thead').cloneNode(true);
-    var templateTfoot = templateTable.querySelector('tfoot').cloneNode(true);
+    var originalThead = templateTable.querySelector('thead');
+    var originalTfoot = templateTable.querySelector('tfoot');
 
     // Filter and remove chunks belonging to pages 2+ from the first page
     var sectionsToKeep = pages[0];
@@ -966,21 +967,28 @@ function paginateContent() {
         var newTable = document.createElement('table');
         newTable.className = 'rx-layout-table';
 
-        newTable.appendChild(templateThead.cloneNode(true));
-        newTable.appendChild(templateTfoot.cloneNode(true));
+        // Deep clone natively
+        var cloneThead = originalThead.cloneNode(true);
+        var cloneTfoot = originalTfoot.cloneNode(true);
+
+        newTable.appendChild(cloneThead);
+        newTable.appendChild(cloneTfoot);
 
         var tbody = document.createElement('tbody');
         var tr    = document.createElement('tr');
         var td    = document.createElement('td');
         td.className = 'rx-body-cell';
         
+        // Fix for missing header class rendering
+        td.id = 'rx-body-content-' + pageCounter;
+        
         pages[pi].forEach(function(s) { td.appendChild(s); });
         
         tr.appendChild(td);
         tbody.appendChild(tr);
 
-        // Put tbody in middle
-        newTable.insertBefore(tbody, newTable.querySelector('tfoot'));
+        // Put tbody in middle between head and foot
+        newTable.insertBefore(tbody, cloneTfoot);
 
         newPage.appendChild(newTable);
         allPagesDiv.appendChild(newPage);
