@@ -199,7 +199,7 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             @bottom-right  { content: none; }
         }
 
-        /* ── Screen layout wrapper ── */
+        /* ── Screen: show as A4 card ── */
         .rx-page {
             width: 210mm;
             min-height: 297mm;
@@ -208,11 +208,9 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
             box-shadow: 0 4px 32px rgba(0,0,0,0.15);
             position: relative;
             box-sizing: border-box;
-            /* Apply margins to the screen view so it looks like the printed page */
-            padding-top: calc(<?php echo $mt_raw; ?>mm + 8px);
-            padding-bottom: <?php echo $mb_raw; ?>mm;
-            padding-left: <?php echo $ml_raw; ?>mm;
-            padding-right: <?php echo $mr_raw; ?>mm;
+            /* Apply left/right edges. */
+            padding-left: <?php echo $ml; ?>;
+            padding-right: <?php echo $mr; ?>;
         }
 
         /* Screen-only background letterhead (not used in print) */
@@ -224,90 +222,93 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
         }
 
         /* ── Fixed Letterhead Watermark (PRINT ONLY) ── */
-        .print-watermark { display: none; }
-
-        /* ── Header and Footer Screen Styles ── */
-        .print-header {
-            border-bottom: 2px solid #d1d5db;
-            padding-bottom: 8px;
-            margin-bottom: 12px;
-            box-sizing: border-box;
-        }
-        .print-footer {
-            border-top: 1px solid #d1d5db;
-            padding-top: 8px;
-            margin-top: 20px;
-            box-sizing: border-box;
+        .print-watermark {
+            display: none;
         }
 
-        /* ── Native Print Engine overrides ── */
+        /* ── Print: each rx-page = one physical page ── */
         @media print {
-            /* Tell Chrome to construct a physical A4 with explicit margins */
-            @page {
-                size: A4;
-                /* The margin safe zone is the hospital's empty space PLUS our header/footer height */
-                margin-top: calc(<?php echo $mt_raw; ?>mm + 36mm) !important;
-                margin-bottom: calc(<?php echo $mb_raw; ?>mm + 25mm) !important;
-                margin-left: <?php echo $ml_raw; ?>mm !important;
-                margin-right: <?php echo $mr_raw; ?>mm !important;
-            }
-
-            html, body {
-                background: transparent !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
+            html, body { background: transparent !important; margin: 0 !important; padding: 0 !important; }
             
             /* The fixed watermark natively stamps on every physical page printed */
             .print-watermark {
                 display: block;
                 position: fixed;
-                /* Anchor watermark relative to the absolute page corner */
                 top: 0; left: 0;
                 width: 210mm;
                 height: 297mm;
                 z-index: -1;
+                /* Force background image printing */
                 -webkit-print-color-adjust: exact !important;
                 print-color-adjust: exact !important;
             }
 
-            /* Strip the screen container boundaries down so items flow naturally into @page box */
             .rx-page {
                 width: auto !important;
                 min-height: 0 !important;
-                margin: 0 !important;
-                padding: 0 !important;
-                box-shadow: none !important;
+                margin: 0;
+                padding: 0; /* Clear screen padding */
+                box-shadow: none;
                 position: static !important;
                 background: transparent !important;
                 page-break-inside: auto;
+                page-break-after: always;
             }
             .rx-page:last-child { page-break-after: avoid; }
             .rx-page.with-letterhead { background-image: none !important; }
             .no-print { display: none !important; }
+        }
 
-            /* 
-               NATIVELY REPEATING HEADERS:
-               By putting them in `position: fixed` and pulling them upward into the @page margin
-               using negative coordinates, Chrome is forced to perfectly stamp them on every page 
-               without overlapping the `rx-body-content`. 
-            */
-            .print-header {
-                position: fixed;
-                top: -36mm;
-                left: 0;
-                right: 0;
-                height: 36mm;
-                page-break-inside: avoid;
+        /* ── Layout table inside each page ── */
+        .rx-layout-table {
+            width: 100%;
+            table-layout: auto;
+            border-spacing: 0;
+            border-collapse: separate; 
+            /* Not using collapse, as Chrome can sometimes drop borders/repeats on collapsed tables over pages */
+        }
+        
+        .rx-layout-table > thead { display: table-header-group; }
+        .rx-layout-table > tfoot { display: table-footer-group; }
+        .rx-layout-table > tbody { display: table-row-group; }
+
+        /* ── Repeating HEADER on every page ── */
+        .rx-layout-table thead tr td { padding: 0; }
+        .rx-header-cell {
+            padding: 0;
+            border-bottom: 2px solid #d1d5db;
+        }
+        .rx-header-content {
+            /* On screen, the .rx-page provides the padding. Top/bottom always defined here. */
+            padding-top: calc(<?php echo $mt_raw; ?>mm + 4px);
+            padding-bottom: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        /* In print mode, add the physical left/right margins directly into the header so it indents */
+        @media print {
+            .rx-header-content {
+                padding-left: calc(<?php echo $ml_raw; ?>mm + 16px);
+                padding-right: calc(<?php echo $mr_raw; ?>mm + 16px);
             }
+        }
 
-            .print-footer {
-                position: fixed;
-                bottom: -25mm;
-                left: 0;
-                right: 0;
-                height: 25mm;
-                page-break-inside: avoid;
+        /* ── Repeating FOOTER on every page ── */
+        .rx-layout-table tfoot tr td { padding: 0; }
+        .rx-footer-cell {
+            padding: 0;
+            border-top: 1px solid #d1d5db;
+        }
+        .rx-footer-content {
+            padding-bottom: calc(<?php echo $mb_raw; ?>mm + 4px);
+            padding-top: 8px;
+            padding-left: 16px;
+            padding-right: 16px;
+        }
+        @media print {
+            .rx-footer-content {
+                padding-left: calc(<?php echo $ml_raw; ?>mm + 16px);
+                padding-right: calc(<?php echo $mr_raw; ?>mm + 16px);
             }
         }
 
@@ -506,98 +507,105 @@ endif; ?>
 <!-- PAGE 1 (and possibly only page) -->
 <div class="rx-page <?php echo($digital_auto && $has_letterhead) ? 'with-letterhead' : ''; ?>" id="rx-page-1">
 
-    <!-- ══ REPEATING HEADER ══════════════════════════════════ -->
-    <div class="print-header">
-        <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+    <table class="rx-layout-table">
 
-            <!-- Patient Details -->
-            <div style="flex:1;">
-                <table style="font-size:11px;line-height:1.6;width:100%;max-width:320px;">
-                    <tr>
-                        <td style="font-weight:700;color:#6b7280;width:100px;padding-right:8px;white-space:nowrap;">Patient Name:</td>
-                        <td style="font-weight:800;color:#111827;font-size:12px;text-transform:uppercase;"><?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?></td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight:700;color:#6b7280;">MR Number:</td>
-                        <td style="font-weight:700;color:#3730a3;font-family:monospace;"><?php echo esc($rx['mr_number']); ?></td>
-                    </tr>
-                    <tr>
-                        <td style="font-weight:700;color:#6b7280;">Gender / Age:</td>
-                        <td><?php echo esc($rx['gender']) . ($rx['patient_age'] ? ' / ' . esc($rx['patient_age']) : ''); ?></td>
-                    </tr>
-                    <?php if (!empty($rx['phone'])): ?>
-                    <tr>
-                        <td style="font-weight:700;color:#6b7280;">Phone:</td>
-                        <td><?php echo esc($rx['phone']); ?></td>
-                    </tr>
+        <!-- ══ REPEATING HEADER ══════════════════════════════════ -->
+        <thead>
+            <tr><td class="rx-header-cell">
+                <div class="rx-header-content" style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
+
+                    <!-- Patient Details -->
+                    <div style="flex:1;">
+                        <table style="font-size:11px;line-height:1.6;width:100%;max-width:320px;">
+                            <tr>
+                                <td style="font-weight:700;color:#6b7280;width:100px;padding-right:8px;white-space:nowrap;">Patient Name:</td>
+                                <td style="font-weight:800;color:#111827;font-size:12px;text-transform:uppercase;"><?php echo esc($rx['first_name'] . ' ' . $rx['last_name']); ?></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:700;color:#6b7280;">MR Number:</td>
+                                <td style="font-weight:700;color:#3730a3;font-family:monospace;"><?php echo esc($rx['mr_number']); ?></td>
+                            </tr>
+                            <tr>
+                                <td style="font-weight:700;color:#6b7280;">Gender / Age:</td>
+                                <td><?php echo esc($rx['gender']) . ($rx['patient_age'] ? ' / ' . esc($rx['patient_age']) : ''); ?></td>
+                            </tr>
+                            <?php if (!empty($rx['phone'])): ?>
+                            <tr>
+                                <td style="font-weight:700;color:#6b7280;">Phone:</td>
+                                <td><?php echo esc($rx['phone']); ?></td>
+                            </tr>
+                            <?php
+endif; ?>
+                        </table>
+                    </div>
+
+                    <!-- QR Code -->
+                    <?php if (!empty($qr_hash)): ?>
+                    <div style="text-align:center;flex-shrink:0;">
+                        <div class="qr-wrap">
+                            <img src="<?php echo $qr_url; ?>" width="56" height="56" alt="QR" />
+                        </div>
+                        <div style="font-size:7px;color:#9ca3af;margin-top:2px;text-align:center;">Scan to verify</div>
+                    </div>
                     <?php
 endif; ?>
-                </table>
-            </div>
 
-            <!-- QR Code -->
-            <?php if (!empty($qr_hash)): ?>
-            <div style="text-align:center;flex-shrink:0;">
-                <div class="qr-wrap">
-                    <img src="<?php echo $qr_url; ?>" width="56" height="56" alt="QR" />
-                </div>
-                <div style="font-size:7px;color:#9ca3af;margin-top:2px;text-align:center;">Scan to verify</div>
-            </div>
-            <?php
+                    <!-- Date + RX Number -->
+                    <div style="text-align:right;flex-shrink:0;border-left:1px solid #e5e7eb;padding-left:12px;">
+                        <?php if (!empty($tracking_code)): ?>
+                        <div class="traceability" style="margin-bottom:3px;">TRK-<?php echo $tracking_code; ?></div>
+                        <?php
 endif; ?>
+                        <div style="font-weight:700;color:#374151;font-size:12px;"><?php echo date('d M Y'); ?></div>
+                        <div style="font-size:9px;color:#6b7280;margin-top:2px;"><?php echo date('h:i A'); ?></div>
+                        <div style="font-size:11px;font-weight:800;color:#4f46e5;margin-top:4px;letter-spacing:1px;">
+                            RX-<?php echo str_pad($id, 6, '0', STR_PAD_LEFT); ?>
+                        </div>
+                        <div style="font-size:9px;color:#9ca3af;margin-top:2px;">
+                            <?php echo $is_admin ? 'Clinic Staff' : 'Patient Portal'; ?>
+                        </div>
+                    </div>
+                </div>
+            </td></tr>
+        </thead>
 
-            <!-- Date + RX Number -->
-            <div style="text-align:right;flex-shrink:0;border-left:1px solid #e5e7eb;padding-left:12px;">
-                <?php if (!empty($tracking_code)): ?>
-                <div class="traceability" style="margin-bottom:3px;">TRK-<?php echo $tracking_code; ?></div>
-                <?php
+        <!-- ══ REPEATING FOOTER ══════════════════════════════════ -->
+        <tfoot>
+            <tr><td class="rx-footer-cell">
+                <div class="rx-footer-content" style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
+                    <!-- Sig line -->
+                    <div class="sig-line" style="flex:1;">
+                        <div class="sig-text">
+                            <strong>Digitally Signed:</strong>
+                            Dr. Adnan Jabbar | MBBS, DFM, MH, Fertility &amp; Family Medicine Specialist, Clinical Embryologist
+                        </div>
+                    </div>
+                    <!-- Signature image -->
+                    <?php if (!empty($rx['digital_signature_path'])): ?>
+                    <div style="flex-shrink:0;">
+                        <img src="https://ivfexperts.pk/<?php echo esc($rx['digital_signature_path']); ?>"
+                             class="sig-img" alt="Signature" />
+                    </div>
+                    <?php
 endif; ?>
-                <div style="font-weight:700;color:#374151;font-size:12px;"><?php echo date('d M Y'); ?></div>
-                <div style="font-size:9px;color:#6b7280;margin-top:2px;"><?php echo date('h:i A'); ?></div>
-                <div style="font-size:11px;font-weight:800;color:#4f46e5;margin-top:4px;letter-spacing:1px;">
-                    RX-<?php echo str_pad($id, 6, '0', STR_PAD_LEFT); ?>
+                    <!-- Traceability -->
+                    <div style="text-align:right;flex-shrink:0;">
+                        <div class="traceability">
+                            <?php echo $rx['hospital_name'] ?? 'IVF Experts'; ?>
+                        </div>
+                        <?php if (!empty($tracking_code)): ?>
+                        <div class="traceability">DOC-<?php echo $tracking_code; ?></div>
+                        <?php
+endif; ?>
+                        <div class="traceability page-num-ref" style="margin-top:2px;">Page 1</div>
+                    </div>
                 </div>
-                <div style="font-size:9px;color:#9ca3af;margin-top:2px;">
-                    <?php echo $is_admin ? 'Clinic Staff' : 'Patient Portal'; ?>
-                </div>
-            </div>
-        </div>
-    </div>
+            </td></tr>
+        </tfoot>
 
-    <!-- ══ REPEATING FOOTER ══════════════════════════════════ -->
-    <div class="print-footer">
-        <div style="display:flex;justify-content:space-between;align-items:flex-end;gap:12px;">
-            <!-- Sig line -->
-            <div class="sig-line" style="flex:1;">
-                <div class="sig-text">
-                    <strong>Digitally Signed:</strong>
-                    Dr. Adnan Jabbar | MBBS, DFM, MH, Fertility &amp; Family Medicine Specialist, Clinical Embryologist
-                </div>
-            </div>
-            <!-- Signature image -->
-            <?php if (!empty($rx['digital_signature_path'])): ?>
-            <div style="flex-shrink:0;">
-                <img src="https://ivfexperts.pk/<?php echo esc($rx['digital_signature_path']); ?>"
-                     class="sig-img" alt="Signature" />
-            </div>
-            <?php
-endif; ?>
-            <!-- Traceability -->
-            <div style="text-align:right;flex-shrink:0;">
-                <div class="traceability">
-                    <?php echo $rx['hospital_name'] ?? 'IVF Experts'; ?>
-                </div>
-                <?php if (!empty($tracking_code)): ?>
-                <div class="traceability">DOC-<?php echo $tracking_code; ?></div>
-                <?php
-endif; ?>
-                <div class="traceability page-num-ref" style="margin-top:2px;">Page 1</div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ══ BODY CONTENT ══════════════════════════════════════ -->
-    <div class="print-body">
+        <!-- ══ BODY CONTENT ══════════════════════════════════════ -->
+        <tbody>
+            <tr><td class="rx-body-cell" id="rx-body-content">
 
                 <!-- ── Clinical Notes ──────────────────────────────── -->
                 <?php
@@ -770,8 +778,10 @@ endif; ?>
 endif; ?>
                 </div>
 
-    </div><!-- end print-body -->
+            </td></tr>
+        </tbody>
 
+    </table><!-- end rx-layout-table -->
 </div><!-- end rx-page-1 -->
 
 </div><!-- end all-pages -->
