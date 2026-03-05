@@ -62,6 +62,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">Assisted Reproductive Technology (ART)</dfn> refers to fertility treatments that handle both eggs and sperm outside the body. IVF and ICSI are the cornerstone ART procedures, used when simpler treatments cannot overcome the underlying barrier to conception. ART is only recommended when clinically indicated — not as a first-line option.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">~500,000</p>
+            <p class="text-xs text-slate-500 mt-1">ART cycles performed annually in the USA alone (CDC, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">2.4%</p>
+            <p class="text-xs text-slate-500 mt-1">Of all US births result from ART (CDC, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">32%</p>
+            <p class="text-xs text-slate-500 mt-1">Average live birth rate per IVF cycle, women under 35 (HFEA, 2023)</p>
+        </div>
+    </div>
+</div>
+
 <!-- THE INDICATION FOR ART -->
 <section class="section-lg bg-soft relative">
     <div class="max-w-7xl mx-auto px-6">
@@ -113,11 +134,11 @@ include("../includes/header.php");
 <!-- CORE PROCEDURES DIRECTORY -->
 <section class="section-lg bg-white relative">
     <div class="max-w-7xl mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center fade-in">Our ART Services</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center fade-in">Which ART procedure do you need?</h2>
         <p class="text-lg text-slate-600 mb-16 text-center max-w-2xl mx-auto fade-in">Click to explore the technical details, protocols, and indicators for each advanced laboratory procedure.</p>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in">
-            <a href="/art-procedures/ivf.php" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
+            <a href="/art-procedures/ivf" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-full bg-white text-cyan-600 flex items-center justify-center mb-6 shadow-sm group-hover:text-cyan-700">
@@ -130,7 +151,7 @@ include("../includes/header.php");
                 </div>
             </a>
 
-            <a href="/art-procedures/icsi.php" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
+            <a href="/art-procedures/icsi" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-full bg-white text-cyan-600 flex items-center justify-center mb-6 shadow-sm group-hover:text-cyan-700">
@@ -143,7 +164,7 @@ include("../includes/header.php");
                 </div>
             </a>
 
-            <a href="/art-procedures/pgt.php" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
+            <a href="/art-procedures/pgt" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-full bg-white text-cyan-600 flex items-center justify-center mb-6 shadow-sm group-hover:text-cyan-700">
@@ -156,7 +177,7 @@ include("../includes/header.php");
                 </div>
             </a>
 
-            <a href="/art-procedures/iui.php" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
+            <a href="/art-procedures/iui" class="relative group bg-slate-50 border border-slate-200 rounded-3xl p-8 hover:bg-cyan-600 hover:border-cyan-600 transition-all duration-300 overflow-hidden">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                 <div class="relative z-10">
                     <div class="w-14 h-14 rounded-full bg-white text-cyan-600 flex items-center justify-center mb-6 shadow-sm group-hover:text-cyan-700">
@@ -188,5 +209,10 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php
+$articleLastUpdated = 'March 2026';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>

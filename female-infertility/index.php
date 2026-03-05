@@ -87,6 +87,27 @@ include("../includes/header.php");
     </div>
 </section>
 
+<!-- AI SEO: Definition Block -->
+<div class="max-w-4xl mx-auto px-6 py-10 border-b border-slate-100">
+    <p class="text-slate-600 text-lg leading-relaxed">
+        <dfn class="font-semibold text-slate-900 not-italic">Female Infertility</dfn> is defined as the inability to conceive after 12 months of regular unprotected intercourse (or 6 months for women over 35). Female factors contribute to approximately 40% of all infertility cases, with the most common causes being ovulatory dysfunction (including PCOS), tubal damage, uterine anomalies, and endometriosis.
+    </p>
+    <div class="mt-4 grid sm:grid-cols-3 gap-4">
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">40%</p>
+            <p class="text-xs text-slate-500 mt-1">Infertility cases primarily attributable to female factors (WHO, 2023)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">30–40%</p>
+            <p class="text-xs text-slate-500 mt-1">Of female infertility caused by ovulatory disorders (ASRM, 2022)</p>
+        </div>
+        <div class="bg-teal-50 rounded-xl p-4 text-center border border-teal-100">
+            <p class="text-2xl font-extrabold text-teal-700">1 in 6</p>
+            <p class="text-xs text-slate-500 mt-1">Couples globally affected by infertility (WHO, 2023)</p>
+        </div>
+    </div>
+</div>
+
 <!-- THE CLINICAL APPROACH -->
 <section class="section-lg bg-white relative">
     <div class="max-w-7xl mx-auto px-6">
@@ -133,11 +154,11 @@ include("../includes/header.php");
 <!-- CONDITIONS DIRECTORY -->
 <section class="section-lg bg-soft relative">
     <div class="max-w-7xl mx-auto px-6">
-        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center fade-in">Specialized Female Protocols</h2>
+        <h2 class="text-3xl md:text-4xl font-bold text-slate-900 mb-4 text-center fade-in">Which female fertility condition applies to you?</h2>
         <p class="text-lg text-slate-600 mb-16 text-center max-w-2xl mx-auto fade-in">Explore our evidence-based approaches for navigating specific physiological roadblocks to conception.</p>
 
         <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6 fade-in">
-            <a href="/female-infertility/pcos.php" class="card group flex flex-col items-center text-center !p-10">
+            <a href="/female-infertility/pcos" class="card group flex flex-col items-center text-center !p-10">
                 <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all text-slate-700">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg>
                 </div>
@@ -145,7 +166,7 @@ include("../includes/header.php");
                 <p class="text-sm text-slate-500">Overcoming insulin resistance and anovulation effectively.</p>
             </a>
 
-            <a href="/female-infertility/endometriosis.php" class="card group flex flex-col items-center text-center !p-10">
+            <a href="/female-infertility/endometriosis" class="card group flex flex-col items-center text-center !p-10">
                 <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all text-slate-700">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>
                 </div>
@@ -153,7 +174,7 @@ include("../includes/header.php");
                 <p class="text-sm text-slate-500">Preserving ovarian reserve while managing pain and adhesions.</p>
             </a>
 
-            <a href="/female-infertility/diminished-ovarian-reserve.php" class="card group flex flex-col items-center text-center !p-10">
+            <a href="/female-infertility/diminished-ovarian-reserve" class="card group flex flex-col items-center text-center !p-10">
                 <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all text-slate-700">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 </div>
@@ -161,7 +182,7 @@ include("../includes/header.php");
                 <p class="text-sm text-slate-500">Aggressive stimulation protocols for low AMH and advanced age.</p>
             </a>
 
-            <a href="/female-infertility/blocked-tubes.php" class="card group flex flex-col items-center text-center !p-10">
+            <a href="/female-infertility/blocked-tubes" class="card group flex flex-col items-center text-center !p-10">
                 <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-6 group-hover:scale-110 group-hover:bg-rose-600 group-hover:text-white transition-all text-slate-700">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
                 </div>
@@ -201,5 +222,10 @@ include("../includes/header.php");
         </div>
     </div>
 </section>
+
+<?php
+$articleLastUpdated = 'March 2026';
+include __DIR__ . '/../includes/author-attribution.php';
+?>
 
 <?php include("../includes/footer.php"); ?>
