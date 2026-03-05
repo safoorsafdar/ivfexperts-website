@@ -83,7 +83,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
         $upd->bind_param("ssssssi", $diagnosis, $clinical_notes, $general_advice, $next_visit, $record_for, $icd10_codes, $rx_id);
         if ($upd->execute()) {
             // Replace medication items
-            $conn->query("DELETE FROM prescription_items WHERE prescription_id = $rx_id");
+            $del_meds = $conn->prepare("DELETE FROM prescription_items WHERE prescription_id = ?");
+            if ($del_meds) {
+                $del_meds->bind_param("i", $rx_id);
+                $del_meds->execute();
+            }
             $meds_post = $_POST['meds'] ?? [];
             if (is_array($meds_post) && count($meds_post) > 0) {
                 $m_stmt = $conn->prepare("INSERT INTO prescription_items (prescription_id, medicine_name, dosage, frequency, duration, instructions) VALUES (?,?,?,?,?,?)");
@@ -110,7 +114,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_prescription']
             }
 
             // Replace advised lab tests
-            $conn->query("DELETE FROM advised_lab_tests WHERE prescription_id = $rx_id");
+            $del_labs = $conn->prepare("DELETE FROM advised_lab_tests WHERE prescription_id = ?");
+            if ($del_labs) {
+                $del_labs->bind_param("i", $rx_id);
+                $del_labs->execute();
+            }
             $labs_post = $_POST['labs'] ?? [];
             if (is_array($labs_post) && !empty($labs_post)) {
                 $l_stmt = $conn->prepare("INSERT INTO advised_lab_tests (prescription_id, patient_id, test_id, record_for) VALUES (?, ?, ?, ?)");

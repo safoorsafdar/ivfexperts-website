@@ -35,4 +35,26 @@ function get_flash(): ?array
     }
     return null;
 }
+
+// CSRF protection helpers
+// Usage: echo csrf_token() in forms as a hidden field value
+//        Call csrf_check() at the top of every POST handler
+function csrf_token(): string
+{
+    if (empty($_SESSION['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+    }
+    return $_SESSION['csrf_token'];
+}
+
+function csrf_check(): void
+{
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST')
+        return;
+    $token = $_POST['csrf_token'] ?? '';
+    if (!hash_equals($_SESSION['csrf_token'] ?? '', $token)) {
+        http_response_code(403);
+        die('<div style="font-family:sans-serif;padding:2rem;color:#c00;">⚠️ Invalid security token. Please go back and try again.</div>');
+    }
+}
 ?>
