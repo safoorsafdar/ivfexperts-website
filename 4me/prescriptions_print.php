@@ -249,10 +249,11 @@ $qr_url = 'https://api.qrserver.com/v1/create-qr-code/?size=56x56&data=' . urlen
                 margin: 0;
                 padding: 0; /* Clear screen padding */
                 box-shadow: none;
-                /* Crucial for thead/tfoot repeating: do not use relative/absolute positioning here */
                 position: static !important;
                 background: transparent !important;
+                page-break-after: always;
             }
+            .rx-page:last-child { page-break-after: avoid; }
             .rx-page.with-letterhead { background-image: none !important; }
             .no-print { display: none !important; }
         }
@@ -596,7 +597,7 @@ $complaint_text = trim(strip_tags($rx['clinical_notes'] ?? $rx['presenting_compl
 $diagnosis_text = trim(strip_tags($rx['diagnosis'] ?? ''));
 if (!empty($complaint_text) || !empty($diagnosis_text) || !empty($icds) || !empty($cpts)):
 ?>
-                <div class="section avoid-break" id="section-clinical">
+                <div class="rx-chunk section avoid-break" id="section-clinical">
                     <div class="section-heading">
                         <i class="fa-solid fa-notes-medical" style="color:#6d28d9;font-size:8px;"></i>
                         Clinical Assessment
@@ -649,16 +650,13 @@ if (!empty($complaint_text) || !empty($diagnosis_text) || !empty($icds) || !empt
 endif; ?>
 
                 <!-- ── Medications ─────────────────────────────────── -->
-                <div class="section" id="section-medications">
+                <?php if (!empty($items)): ?>
+                <div class="rx-chunk section avoid-break" data-type="med-header">
                     <div class="section-heading">
                         <i class="fa-solid fa-prescription" style="color:#4f46e5;font-size:8px;"></i>
                         Prescribed Medications
                     </div>
-                    <?php if (empty($items)): ?>
-                    <p style="font-size:11px;color:#9ca3af;font-style:italic;padding:8px 0;">No medications prescribed.</p>
-                    <?php
-else: ?>
-                    <table class="med-table">
+                    <table class="med-table" style="border-bottom:none;">
                         <thead>
                             <tr>
                                 <th style="width:28px;text-align:center;">Sr.</th>
@@ -668,13 +666,18 @@ else: ?>
                                 <th style="width:20%;">Duration</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <?php foreach ($items as $idx => $item):
+                    </table>
+                </div>
+
+                <?php foreach ($items as $idx => $item):
         $bg = $idx % 2 === 0 ? '#fff' : '#f9fafb';
 ?>
+                <div class="rx-chunk avoid-break" data-type="med-row">
+                    <table class="med-table" style="border-top:none; margin-bottom: 0;">
+                        <tbody>
                             <tr style="background:<?php echo $bg; ?>; border-bottom: none;">
-                                <td style="text-align:center;font-weight:700;color:#9ca3af;border-bottom:none;padding-bottom:1px;"><?php echo $idx + 1; ?>.</td>
-                                <td style="border-bottom:none;padding-bottom:1px;">
+                                <td style="width:28px; text-align:center;font-weight:700;color:#9ca3af;border-bottom:none;padding-bottom:1px;border-top:none;"><?php echo $idx + 1; ?>.</td>
+                                <td style="width:40%; border-bottom:none;padding-bottom:1px;border-top:none;">
                                     <div class="med-name"><?php echo esc($item['medicine_name']); ?></div>
                                     <?php if (!empty($item['formula'])): ?>
                                     <div class="med-formula"><?php echo esc($item['formula']); ?></div>
@@ -684,27 +687,28 @@ else: ?>
                                     <?php
         endif; ?>
                                 </td>
-                                <td style="font-weight:600;color:#1f2937;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
-                                <td class="med-freq" style="border-bottom:none;padding-bottom:1px;"><?php echo esc($item['frequency'] ?: '—'); ?></td>
-                                <td style="font-weight:600;color:#1f2937;white-space:nowrap;border-bottom:none;padding-bottom:1px;"><?php echo esc($item['duration'] ?: '—'); ?></td>
+                                <td style="width:20%; font-weight:600;color:#1f2937;border-bottom:none;padding-bottom:1px;border-top:none;"><?php echo esc($item['dosage'] ?: '—'); ?></td>
+                                <td style="width:20%;" class="med-freq" style="border-bottom:none;padding-bottom:1px;border-top:none;"><?php echo esc($item['frequency'] ?: '—'); ?></td>
+                                <td style="width:20%; font-weight:600;color:#1f2937;white-space:nowrap;border-bottom:none;padding-bottom:1px;border-top:none;"><?php echo esc($item['duration'] ?: '—'); ?></td>
                             </tr>
                             <tr style="background:<?php echo $bg; ?>; border-top: none;">
-                                <td style="border-top:none;padding-top:1px;"></td>
-                                <td colspan="4" style="border-top:none;padding-top:1px;font-size:10px;color:#4b5563;font-style:italic;">
+                                <td style="width:28px; border-top:none;padding-top:1px;border-bottom:none;"></td>
+                                <td colspan="4" style="border-top:none;padding-top:1px;border-bottom:none;font-size:10px;color:#4b5563;font-style:italic;">
                                     <?php echo esc($item['instructions'] ?: '—'); ?>
                                 </td>
                             </tr>
-                            <?php
-    endforeach; ?>
                         </tbody>
                     </table>
-                    <?php
-endif; ?>
                 </div>
+                <?php
+    endforeach; ?>
+                <div class="rx-chunk" style="height:10px;"></div> <!-- visual spacer -->
+                <?php
+endif; ?>
 
                 <!-- ── Advised Lab Tests ───────────────────────────── -->
                 <?php if (!empty($lab_tests)): ?>
-                <div class="section avoid-break" id="section-labs">
+                <div class="rx-chunk section avoid-break" id="section-labs">
                     <div class="section-heading">
                         <i class="fa-solid fa-vials" style="color:#d97706;font-size:8px;"></i>
                         Advised Laboratory Investigations
@@ -744,7 +748,7 @@ endif; ?>
 endif; ?>
 
                 <!-- ── General Advice + Next Visit ────────────────── -->
-                <div class="section avoid-break" id="section-advice" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:8px;border-top:1px solid #e5e7eb;padding-top:8px;">
+                <div class="rx-chunk section avoid-break" id="section-advice" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-top:8px;border-top:1px solid #e5e7eb;padding-top:8px;">
                     <?php if (!empty($rx['general_advice'])): ?>
                     <div style="flex:1;">
                         <div style="font-size:9px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;">
@@ -851,6 +855,138 @@ window.addEventListener('DOMContentLoaded', function() {
 });
 <?php
 endif; ?>
+// ── Paginate after all resources are loaded (images, fonts) ─────────────────
+var _paginateDone = false;
+function _safePaginate() {
+    if (_paginateDone) return;
+    _paginateDone = true;
+    paginateContent();
+    updatePageNumbers();
+}
+window.addEventListener('load', _safePaginate);
+setTimeout(_safePaginate, 5000);
+
+// ══════════════════════════════════════════════════════════════════════════════
+// PHASE 6 BUGFIX — Granular JS Paginator
+// Iterates strictly over `.rx-chunk` divs and cuts the DOM into exact A4 clones.
+// ══════════════════════════════════════════════════════════════════════════════
+function paginateContent() {
+    var marginTopMM    = parseFloat(RX_CONFIG.margins.top) || 40;
+    var marginBottomMM = parseFloat(RX_CONFIG.margins.bottom) || 30;
+    // We allocate 297mm minus physical top/bottom margins
+    var pageHeightMM   = 297 - marginTopMM - marginBottomMM;
+
+    var firstPage = document.getElementById('rx-page-1');
+    if (!firstPage) return;
+
+    var bodyCell = document.getElementById('rx-body-content');
+    if (!bodyCell) return;
+
+    var pageRect     = firstPage.getBoundingClientRect();
+    var pageWidthPx  = pageRect.width;
+    var mmToPx       = pageWidthPx / 210; // Simple ratio
+    var maxBodyPx    = pageHeightMM * mmToPx;
+
+    var header = firstPage.querySelector('thead');
+    var footer = firstPage.querySelector('tfoot');
+    var headerH = header ? header.getBoundingClientRect().height : 0;
+    var footerH = footer ? footer.getBoundingClientRect().height : 0;
+    
+    // We also leave 15px buffer for spacing anomalies
+    var usableBodyPx = maxBodyPx - headerH - footerH - 15;
+
+    var chunks = Array.from(bodyCell.querySelectorAll(':scope > .rx-chunk'));
+    if (chunks.length === 0) return;
+
+    var chunkHeights = chunks.map(function(s) { return s.getBoundingClientRect().height; });
+    var totalH = chunkHeights.reduce(function(a, b) { return a + b; }, 0);
+    
+    // If it all natively fits, stop.
+    if (totalH <= usableBodyPx) return;
+
+    // Distribute chunks across pages
+    var pages = [[]];
+    var running = 0;
+    var medHeaderClone = null;
+
+    chunks.forEach(function(chunk, i) {
+        var isMedHeader = chunk.getAttribute('data-type') === 'med-header';
+        var isMedRow = chunk.getAttribute('data-type') === 'med-row';
+        var h = chunkHeights[i];
+        
+        if (isMedHeader) {
+            medHeaderClone = chunk.cloneNode(true); 
+        }
+
+        // If this chunk alone exceeds the total available, we MUST break.
+        if (running + h > usableBodyPx && running > 0) {
+            pages.push([]);
+            running = 0;
+            
+            // If we are currently parsing medication rows, clone the table header onto the new page!
+            if (isMedRow && medHeaderClone) {
+                var clone = medHeaderClone.cloneNode(true);
+                pages[pages.length - 1].push(clone);
+                // We add an arbitrary 30px height guess for the header to ensure space calculation is safe
+                running += 30; 
+            }
+        }
+        pages[pages.length - 1].push(chunk);
+        running += h;
+    });
+
+    if (pages.length <= 1) return;
+
+    var templateTable = firstPage.querySelector('.rx-layout-table');
+    var templateThead = templateTable.querySelector('thead').cloneNode(true);
+    var templateTfoot = templateTable.querySelector('tfoot').cloneNode(true);
+
+    // Filter and remove chunks belonging to pages 2+ from the first page
+    var sectionsToKeep = pages[0];
+    chunks.forEach(function(s) {
+        if (sectionsToKeep.indexOf(s) === -1) {
+            s.remove();
+        }
+    });
+
+    // Build the overflow pages
+    var allPagesDiv = document.getElementById('all-pages');
+    var pageCounter = 1;
+
+    for (var pi = 1; pi < pages.length; pi++) {
+        pageCounter++;
+        var newPage = document.createElement('div');
+        newPage.className = 'rx-page';
+        newPage.id = 'rx-page-' + pageCounter;
+        
+        // Copy letterhead preview class if present
+        if (firstPage.classList.contains('with-letterhead')) {
+            newPage.classList.add('with-letterhead');
+        }
+
+        var newTable = document.createElement('table');
+        newTable.className = 'rx-layout-table';
+
+        newTable.appendChild(templateThead.cloneNode(true));
+        newTable.appendChild(templateTfoot.cloneNode(true));
+
+        var tbody = document.createElement('tbody');
+        var tr    = document.createElement('tr');
+        var td    = document.createElement('td');
+        td.className = 'rx-body-cell';
+        
+        pages[pi].forEach(function(s) { td.appendChild(s); });
+        
+        tr.appendChild(td);
+        tbody.appendChild(tr);
+
+        // Put tbody in middle
+        newTable.insertBefore(tbody, newTable.querySelector('tfoot'));
+
+        newPage.appendChild(newTable);
+        allPagesDiv.appendChild(newPage);
+    }
+}
 </script>
 </body>
 </html>
