@@ -32,7 +32,7 @@ $patient = $stmt2->get_result()->fetch_assoc();
 
 // Fetch medication items — strictly filter empty rows
 $items_res = $conn->query("SELECT * FROM prescription_items WHERE prescription_id = $rx_id AND TRIM(COALESCE(medicine_name,'')) != '' ORDER BY id ASC");
-$items = $items_res ? $items_res->fetch_all(MYSQLI_ASSOC) : [];
+$rx_items = $items_res ? $items_res->fetch_all(MYSQLI_ASSOC) : [];
 
 // Fetch advised lab tests
 $advised_labs = [];
@@ -155,7 +155,7 @@ $items_for_js = array_values(array_map(fn($i) => [
 'frequency' => $i['frequency'] ?? '',
 'duration' => $i['duration'] ?? '',
 'instructions' => $i['instructions'] ?? '',
-], $items));
+], $rx_items));
 
 // Prepare lab data as JSON for JS initialization
 $labs_for_js = array_values(array_map(fn($l) => [
