@@ -34,7 +34,7 @@
         }
     </script>
     <!-- Alpine.js (self-hosted — no CDN) -->
-    <script defer src="/4me/assets/js/alpine.min.js"></script>
+    <script defer src="/assets/js/alpine.min.js"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" crossorigin="anonymous">
     <style>
